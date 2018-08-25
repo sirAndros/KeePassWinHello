@@ -22,9 +22,15 @@ namespace KeePassWinHello
 
         private System.Timers.Timer _timer;
 
-        public override Image SmallIcon => Properties.Resources.windows_hello16x16;
-        public override string UpdateUrl => "https://github.com/sirAndros/KeePassWinHello/raw/master/keepass.version"; 
+        public override Image SmallIcon
+        {
+            get { return Properties.Resources.windows_hello16x16; }
+        }
 
+        public override string UpdateUrl
+        {
+            get { return "https://github.com/sirAndros/KeePassWinHello/raw/master/keepass.version"; }
+        }
 
         public override bool Initialize(IPluginHost host)
 		{

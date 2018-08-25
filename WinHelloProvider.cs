@@ -34,16 +34,29 @@ namespace KeePassWinHello
             public DateTime ValidUntil;
             public ProtectedBinary ComposedKey;
 
-            public bool IsValid() => ValidUntil >= DateTime.Now;
+            public bool IsValid()
+            {
+                return ValidUntil >= DateTime.Now;
+            }
         }
 
         /// <summary>Maps database paths to cached keys</summary>
         private readonly Dictionary<string, WinHelloData> _unlockCache;
 
-        public override string Name => KeePassWinHelloExt.ShortProductName;
-        public override bool DirectKey => true;
-        public override bool SecureDesktopCompatible => false;
+        public override string Name
+        {
+            get { return KeePassWinHelloExt.ShortProductName; }
+        }
 
+        public override bool DirectKey
+        {
+            get { return true; }
+        }
+
+        public override bool SecureDesktopCompatible
+        {
+            get { return false; }
+        }
 
         public WinHelloProvider()
         {

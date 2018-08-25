@@ -54,7 +54,8 @@ namespace KeePassWinHello
 
         private static string retreivePassportKeyName()
         {
-            NgcGetDefaultDecryptionKeyName(WindowsIdentity.GetCurrent().User.Value, 0, 0, out string key);
+            string key;
+            NgcGetDefaultDecryptionKeyName(WindowsIdentity.GetCurrent().User.Value, 0, 0, out key);
             return key;
         }
 
@@ -96,14 +97,16 @@ namespace KeePassWinHello
                 throw new NotSupportedException("Windows Hello is not available");
 
             byte[] cbResult;
-            chkResult = NCryptOpenStorageProvider(out SafeNCryptProviderHandle ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0);
+            SafeNCryptProviderHandle ngcProviderHandle;
+            chkResult = NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0);
             using (ngcProviderHandle)
             {
                 SafeNCryptKeyHandle ngcKeyHandle;
                 chkResult = NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, m_CurrentPassportKeyName.Value, 0, CngKeyOpenOptions.Silent);
                 using (ngcKeyHandle)
                 {
-                    chkResult = NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out int pcbResult, NCRYPT_PAD_PKCS1_FLAG);
+                    int pcbResult;
+                    chkResult = NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out pcbResult, NCRYPT_PAD_PKCS1_FLAG);
 
                     cbResult = new byte[pcbResult];
                     chkResult = NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG);
@@ -121,10 +124,12 @@ namespace KeePassWinHello
                 throw new NotSupportedException("Windows Hello is not available");
 
             byte[] cbResult;
-            chkResult = NCryptOpenStorageProvider(out SafeNCryptProviderHandle ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0);
+            SafeNCryptProviderHandle ngcProviderHandle;
+            chkResult = NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0);
             using (ngcProviderHandle)
             {
-                chkResult = NCryptOpenKey(ngcProviderHandle, out SafeNCryptKeyHandle ngcKeyHandle, m_CurrentPassportKeyName.Value, 0, CngKeyOpenOptions.None);
+                SafeNCryptKeyHandle ngcKeyHandle;
+                chkResult = NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, m_CurrentPassportKeyName.Value, 0, CngKeyOpenOptions.None);
                 using (ngcKeyHandle)
                 {
                     if (ParentHandle != IntPtr.Zero)
@@ -141,7 +146,8 @@ namespace KeePassWinHello
 
                     // The pbInput and pbOutput parameters can point to the same buffer. In this case, this function will perform the decryption in place.
                     cbResult = new byte[data.Length * 2];
-                    chkResult = NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out int pcbResult, NCRYPT_PAD_PKCS1_FLAG);
+                    int pcbResult;
+                    chkResult = NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG);
                     // TODO: secure resize
                     Array.Resize(ref cbResult, pcbResult);
                 }
