@@ -68,7 +68,6 @@
     </Compile>
     <Compile Include="WinHelloProvider.cs" />
     <Compile Include="WinHelloProxy.cs" />
-    <Compile Include="WinHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="OptionsPanel.resx">

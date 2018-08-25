@@ -238,33 +238,6 @@ namespace KeePassWinHello
                     return null;
             }
 
-
-            // using (new WinMinimizer())
-            {
-                // var task = Task.Factory.StartNew(() => WinHelloProxy.RequestHelloAuth("Authentication to access KeePass database"));
-
-                //Thread.Sleep(1000);
-                //if (KeePassWinHelloExt._keyPromptForm != null)
-                //{
-                //    KeePassWinHelloExt._keyPromptForm.TopMost = false;
-                //    KeePassWinHelloExt._keyPromptForm.SendToBack();
-                //}
-
-                //AuthStatus authStatus = task.Result;
-
-                //AuthStatus authStatus = 
-                //var task = Task.Factory.StartNew(() => WinHelloProxy.RequestHelloAuthAsync("Authentication to access KeePass database"));
-
-                //Thread.Sleep(4000);
-
-                //task.Wait();
-                //if (authStatus != AuthStatus.whSuccess)
-                //{
-                //    MessageService.ShowWarning(authStatus.ToString());
-                //    return null;
-                //} 
-            }
-
             ProtectedBinary result;
             var pinBytes = new ProtectedString(true, KeePassWinHelloExt.Salt).ReadUtf8();
             using (var cipher = CreateCipher(pinBytes, data.Nonce))
