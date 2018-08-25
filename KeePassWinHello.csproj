@@ -80,6 +80,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include=".gitignore" />
     <None Include="keepass.version" />
   </ItemGroup>
   <ItemGroup>
