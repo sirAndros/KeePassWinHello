@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Security.Principal;
 using Microsoft.Win32.SafeHandles;
 
-namespace WinHello
+namespace KeePassWinHello
 {
     public class WinHello
     {

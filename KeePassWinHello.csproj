@@ -46,7 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions.cs" />
     <Compile Include="KeePassWinHelloExt.cs" />
     <Compile Include="OptionsPanel.cs">
       <SubType>UserControl</SubType>
@@ -60,14 +59,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="PromptHolder.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="PromptHolder.Designer.cs">
-      <DependentUpon>PromptHolder.cs</DependentUpon>
-    </Compile>
+    <Compile Include="WinHello.cs" />
     <Compile Include="WinHelloProvider.cs" />
-    <Compile Include="WinHelloProxy.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="OptionsPanel.resx">
@@ -87,23 +80,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\windows-hello48x48.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Libs\msvcp140d.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libs\ucrtbased.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libs\vccorlib140d.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libs\vcruntime140d.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libs\WinHelloAuth.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

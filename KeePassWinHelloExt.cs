@@ -14,13 +14,13 @@ namespace KeePassWinHello
 {
     public class KeePassWinHelloExt : Plugin
 	{
-        public static KeyPromptForm _keyPromptForm { get; private set; }
-        public static IPluginHost Host { get; private set; } = null;
-        public static WinHelloProvider Provider { get; private set; } = null;
+        private static WinHelloProvider _provider;
 
-        private System.Timers.Timer timer;
         public const string ShortProductName = "WindowsHello";
-        public const string Salt = "StrongSecureSaltWithSaltAndBitches!!!ААААААГОНЬ!!!";
+        internal static KeyPromptForm KeyPromptForm { get; private set; }
+        internal static IPluginHost Host { get; private set; }
+
+        private System.Timers.Timer _timer;
 
         public override Image SmallIcon => Properties.Resources.windows_hello16x16;
         public override string UpdateUrl => "https://github.com/sirAndros/KeePassWinHello/raw/master/keepass.version"; 
@@ -31,17 +31,17 @@ namespace KeePassWinHello
 			if (Host != null) { Debug.Assert(false); Terminate(); }
 			if (host == null) { return false; }
 
-			Provider = new WinHelloProvider();
+			_provider = new WinHelloProvider();
 
             Host = host;
-			Host.KeyProviderPool.Add(Provider);
+			Host.KeyProviderPool.Add(_provider);
 			Host.MainWindow.FileClosingPre += FileClosingPreHandler;
 
 			GlobalWindowManager.WindowAdded += WindowAddedHandler;
 
-			timer = new System.Timers.Timer(1000);
-			timer.Elapsed += ElapsedHandler;
-			timer.Start();
+			_timer = new System.Timers.Timer(1000);
+			_timer.Elapsed += ElapsedHandler;
+			_timer.Start();
 
 			return true;
 		}
@@ -51,35 +51,28 @@ namespace KeePassWinHello
 			if (Host == null)
                 return;
 
-            if (timer != null)
+            if (_timer != null)
             {
-                timer.Stop();
-                timer.Elapsed -= ElapsedHandler;
-                timer = null; 
+                _timer.Stop();
+                _timer.Elapsed -= ElapsedHandler;
+                _timer = null; 
             }
 
 			GlobalWindowManager.WindowAdded -= WindowAddedHandler;
             Host.MainWindow.FileClosingPre -= FileClosingPreHandler;
-			Host.KeyProviderPool.Remove(Provider);
+			Host.KeyProviderPool.Remove(_provider);
 
 			Host = null;
 		}
 
-		/// <summary>
-		/// If the timer elapsed clear the expiered keys.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
 		private void ElapsedHandler(object sender, ElapsedEventArgs e)
 		{
-			Provider.ClearExpieredKeys();
+			_provider.ClearExpiredKeys();
 		}
 
 		/// <summary>
 		/// Gets the masterkey before the database is closed.
 		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
 		private void FileClosingPreHandler(object sender, FileClosingEventArgs e)
 		{
 			if (e == null) { Debug.Assert(false); return; }
@@ -87,25 +80,19 @@ namespace KeePassWinHello
 
 			if (e.Database != null && e.Database.MasterKey != null)
 			{
-                var pin = new KeePassLib.Security.ProtectedString(true, Salt);
-                Provider.AddCachedKey(e.Database.IOConnectionInfo.Path, pin, e.Database.MasterKey);
-
-				// If no key is set, remove possible cached key.
-				//provider.RemoveCachedKey(e.Database.IOConnectionInfo.Path);
+                _provider.CacheKeyForDB(e.Database.IOConnectionInfo.Path, e.Database.MasterKey);
 			}
 		}
 
 		/// <summary>
 		/// Used to modify other form when they load.
 		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
 		private void WindowAddedHandler(object sender, GwmWindowEventArgs e)
 		{
 			var keyPromptForm = e.Form as KeyPromptForm;
 			if (keyPromptForm != null)
 			{
-                _keyPromptForm = keyPromptForm;
+                KeyPromptForm = keyPromptForm;
 
                 keyPromptForm.Shown += delegate (object sender2, EventArgs e2)
 				{
@@ -119,7 +106,7 @@ namespace KeePassWinHello
 							var ioInfo = fieldInfo.GetValue(keyPromptForm) as IOConnectionInfo;
 							if (ioInfo != null)
 							{
-								if (Provider.IsCachedKey(ioInfo.Path) && WinHelloProxy.IsHelloAuthAvailable())
+								if (_provider.IsCachedKey(ioInfo.Path) && WinHello.IsAvailable())
 								{
 									var index = m_cmbKeyFile.Items.IndexOf(ShortProductName);
 									if (index != -1)
