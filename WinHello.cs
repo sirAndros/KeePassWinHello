@@ -1,0 +1,158 @@
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Security.Principal;
+using Microsoft.Win32.SafeHandles;
+
+namespace WinHello
+{
+    public class WinHello
+    {
+        private const string MS_NGC_KEY_STORAGE_PROVIDER = "Microsoft Passport Key Storage Provider";
+        private const string NCRYPT_WINDOW_HANDLE_PROPERTY = "HWND Handle";
+        private const string NCRYPT_USE_CONTEXT_PROPERTY = "Use Context";
+        private const string NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY = "PinCacheIsGestureRequired";
+        private const int NCRYPT_PAD_PKCS1_FLAG = 0x00000002;
+
+        [DllImport("cryptngc.dll", CharSet = CharSet.Unicode)]
+        private static extern int NgcGetDefaultDecryptionKeyName(string pszSid, int dwReserved1, int dwReserved2, [Out] out string ppszKeyName);
+
+        [DllImport("ncrypt.dll", CharSet = CharSet.Unicode)]
+        private static extern int NCryptOpenStorageProvider([Out] out SafeNCryptProviderHandle phProvider, string pszProviderName, int dwFlags);
+
+        [DllImport("ncrypt.dll", CharSet = CharSet.Unicode)]
+        private static extern int NCryptOpenKey(SafeNCryptProviderHandle hProvider, [Out] out SafeNCryptKeyHandle phKey, string pszKeyName, int dwLegacyKeySpec, CngKeyOpenOptions dwFlags);
+
+        [DllImport("ncrypt.dll", CharSet = CharSet.Unicode)]
+        private static extern int NCryptSetProperty(SafeNCryptHandle hObject, string pszProperty, string pbInput, int cbInput, CngPropertyOptions dwFlags);
+
+        [DllImport("ncrypt.dll", CharSet = CharSet.Unicode)]
+        private static extern int NCryptSetProperty(SafeNCryptHandle hObject, string pszProperty, [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput, int cbInput, CngPropertyOptions dwFlags);
+
+        [DllImport("ncrypt.dll")]
+        private static extern int NCryptEncrypt(SafeNCryptKeyHandle hKey,
+                                               [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
+                                               int cbInput,
+                                               IntPtr pvPaddingZero,
+                                               [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbOutput,
+                                               int cbOutput,
+                                               [Out] out int pcbResult,
+                                               int dwFlags);
+
+        [DllImport("ncrypt.dll")]
+        private static extern int NCryptDecrypt(SafeNCryptKeyHandle hKey,
+                                               [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
+                                               int cbInput,
+                                               IntPtr pvPaddingZero,
+                                               [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbOutput,
+                                               int cbOutput,
+                                               [Out] out int pcbResult,
+                                               int dwFlags);
+
+
+        private static Lazy<string> m_CurrentPassportKeyName = new Lazy<string>(retreivePassportKeyName);
+
+        private static string retreivePassportKeyName()
+        {
+            NgcGetDefaultDecryptionKeyName(WindowsIdentity.GetCurrent().User.Value, 0, 0, out string key);
+            return key;
+        }
+
+        private static void checkResult(int status)
+        {
+            if (status < 0)
+            {
+                throw new Exception();
+            }
+        }
+
+        private int chkResult
+        {
+            set
+            {
+                if (value < 0)
+                {
+                    //System.Windows.Forms.MessageBox.Show(value.ToString("X4"));
+                    throw new Exception();
+                }
+            }
+        }
+
+        /// public API
+        public static bool IsAvailable()
+        {
+            return !string.IsNullOrEmpty(m_CurrentPassportKeyName.Value);
+        }
+
+        public WinHello() { }
+
+        public string Message { get; set; }
+
+        public IntPtr ParentHandle { get; set; }
+
+        public byte[] Encrypt(byte[] data)
+        {
+            if (!IsAvailable())
+                throw new NotSupportedException("Windows Hello is not available");
+
+            byte[] cbResult;
+            chkResult = NCryptOpenStorageProvider(out SafeNCryptProviderHandle ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0);
+            using (ngcProviderHandle)
+            {
+                SafeNCryptKeyHandle ngcKeyHandle;
+                chkResult = NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, m_CurrentPassportKeyName.Value, 0, CngKeyOpenOptions.Silent);
+                using (ngcKeyHandle)
+                {
+                    chkResult = NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out int pcbResult, NCRYPT_PAD_PKCS1_FLAG);
+
+                    cbResult = new byte[pcbResult];
+                    chkResult = NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG);
+                    System.Diagnostics.Debug.Assert(cbResult.Length == pcbResult);
+                }
+            }
+
+            return cbResult;
+        }
+
+        // TODO: define error codes
+        public byte[] PromptToDecrypt(byte[] data)
+        {
+            if (!IsAvailable())
+                throw new NotSupportedException("Windows Hello is not available");
+
+            byte[] cbResult;
+            chkResult = NCryptOpenStorageProvider(out SafeNCryptProviderHandle ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0);
+            using (ngcProviderHandle)
+            {
+                chkResult = NCryptOpenKey(ngcProviderHandle, out SafeNCryptKeyHandle ngcKeyHandle, m_CurrentPassportKeyName.Value, 0, CngKeyOpenOptions.None);
+                using (ngcKeyHandle)
+                {
+                    if (ParentHandle != IntPtr.Zero)
+                    {
+                        byte[] handle = BitConverter.GetBytes(IntPtr.Size == 8 ? ParentHandle.ToInt64() : ParentHandle.ToInt32());
+                        chkResult = NCryptSetProperty(ngcKeyHandle, NCRYPT_WINDOW_HANDLE_PROPERTY, handle, handle.Length, CngPropertyOptions.None);
+                    }
+
+                    if (!string.IsNullOrEmpty(Message))
+                        chkResult = NCryptSetProperty(ngcKeyHandle, NCRYPT_USE_CONTEXT_PROPERTY, Message, (Message.Length + 1) * 2, CngPropertyOptions.None);
+
+                    byte[] pinRequired = BitConverter.GetBytes(1);
+                    chkResult = NCryptSetProperty(ngcKeyHandle, NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, pinRequired, pinRequired.Length, CngPropertyOptions.None);
+
+                    // The pbInput and pbOutput parameters can point to the same buffer. In this case, this function will perform the decryption in place.
+                    cbResult = new byte[data.Length * 2];
+                    chkResult = NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out int pcbResult, NCRYPT_PAD_PKCS1_FLAG);
+                    // TODO: secure resize
+                    Array.Resize(ref cbResult, pcbResult);
+                }
+            }
+
+            return cbResult;
+        }
+
+        public static string GetKeyName()
+        {
+            return m_CurrentPassportKeyName.Value;
+        }
+    }
+}
