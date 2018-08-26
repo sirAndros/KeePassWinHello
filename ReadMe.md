@@ -13,11 +13,11 @@ Usage
 With this plugin you may:
 1. Unlock your database with your masterkey/keyfile/other provider;
 
-    <img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/KeePassPrompt.png?raw=true" width=600/>
+    <img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/KeePassPrompt.png?raw=true" width=500/>
 2. Lock the database (for example, applying autolock on minimize);
 3. When you try to unlock it again, if Windows Hello is available on your system and active for the database, a Windows Hello prompt will be shown over a classic KeePass unlock prompt;
 
-    <img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/Hello1.png?raw=true" width=600/>
+    <img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/Hello1.png?raw=true" width=500/>
 4. Profit!
 
 Systems Requirements
