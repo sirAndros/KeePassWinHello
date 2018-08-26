@@ -4,7 +4,7 @@ Quick unlock with Windows Hello for KeePass 2
 This plugin for [KeePass 2][KeePass] password manager is intended for fast authorisation to a database after its first unlock using [Windows Hello technology][WinHello].
 
 [KeePass]: https://keepass.info/
-[WinHello]: https://support.microsoft.com/en-us/help/17215/windows-10-what-is-hello]
+[WinHello]: https://support.microsoft.com/en-us/help/17215/windows-10-what-is-hello
 
 
 Usage
@@ -13,11 +13,11 @@ Usage
 With this plugin you may:
 1. Unlock your database with your masterkey/keyfile/other provider;
 
-    <img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/KeePassPrompt.png?raw=true" width=250/>
+    <img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/KeePassPrompt.png?raw=true" width=600/>
 2. Lock the database (for example, applying autolock on minimize);
 3. When you try to unlock it again, if Windows Hello is available on your system and active for the database, a Windows Hello prompt will be shown over a classic KeePass unlock prompt;
 
-    <img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/Hello1.png?raw=true" width=250/>
+    <img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/Hello1.png?raw=true" width=600/>
 4. Profit!
 
 Systems Requirements
@@ -42,7 +42,7 @@ Options
 
 The plugin integrates itself into the KeePass settings dialog.
 
-![Options](https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/Options.png?raw=true)
+<img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/Options.png?raw=true" width=600/>
 
 Available settings:
 
