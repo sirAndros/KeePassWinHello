@@ -31,6 +31,7 @@
             this.infoLabel = new System.Windows.Forms.Label();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
             this.autoPromptCheckBox = new System.Windows.Forms.CheckBox();
+            this.winHelloDisabled = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // infoLabel
@@ -77,10 +78,23 @@
             this.autoPromptCheckBox.Text = "Auto prompt for the WinHello key if it is available.";
             this.autoPromptCheckBox.UseVisualStyleBackColor = true;
             // 
+            // winHelloDisabled
+            // 
+            this.winHelloDisabled.AutoSize = true;
+            this.winHelloDisabled.ForeColor = System.Drawing.Color.Red;
+            this.winHelloDisabled.Location = new System.Drawing.Point(3, 275);
+            this.winHelloDisabled.Name = "winHelloDisabled";
+            this.winHelloDisabled.Size = new System.Drawing.Size(393, 13);
+            this.winHelloDisabled.TabIndex = 9;
+            this.winHelloDisabled.Text = "Windows Hello is disabled on your system. Please activate it in the system settin" +
+    "gs";
+            this.winHelloDisabled.Visible = false;
+            // 
             // OptionsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.winHelloDisabled);
             this.Controls.Add(this.autoPromptCheckBox);
             this.Controls.Add(this.infoLabel);
             this.Controls.Add(this.validPeriodComboBox);
@@ -96,5 +110,6 @@
 		private System.Windows.Forms.Label infoLabel;
 		private System.Windows.Forms.ComboBox validPeriodComboBox;
 		private System.Windows.Forms.CheckBox autoPromptCheckBox;
-	}
+        private System.Windows.Forms.Label winHelloDisabled;
+    }
 }

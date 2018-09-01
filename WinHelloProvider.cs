@@ -68,6 +68,7 @@ namespace KeePassWinHello
         {
             Contract.Requires(!string.IsNullOrEmpty(databasePath));
             Contract.Requires(keys != null);
+            Contract.Requires(WinHello.IsAvailable());
 
             var validPeriod = KeePassWinHelloExt.Host.CustomConfig.GetULong(CfgValidPeriod, VALID_DEFAULT);
             lock (_unlockCache)

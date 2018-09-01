@@ -84,7 +84,7 @@ namespace KeePassWinHello
 			if (e == null) { Debug.Assert(false); return; }
 			if (e.Cancel) { return; }
 
-			if (e.Database != null && e.Database.MasterKey != null)
+			if (e.Database != null && e.Database.MasterKey != null && WinHello.IsAvailable())
 			{
                 _provider.CacheKeyForDB(e.Database.IOConnectionInfo.Path, e.Database.MasterKey);
 			}

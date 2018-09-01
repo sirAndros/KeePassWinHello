@@ -100,6 +100,13 @@ namespace KeePassWinHello
 					}
 				};
 			}
+
+            if (!WinHello.IsAvailable())
+            {
+                autoPromptCheckBox.Enabled = false;
+                validPeriodComboBox.Enabled = false;
+                winHelloDisabled.Visible = true;
+            }
 		}
 	}
 }
