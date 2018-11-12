@@ -11,16 +11,17 @@ if (!$ProjectDir) {
     $ProjectDir = $PSScriptRoot
 }
 
-if (Test-Path $TempDirName) {
-    rm $TempDirName -Force -Recurse
+$dest = "$ProjectDir\$TempDirName"
+if (Test-Path $dest) {
+    rm $dest -Force -Recurse
 }
-mkdir $TempDirName > $null
+mkdir $dest > $null
 
-$ExcludedItems = '.*', '*.sln', 'bin', 'obj', '*.user', '*.ps1', '*.plgx', $TempDirName
+$ExcludedItems = '.*', '*.sln', 'bin', 'obj', '*.user', '*.ps1', '*.plgx', '*.md', $TempDirName, 'Screenshots'
 dir $ProjectDir | 
     ?{ $i=$_; $res=$true; $ExcludedItems | %{ $i -notlike $_ } | %{ $res = $_ -and $res }; $res } |
-    %{ copy $_.FullName $TempDirName -Recurse }
+    %{ copy $_.FullName $dest -Recurse }
 
-Start-Process $keePassExe -arg '--plgx-create',"`"$ProjectDir\$TempDirName`"" -Wait
+Start-Process $keePassExe -arg '--plgx-create',"`"$dest`"" -Wait
 
-rm $TempDirName -Force -Recurse
+rm $dest -Force -Recurse
