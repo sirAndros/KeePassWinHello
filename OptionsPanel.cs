@@ -71,7 +71,7 @@ namespace KeePassWinHello
 				case WinHelloProvider.VALID_1DAY: return 10;
 				case WinHelloProvider.VALID_7DAYS: return 11;
 				case WinHelloProvider.VALID_MONTH: return 12;
-                default: return 3;
+                default: return 10;
 			}
 		}
 

@@ -47,7 +47,7 @@ The plugin integrates itself into the KeePass settings dialog.
 Available settings:
 
 * Auto prompt (default: true): If enabled a Windows Hello prompt will automatically be opened while unlocking the database as long as it is available.
-* Valid time period (default: 10 minutes): Choose how long a saved key will be available. Once this period has expired you need to provide your full password to unlock the database again.
+* Valid time period (default: 24 hours): Choose how long a saved key will be available. Once this period has expired you need to provide your full password to unlock the database again.
 
 Notes
 -----

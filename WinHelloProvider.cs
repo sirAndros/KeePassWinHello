@@ -27,7 +27,7 @@ namespace KeePassWinHello
         public const ulong VALID_1DAY = VALID_12HOURS * 2;
         public const ulong VALID_7DAYS = VALID_1DAY * 7;
         public const ulong VALID_MONTH = VALID_1DAY * 30;
-        public const ulong VALID_DEFAULT = VALID_10MINUTES;
+        public const ulong VALID_DEFAULT = VALID_1DAY;
 
         private class WinHelloData
         {
