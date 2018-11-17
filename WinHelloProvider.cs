@@ -29,19 +29,22 @@ namespace KeePassWinHello
         public const ulong VALID_MONTH = VALID_1DAY * 30;
         public const ulong VALID_DEFAULT = VALID_1DAY;
 
-        private class WinHelloData
+        internal class WinHelloData
         {
             public DateTime ValidUntil;
             public ProtectedBinary ComposedKey;
+            public ProtectedString KeyFile;
+            public bool IsLastLoginOur;
 
             public bool IsValid()
             {
-                return ValidUntil >= DateTime.Now;
+                return ComposedKey != null
+                    && ValidUntil >= DateTime.Now;
             }
         }
 
         /// <summary>Maps database paths to cached keys</summary>
-        private readonly Dictionary<string, WinHelloData> _unlockCache;
+        internal readonly Dictionary<string, WinHelloData> _unlockCache;
 
         public override string Name
         {
@@ -73,18 +76,15 @@ namespace KeePassWinHello
             var validPeriod = KeePassWinHelloExt.Host.CustomConfig.GetULong(CfgValidPeriod, VALID_DEFAULT);
             lock (_unlockCache)
             {
-                _unlockCache[databasePath] = new WinHelloData
-                {
-                    ValidUntil = validPeriod == VALID_UNLIMITED ? DateTime.MaxValue : DateTime.Now.AddSeconds(validPeriod),
-                    ComposedKey = Encrypt(keys),
-                };
-            }
-        }
+                WinHelloData item;
+                if (!_unlockCache.TryGetValue(databasePath, out item))
+                    item = new WinHelloData();
 
-        internal void RemoveCachedKey(string databasePath)
-        {
-            lock (_unlockCache)
-                _unlockCache.Remove(databasePath);
+                item.ValidUntil = validPeriod == VALID_UNLIMITED ? DateTime.MaxValue : DateTime.Now.AddSeconds(validPeriod);
+                item.ComposedKey = Encrypt(keys);
+
+                _unlockCache[databasePath] = item;
+            }
         }
 
         private bool TryGetCachedKey(string databasePath, out WinHelloData data)
@@ -94,17 +94,11 @@ namespace KeePassWinHello
                     && data.IsValid();
         }
 
-        internal bool IsCachedKey(string databasePath)
-        {
-            lock (_unlockCache)
-                return _unlockCache.ContainsKey(databasePath);
-        }
-
         internal void ClearExpiredKeys()
         {
-            lock (_unlockCache)
-                foreach (var key in _unlockCache.Where(kv => !kv.Value.IsValid()).Select(kv => kv.Key).ToList())
-                    _unlockCache.Remove(key);
+            //lock (_unlockCache)
+            //    foreach (var key in _unlockCache.Where(kv => !kv.Value.IsValid()).Select(kv => kv.Key).ToList())
+            //        _unlockCache.Remove(key);
         }
 
         internal void ClearCache()
@@ -136,9 +130,12 @@ namespace KeePassWinHello
 
             try
             {
-                RemoveCachedKey(ctx.DatabasePath);
-                var result = Decrypt(data.ComposedKey);
-                return result.ReadData();
+                var key = data.ComposedKey;
+                data.ComposedKey = null;
+
+                var result = Decrypt(key).ReadData();
+                data.IsLastLoginOur = result != null && result.Length > 0;
+                return result;
             }
             catch (Exception ex)
             {
