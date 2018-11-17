@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace KeePassWinHello
 {
-    public class WinHello
+    internal class WinHello : IWinHello
     {
         private const string MS_NGC_KEY_STORAGE_PROVIDER = "Microsoft Passport Key Storage Provider";
         private const string NCRYPT_WINDOW_HANDLE_PROPERTY = "HWND Handle";

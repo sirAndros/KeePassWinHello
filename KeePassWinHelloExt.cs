@@ -14,7 +14,7 @@ namespace KeePassWinHello
 {
     public class KeePassWinHelloExt : Plugin
 	{
-        private static WinHelloProvider _provider;
+        private static WinHelloKeyProvider _provider;
 
         public const string ShortProductName = "WindowsHello";
         internal static KeyPromptForm KeyPromptForm { get; private set; }
@@ -37,7 +37,7 @@ namespace KeePassWinHello
 			if (Host != null) { Debug.Assert(false); Terminate(); }
 			if (host == null) { return false; }
 
-			_provider = new WinHelloProvider();
+			_provider = new WinHelloKeyProvider();
 
             Host = host;
 			Host.KeyProviderPool.Add(_provider);
@@ -84,7 +84,7 @@ namespace KeePassWinHello
 			if (e == null) { Debug.Assert(false); return; }
 			if (e.Cancel) { return; }
 
-			if (e.Database != null && e.Database.MasterKey != null && WinHello.IsAvailable())
+			if (e.Database != null && e.Database.MasterKey != null && WinHelloCryptProvider.IsAvailable())
 			{
                 _provider.CacheKeyForDB(e.Database.IOConnectionInfo.Path, e.Database.MasterKey);
 			}
@@ -112,7 +112,7 @@ namespace KeePassWinHello
 							var ioInfo = fieldInfo.GetValue(keyPromptForm) as IOConnectionInfo;
 							if (ioInfo != null)
 							{
-								if (_provider.IsCachedKey(ioInfo.Path) && WinHello.IsAvailable())
+								if (_provider.IsCachedKey(ioInfo.Path) && WinHelloCryptProvider.IsAvailable())
 								{
 									var index = m_cmbKeyFile.Items.IndexOf(ShortProductName);
 									if (index != -1)
@@ -126,7 +126,7 @@ namespace KeePassWinHello
 										}
 
                                         // If AutoPrompt is enabled click the Ok button.
-                                        if (Host.CustomConfig.GetBool(WinHelloProvider.CfgAutoPrompt, true))
+                                        if (Host.CustomConfig.GetBool(WinHelloKeyProvider.CfgAutoPrompt, true))
                                         {
                                             var m_btnOK = keyPromptForm.Controls.Find("m_btnOK", false).FirstOrDefault() as Button;
                                             if (m_btnOK != null)

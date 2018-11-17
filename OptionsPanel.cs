@@ -17,12 +17,12 @@ namespace KeePassWinHello
 
 			var config = KeePassWinHelloExt.Host.CustomConfig;
 
-			autoPromptCheckBox.Checked = config.GetBool(WinHelloProvider.CfgAutoPrompt, true);
+			autoPromptCheckBox.Checked = config.GetBool(WinHelloKeyProvider.CfgAutoPrompt, true);
 
 			validPeriodComboBox.SelectedIndex = PeriodToIndex(
 				config.GetULong(
-					WinHelloProvider.CfgValidPeriod,
-					WinHelloProvider.VALID_DEFAULT
+					WinHelloKeyProvider.CfgValidPeriod,
+					WinHelloKeyProvider.VALID_DEFAULT
 				)
 			);
 		}
@@ -34,20 +34,20 @@ namespace KeePassWinHello
 		{
 			switch (index)
 			{
-				case 0: return WinHelloProvider.VALID_UNLIMITED;
-				case 1: return WinHelloProvider.VALID_1MINUTE;
-				case 2: return WinHelloProvider.VALID_5MINUTES;
-				case 3: return WinHelloProvider.VALID_10MINUTES;
-				case 4: return WinHelloProvider.VALID_15MINUTES;
-				case 5: return WinHelloProvider.VALID_30MINUTES;
-				case 6: return WinHelloProvider.VALID_1HOUR;
-				case 7: return WinHelloProvider.VALID_2HOURS;
-				case 8: return WinHelloProvider.VALID_6HOURS;
-				case 9: return WinHelloProvider.VALID_12HOURS;
-				case 10: return WinHelloProvider.VALID_1DAY;
-				case 11: return WinHelloProvider.VALID_7DAYS;
-				case 12: return WinHelloProvider.VALID_MONTH;
-                default:return WinHelloProvider.VALID_DEFAULT;
+				case 0: return WinHelloKeyProvider.VALID_UNLIMITED;
+				case 1: return WinHelloKeyProvider.VALID_1MINUTE;
+				case 2: return WinHelloKeyProvider.VALID_5MINUTES;
+				case 3: return WinHelloKeyProvider.VALID_10MINUTES;
+				case 4: return WinHelloKeyProvider.VALID_15MINUTES;
+				case 5: return WinHelloKeyProvider.VALID_30MINUTES;
+				case 6: return WinHelloKeyProvider.VALID_1HOUR;
+				case 7: return WinHelloKeyProvider.VALID_2HOURS;
+				case 8: return WinHelloKeyProvider.VALID_6HOURS;
+				case 9: return WinHelloKeyProvider.VALID_12HOURS;
+				case 10: return WinHelloKeyProvider.VALID_1DAY;
+				case 11: return WinHelloKeyProvider.VALID_7DAYS;
+				case 12: return WinHelloKeyProvider.VALID_MONTH;
+                default:return WinHelloKeyProvider.VALID_DEFAULT;
 			}
 		}
 
@@ -58,19 +58,19 @@ namespace KeePassWinHello
 		{
 			switch (period)
 			{
-				case WinHelloProvider.VALID_UNLIMITED: return 0;
-				case WinHelloProvider.VALID_1MINUTE: return 1;
-				case WinHelloProvider.VALID_5MINUTES: return 2;
-				case WinHelloProvider.VALID_10MINUTES: return 3;
-				case WinHelloProvider.VALID_15MINUTES: return 4;
-				case WinHelloProvider.VALID_30MINUTES: return 5;
-				case WinHelloProvider.VALID_1HOUR: return 6;
-				case WinHelloProvider.VALID_2HOURS: return 7;
-				case WinHelloProvider.VALID_6HOURS: return 8;
-				case WinHelloProvider.VALID_12HOURS: return 9;
-				case WinHelloProvider.VALID_1DAY: return 10;
-				case WinHelloProvider.VALID_7DAYS: return 11;
-				case WinHelloProvider.VALID_MONTH: return 12;
+				case WinHelloKeyProvider.VALID_UNLIMITED: return 0;
+				case WinHelloKeyProvider.VALID_1MINUTE: return 1;
+				case WinHelloKeyProvider.VALID_5MINUTES: return 2;
+				case WinHelloKeyProvider.VALID_10MINUTES: return 3;
+				case WinHelloKeyProvider.VALID_15MINUTES: return 4;
+				case WinHelloKeyProvider.VALID_30MINUTES: return 5;
+				case WinHelloKeyProvider.VALID_1HOUR: return 6;
+				case WinHelloKeyProvider.VALID_2HOURS: return 7;
+				case WinHelloKeyProvider.VALID_6HOURS: return 8;
+				case WinHelloKeyProvider.VALID_12HOURS: return 9;
+				case WinHelloKeyProvider.VALID_1DAY: return 10;
+				case WinHelloKeyProvider.VALID_7DAYS: return 11;
+				case WinHelloKeyProvider.VALID_MONTH: return 12;
                 default: return 10;
 			}
 		}
@@ -90,18 +90,18 @@ namespace KeePassWinHello
 						var config = KeePassWinHelloExt.Host.CustomConfig;
 
 						config.SetBool(
-							WinHelloProvider.CfgAutoPrompt,
+							WinHelloKeyProvider.CfgAutoPrompt,
 							autoPromptCheckBox.Checked
 						);
 						config.SetULong(
-							WinHelloProvider.CfgValidPeriod,
+							WinHelloKeyProvider.CfgValidPeriod,
 							IndexToPeriod(validPeriodComboBox.SelectedIndex)
 						);
 					}
 				};
 			}
 
-            if (!WinHello.IsAvailable())
+            if (!WinHelloCryptProvider.IsAvailable())
             {
                 autoPromptCheckBox.Enabled = false;
                 validPeriodComboBox.Enabled = false;

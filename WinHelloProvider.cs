@@ -9,7 +9,7 @@ using KeePassLib.Utility;
 
 namespace KeePassWinHello
 {
-    public class WinHelloProvider : KeyProvider
+    public class WinHelloKeyProvider : KeyProvider
     {
         public const string CfgAutoPrompt = KeePassWinHelloExt.ShortProductName + "_AutoPrompt";
         public const string CfgValidPeriod = KeePassWinHelloExt.ShortProductName + "_ValidPeriod";
@@ -58,17 +58,17 @@ namespace KeePassWinHello
             get { return false; }
         }
 
-        public WinHelloProvider()
+        public WinHelloKeyProvider()
         {
             _unlockCache = new Dictionary<string, WinHelloData>();
         }
 
 
-        public void CacheKeyForDB(string databasePath, CompositeKey keys)
+        internal void CacheKeyForDB(string databasePath, CompositeKey keys)
         {
             Contract.Requires(!string.IsNullOrEmpty(databasePath));
             Contract.Requires(keys != null);
-            Contract.Requires(WinHello.IsAvailable());
+            Contract.Requires(WinHelloCryptProvider.IsAvailable());
 
             var validPeriod = KeePassWinHelloExt.Host.CustomConfig.GetULong(CfgValidPeriod, VALID_DEFAULT);
             lock (_unlockCache)
@@ -81,7 +81,7 @@ namespace KeePassWinHello
             }
         }
 
-        public void RemoveCachedKey(string databasePath)
+        internal void RemoveCachedKey(string databasePath)
         {
             lock (_unlockCache)
                 _unlockCache.Remove(databasePath);
@@ -90,23 +90,24 @@ namespace KeePassWinHello
         private bool TryGetCachedKey(string databasePath, out WinHelloData data)
         {
             lock (_unlockCache)
-                return _unlockCache.TryGetValue(databasePath, out data);
+                return _unlockCache.TryGetValue(databasePath, out data)
+                    && data.IsValid();
         }
 
-        public bool IsCachedKey(string databasePath)
+        internal bool IsCachedKey(string databasePath)
         {
             lock (_unlockCache)
                 return _unlockCache.ContainsKey(databasePath);
         }
 
-        public void ClearExpiredKeys()
+        internal void ClearExpiredKeys()
         {
             lock (_unlockCache)
                 foreach (var key in _unlockCache.Where(kv => !kv.Value.IsValid()).Select(kv => kv.Key).ToList())
                     _unlockCache.Remove(key);
         }
 
-        public void ClearCache()
+        internal void ClearCache()
         {
             lock (_unlockCache)
                 _unlockCache.Clear();
@@ -127,7 +128,7 @@ namespace KeePassWinHello
             }
 
             WinHelloData data;
-            if (!TryGetCachedKey(ctx.DatabasePath, out data) || !data.IsValid())
+            if (!TryGetCachedKey(ctx.DatabasePath, out data))
             {
                 MessageService.ShowWarning("WinHello is not available for this database.");
                 return null;
@@ -182,7 +183,8 @@ namespace KeePassWinHello
         }
         private ProtectedBinary Encrypt(ProtectedBinary composedKey)
         {
-            WinHello winHello = new WinHello();
+            IWinHello winHello = WinHelloCryptProvider.GetInstance();
+
             byte[] data = composedKey.ReadData();
             byte[] encryptedData;
             try
@@ -201,7 +203,7 @@ namespace KeePassWinHello
 
         private ProtectedBinary Decrypt(ProtectedBinary encryptedKey)
         {
-            WinHello winHello = new WinHello();
+            IWinHello winHello = WinHelloCryptProvider.GetInstance();
             winHello.Message = "Authentication to access KeePass database";
             winHello.ParentHandle = KeePassWinHelloExt.KeyPromptForm.Handle;
 
