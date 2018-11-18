@@ -1,24 +1,29 @@
 ﻿using System;
 
-namespace KeePassWinHello
+namespace WinHelloQuickUnlock
 {
     public interface IWinHello
     {
-        string Message { get; set; }
-        IntPtr ParentHandle { get; set; }
-
         byte[] Encrypt(byte[] data);
         byte[] PromptToDecrypt(byte[] data);
     }
 
     static class WinHelloCryptProvider
     {
-        public static IWinHello GetInstance()
+        public static IWinHello GetInstance(string message, IntPtr windowHandle)
         {
 #if DEBUG
-            return new WinHelloStub();
+            return new WinHelloStub
+            {
+                Message = message,
+                Handle = windowHandle,
+            };
 #else
-            return new WinHello();
+            return new WinHello
+            {
+                Message = message,
+                ParentHandle = windowHandle,
+            };
 #endif
         }
 

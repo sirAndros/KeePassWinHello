@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace KeePassWinHello
+namespace WinHelloQuickUnlock
 {
-    class WinHelloStub : IWinHello
+    class WinHelloStub : IWinHello, IWin32Window
     {
         public string Message { get; set; }
-        public IntPtr ParentHandle { get; set; }
+        public IntPtr Handle { get; set; }
 
         public byte[] Encrypt(byte[] data)
         {
@@ -18,7 +18,7 @@ namespace KeePassWinHello
 
         public byte[] PromptToDecrypt(byte[] data)
         {
-            var dlgRslt = MessageBox.Show("Decrypt?", "Test", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+            var dlgRslt = MessageBox.Show(this, Message, "Test", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
             if (dlgRslt == DialogResult.OK)
             {
                 return data.ToArray();

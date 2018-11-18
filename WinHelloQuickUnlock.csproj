@@ -7,8 +7,8 @@
     <ProjectGuid>{6A249FA1-3F87-4C81-8D31-6BDF62308F48}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>KeePassWinHello</RootNamespace>
-    <AssemblyName>KeePassWinHello</AssemblyName>
+    <RootNamespace>WinHelloQuickUnlock</RootNamespace>
+    <AssemblyName>WinHelloQuickUnlock</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -47,12 +47,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IWinHello.cs" />
+    <Compile Include="CryptoProviders\IWinHello.cs" />
     <Compile Include="KeePassWinHelloExt.cs" />
-    <Compile Include="OptionsPanel.cs">
+    <Compile Include="KeyManagement\KeyCipher.cs" />
+    <Compile Include="KeyManagement\KeyManager.cs" />
+    <Compile Include="KeyManagement\KeyStorage.cs" />
+    <Compile Include="Settings\OptionsPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="OptionsPanel.Designer.cs">
+    <Compile Include="Settings\OptionsPanel.Designer.cs">
       <DependentUpon>OptionsPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -61,12 +64,14 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="WinHello.cs" />
-    <Compile Include="WinHelloProvider.cs" />
-    <Compile Include="WinHelloStub.cs" />
+    <Compile Include="Settings\Settings.cs" />
+    <Compile Include="CryptoProviders\WinHello.cs" />
+    <Compile Include="WinHelloQuickUnlockPlugin.cs" />
+    <Compile Include="___WinHelloProvider.cs" />
+    <Compile Include="CryptoProviders\WinHelloStub.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="OptionsPanel.resx">
+    <EmbeddedResource Include="Settings\OptionsPanel.resx">
       <DependentUpon>OptionsPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
