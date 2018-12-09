@@ -29,17 +29,21 @@ namespace WinHelloQuickUnlock
             if (keyPromptForm.SecureDesktopMode)
                 return;
 
-            CompositeKey encryptedData;
+            ProtectedKey encryptedData;
             var dbPath = GetDbPath(keyPromptForm);
             if (!FindQuickUnlockData(dbPath, out encryptedData))
                 return;
 
-            var compositeKey = GetCompositeKey(encryptedData);
-            if (compositeKey != null)
+            CompositeKey compositeKey;
+            if (TryGetCompositeKey(encryptedData, out compositeKey))
             {
                 SetCompositeKey(keyPromptForm, compositeKey);
+                // Remove flushing
+                keyPromptForm.Visible = false;
+                keyPromptForm.Opacity = 0;
+
                 keyPromptForm.DialogResult = DialogResult.OK;
-                keyPromptForm.Close(); 
+                keyPromptForm.Close();
             }
         }
 
@@ -55,14 +59,43 @@ namespace WinHelloQuickUnlock
                 return;
 
             string dbPath = e.Database.IOConnectionInfo.Path;
-            if (!e.Flags.HasFlag(FileEventFlags.Locking))
+            if (!IsDBLocking(e))
             {
                 _keyStorage.Remove(dbPath);
             }
             else if (WinHelloCryptProvider.IsAvailable())
             {
-                _keyStorage.AddOrUpdate(dbPath, _keyCipher.Protect(e.Database.MasterKey));
+                _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
             }
+        }
+
+        private static bool IsDBLocking(FileClosingEventArgs e)
+        {
+            try
+            {
+                var FlagsProperty = typeof(FileClosingEventArgs).GetProperty("Flags");
+                if (FlagsProperty == null)
+                    return true;
+
+                var FlagsType = FlagsProperty.PropertyType;
+                int FlagsValue = Convert.ToInt32(FlagsProperty.GetValue(e, null));
+
+                var names = Enum.GetNames(FlagsType);
+                for (int i = 0; i != names.Length; ++i)
+                {
+                    if (names[i] == "Locking")
+                    {
+                        int Locking = Convert.ToInt32(Enum.GetValues(FlagsType).GetValue(i));
+                        if ((FlagsValue & Locking) != Locking)
+                        {
+                            return false;
+                        }
+                        break;
+                    }
+                }
+            }
+            catch { }
+            return true;
         }
 
         private void SetCompositeKey(KeyPromptForm keyPromptForm, CompositeKey compositeKey)
@@ -72,12 +105,22 @@ namespace WinHelloQuickUnlock
                 fieldInfo.SetValue(keyPromptForm, compositeKey);
         }
 
-        private CompositeKey GetCompositeKey(CompositeKey encryptedData)
+        private bool TryGetCompositeKey(ProtectedKey encryptedData, out CompositeKey compositeKey)
         {
-            return _keyCipher.UnProtect(encryptedData);
+            try
+            {
+                compositeKey = encryptedData.GetCompositeKey(_keyCipher);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail(ex.ToString()); // TODO: fix canceled exception
+                compositeKey = null;
+                return false;
+            }
         }
 
-        private bool FindQuickUnlockData(string dbPath, out CompositeKey encryptedData)
+        private bool FindQuickUnlockData(string dbPath, out ProtectedKey encryptedData)
         {
             if (String.IsNullOrEmpty(dbPath))
             {

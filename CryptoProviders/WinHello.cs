@@ -59,22 +59,24 @@ namespace WinHelloQuickUnlock
             return key;
         }
 
-        private static void checkResult(int status)
-        {
-            if (status < 0)
-            {
-                throw new Exception();
-            }
-        }
-
         private int chkResult
         {
             set
             {
                 if (value < 0)
                 {
-                    //System.Windows.Forms.MessageBox.Show(value.ToString("X4"));
-                    throw new Exception(value.ToString("X4"));
+                    /*
+                     * NTE_BAD_FLAGS
+                     * NTE_BAD_KEYSET
+                     * NTE_BAD_KEY_STATE
+                     * NTE_BUFFER_TOO_SMALL
+                     * NTE_INVALID_HANDLE
+                     * NTE_INVALID_PARAMETER
+                     * NTE_PERM
+                     * NTE_NO_MEMORY
+                     * NTE_NOT_SUPPORTED
+                     */
+                    throw new ExternalException("External error occurred", value);
                 }
             }
         }
@@ -117,7 +119,6 @@ namespace WinHelloQuickUnlock
             return cbResult;
         }
 
-        // TODO: define error codes
         public byte[] PromptToDecrypt(byte[] data)
         {
             if (!IsAvailable())

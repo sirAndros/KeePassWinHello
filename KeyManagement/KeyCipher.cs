@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
+using KeePassLib.Cryptography;
+using KeePassLib.Cryptography.Cipher;
 using KeePassLib.Keys;
 using KeePassLib.Security;
 using KeePassLib.Utility;
@@ -11,93 +14,128 @@ namespace WinHelloQuickUnlock
 {
     class KeyCipher
     {
+        private readonly uint _randomSeedBits;
+        private readonly byte[] _encryptionIV;
+        private readonly ICipherEngine _cipherEngine;
         private readonly IWinHello _cryptProvider;
 
         public KeyCipher(string message, IntPtr windowHandle)
         {
+            _randomSeedBits = 256;
+            _encryptionIV = CryptoRandom.Instance.GetRandomBytes(16);
+            _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
             _cryptProvider = WinHelloCryptProvider.GetInstance(message, windowHandle);
         }
 
-
-        public CompositeKey Protect(CompositeKey compositeKey)
-        {
-            return compositeKey; //todo
-            var result = new CompositeKey();
-            foreach (var key in compositeKey.UserKeys)
-            {
-                var protectedKeyData = Protect(key.KeyData);
-                //result.AddUserKey();
-            }
-            return result;
-        }
-
-        public CompositeKey UnProtect(CompositeKey compositeKey)
-        {
-            try
-            {
-                var data = _cryptProvider.Encrypt(Encoding.UTF8.GetBytes("TEST_MOTHER_FUCKER"));
-                _cryptProvider.PromptToDecrypt(data);
-                return compositeKey; //todo
-            }
-            catch (Exception ex)
-            {
-                //System.Windows.Forms.MessageBox.Show(ex.ToString());
-                Debug.Fail(ex.ToString());
-                return null;
-            }
-        }
-
-        //private IUserKey ReCreateKey(IUserKey oldKey, ProtectedBinary newSecret)
-        //{
-        //    var type = oldKey.GetType();
-        //    if (type == typeof(KcpPassword))
-        //    {
-        //        return new 
-        //    }
-        //    switch (type.FullName)
-        //    {
-        //        case "KeePassLib.Keys.KcpPassword":
-        //            return new KcpPassword()
-        //        default:
-        //            break;
-        //    }
-        //}
-
-        private ProtectedBinary Protect(ProtectedBinary key)
+        public ProtectedBinary Protect(ProtectedBinary key)
         {
             byte[] data = key.ReadData();
-            byte[] encryptedData;
+            byte[] encryptedData = null;
             try
             {
                 encryptedData = _cryptProvider.Encrypt(data);
+
+                var result = new ProtectedBinary(true, encryptedData);
+                return result;
+            }
+            finally
+            {
+                MemUtil.ZeroByteArray(data);
+                if (encryptedData != null)
+                    MemUtil.ZeroByteArray(encryptedData);
+            }
+        }
+
+        public ProtectedBinary UnProtect(ProtectedBinary key)
+        {
+            byte[] encryptedData = key.ReadData();
+            byte[] data = null;
+            try
+            {
+                data = _cryptProvider.PromptToDecrypt(encryptedData);
+
+                var result = new ProtectedBinary(true, data);
+                return result;
+            }
+            finally
+            {
+                MemUtil.ZeroByteArray(encryptedData);
+                if (data != null)
+                    MemUtil.ZeroByteArray(data);
+            }
+        }
+
+        public ProtectedBinary GeneratePassword()
+        {
+            var data = CryptoRandom.Instance.GetRandomBytes(_randomSeedBits >> 3);
+            try
+            {
+                return new ProtectedBinary(true, data);
             }
             finally
             {
                 MemUtil.ZeroByteArray(data);
             }
-
-            var result = new ProtectedBinary(true, encryptedData);
-            MemUtil.ZeroByteArray(encryptedData);
-            return result;
         }
 
-        private ProtectedBinary UnProtect(ProtectedBinary key)
+        public byte[] Decrypt(ProtectedBinary encodedData, ProtectedBinary password)
         {
-            byte[] encryptedData = key.ReadData();
-
-            byte[] data;
+            byte[] rawData = encodedData.ReadData();
+            byte[] rawPassword = password.ReadData();
             try
             {
-                data = _cryptProvider.PromptToDecrypt(encryptedData);
+                using (var stream = new MemoryStream(rawData))
+                using (var decryptingStream = _cipherEngine.DecryptStream(stream, rawPassword, _encryptionIV))
+                using (var reader = new MemoryStream())
+                {
+                    decryptingStream.CopyTo(reader);
+                    return reader.ToArray();
+                }
             }
             finally
             {
-                MemUtil.ZeroByteArray(encryptedData);
+                MemUtil.ZeroByteArray(rawData);
+                MemUtil.ZeroByteArray(rawPassword);
             }
+        }
 
-            var result = new ProtectedBinary(true, data);
-            MemUtil.ZeroByteArray(data);
-            return result;
+        public ProtectedBinary Encrypt(ProtectedBinary data, ProtectedBinary password)
+        {
+            byte[] rawData = data.ReadData();
+            byte[] rawPassword = password.ReadData();
+            byte[] rawEncrypted = null;
+            try
+            {
+                using (var stream = new MemoryStream())
+                using (var encryptingStream = _cipherEngine.EncryptStream(stream, rawPassword, _encryptionIV))
+                {
+                    encryptingStream.Write(rawData, 0, rawData.Length);
+                    encryptingStream.Close();
+
+                    rawEncrypted = stream.ToArray();
+                    return new ProtectedBinary(true, rawEncrypted);
+                }
+            }
+            finally
+            {
+                MemUtil.ZeroByteArray(rawData);
+                MemUtil.ZeroByteArray(rawPassword);
+                if (rawEncrypted != null)
+                    MemUtil.ZeroByteArray(rawEncrypted);
+            }
+        }
+
+        public ProtectedBinary Encrypt(ProtectedString data, ProtectedBinary password)
+        {
+            var rawData = data.ReadUtf8();
+            try
+            {
+                return Encrypt(new ProtectedBinary(true, rawData), password);
+            }
+            finally
+            {
+                MemUtil.ZeroByteArray(rawData);
+            }
         }
     }
 }

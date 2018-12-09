@@ -12,16 +12,16 @@ namespace WinHelloQuickUnlock
         class Data
         {
             private readonly DateTime _createdDate;
-            private readonly CompositeKey _compositeKey;
+            private readonly ProtectedKey _protectedKey;
 
-            public CompositeKey CompositeKey { get { return _compositeKey; } }
+            public ProtectedKey ProtectedKey { get { return _protectedKey; } }
 
-            public Data(CompositeKey compositeKey)
+            public Data(ProtectedKey protectedKey)
             {
-                if (compositeKey == null)
-                    throw new ArgumentNullException("compositeKey");
+                if (protectedKey == null)
+                    throw new ArgumentNullException("protectedKey");
 
-                _compositeKey = compositeKey;
+                _protectedKey = protectedKey;
                 _createdDate = DateTime.UtcNow;
             }
 
@@ -33,9 +33,9 @@ namespace WinHelloQuickUnlock
 
         private readonly IDictionary<string, Data> _keys = new ConcurrentDictionary<string, Data>();
 
-        public void AddOrUpdate(string dbPath, CompositeKey compositeKey)
+        public void AddOrUpdate(string dbPath, ProtectedKey protectedKey)
         {
-            _keys[dbPath] = new Data(compositeKey);
+            _keys[dbPath] = new Data(protectedKey);
         }
 
         public void Remove(string dbPath)
@@ -43,20 +43,20 @@ namespace WinHelloQuickUnlock
             _keys.Remove(dbPath);
         }
 
-        public bool TryGetValue(string dbPath, out CompositeKey compositeKey)
+        public bool TryGetValue(string dbPath, out ProtectedKey protectedKey)
         {
             Data data;
             if (_keys.TryGetValue(dbPath, out data))
             {
                 if (data.IsValid())
                 {
-                    compositeKey = data.CompositeKey;
+                    protectedKey = data.ProtectedKey;
                     return true;
                 }
                 _keys.Remove(dbPath);
             }
 
-            compositeKey = null;
+            protectedKey = null;
             return false;
         }
 
