@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WinHelloQuickUnlock
+namespace KeePassWinHello
 {
     public interface IAuthProvider
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using KeePass.App.Configuration;
 
-namespace WinHelloQuickUnlock
+namespace KeePassWinHello
 {
     class Settings
     {

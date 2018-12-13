@@ -4,9 +4,9 @@ using KeePass.Forms;
 using KeePass.Plugins;
 using KeePass.UI;
 
-namespace WinHelloQuickUnlock
+namespace KeePassWinHello
 {
-    public class WinHelloQuickUnlockExt : Plugin
+    public class KeePassWinHelloExt : Plugin
     {
         private IPluginHost _host;
         private KeyManager _keyManager;

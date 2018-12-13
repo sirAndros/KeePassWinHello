@@ -1,6 +1,6 @@
 param (
     [string] $ProjectDir = $null,
-    [string] $TempDirName = 'WinHelloQuickUnlockXPlugin'
+    [string] $TempDirName = 'KeePassWinHelloPlugin'
 )
 $keePassExe = 'C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe'
 

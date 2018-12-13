@@ -7,8 +7,8 @@
     <ProjectGuid>{6A249FA1-3F87-4C81-8D31-6BDF62308F48}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>WinHelloQuickUnlock</RootNamespace>
-    <AssemblyName>WinHelloQuickUnlock</AssemblyName>
+    <RootNamespace>KeePassWinHello</RootNamespace>
+    <AssemblyName>KeePassWinHello</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -65,7 +65,7 @@
     </Compile>
     <Compile Include="Settings\Settings.cs" />
     <Compile Include="AuthProviders\WinHelloProvider.cs" />
-    <Compile Include="WinHelloQuickUnlockPlugin.cs" />
+    <Compile Include="KeePassWinHelloExt.cs" />
     <Compile Include="AuthProviders\XorProvider.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -88,6 +88,9 @@
     <None Include="Resources\windows-hello48x48.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$(ProjectDir)Pack-Plugin.ps1"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

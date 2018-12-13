@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace WinHelloQuickUnlock
+namespace KeePassWinHello
 {
 	public partial class OptionsPanel : UserControl
 	{

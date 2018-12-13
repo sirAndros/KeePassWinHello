@@ -1,4 +1,4 @@
-﻿namespace WinHelloQuickUnlock
+﻿namespace KeePassWinHello
 {
 	partial class OptionsPanel
 	{

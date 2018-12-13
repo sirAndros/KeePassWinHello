@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Windows.Forms;
 
-namespace WinHelloQuickUnlock
+namespace KeePassWinHello
 {
     class XorProvider : IAuthProvider, IWin32Window
     {

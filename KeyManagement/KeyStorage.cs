@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace WinHelloQuickUnlock
+namespace KeePassWinHello
 {
     class KeyStorage
     {

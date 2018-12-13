@@ -5,7 +5,7 @@ using KeePassLib.Keys;
 using KeePassLib.Security;
 using KeePassLib.Utility;
 
-namespace WinHelloQuickUnlock
+namespace KeePassWinHello
 {
     class ProtectedKey
     {

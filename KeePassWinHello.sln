@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2011
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinHelloQuickUnlock", "WinHelloQuickUnlock.csproj", "{6A249FA1-3F87-4C81-8D31-6BDF62308F48}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeePassWinHello", "KeePassWinHello.csproj", "{6A249FA1-3F87-4C81-8D31-6BDF62308F48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -5,7 +5,7 @@ using KeePassLib.Cryptography.Cipher;
 using KeePassLib.Security;
 using KeePassLib.Utility;
 
-namespace WinHelloQuickUnlock
+namespace KeePassWinHello
 {
     class KeyCipher
     {

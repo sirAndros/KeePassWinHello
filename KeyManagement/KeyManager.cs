@@ -7,7 +7,7 @@ using KeePass.Forms;
 using KeePassLib.Keys;
 using KeePassLib.Serialization;
 
-namespace WinHelloQuickUnlock
+namespace KeePassWinHello
 {
     class KeyManager
     {
