@@ -56,7 +56,7 @@ namespace WinHelloQuickUnlock
             {
                 var ms = _customConfig.GetLong(CFG_VALID_PERIOD, VALID_PERIOD_DEFAULT);
                 if (ms < 0)
-                    return TimeSpan.MaxValue;
+                    ms = -1;
                 return TimeSpan.FromMilliseconds(ms);
             }
             set
