@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using KeePassLib.Cryptography;
 using KeePassLib.Cryptography.Cipher;
-using KeePassLib.Keys;
 using KeePassLib.Security;
 using KeePassLib.Utility;
 
@@ -17,17 +12,17 @@ namespace WinHelloQuickUnlock
         private readonly uint _randomSeedBits;
         private readonly byte[] _encryptionIV;
         private readonly ICipherEngine _cipherEngine;
-        private readonly IWinHello _cryptProvider;
+        private readonly IAuthProvider _cryptProvider;
 
         public KeyCipher(string message, IntPtr windowHandle)
         {
             _randomSeedBits = 256;
             _encryptionIV = CryptoRandom.Instance.GetRandomBytes(16);
             _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
-            _cryptProvider = WinHelloCryptProvider.GetInstance(message, windowHandle);
+            _cryptProvider = AuthProviderFactory.GetInstance(message, windowHandle);
         }
 
-        public bool IsAvailable { get { return WinHelloCryptProvider.IsAvailable(); } }
+        public bool IsAvailable { get { return AuthProviderFactory.IsAvailable(); } }
 
         public ProtectedBinary Protect(ProtectedBinary key)
         {

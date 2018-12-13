@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Windows.Forms;
 using KeePass.Forms;
 using KeePassLib.Keys;
-using KeePassLib.Security;
 using KeePassLib.Serialization;
-using KeePassLib.Utility;
 
 namespace WinHelloQuickUnlock
 {
@@ -66,7 +62,7 @@ namespace WinHelloQuickUnlock
             {
                 _keyStorage.Remove(dbPath);
             }
-            else if (WinHelloCryptProvider.IsAvailable() && Settings.Instance.Enabled)
+            else if (AuthProviderFactory.IsAvailable() && Settings.Instance.Enabled)
             {
                 _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
             }

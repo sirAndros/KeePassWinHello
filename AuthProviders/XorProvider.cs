@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 namespace WinHelloQuickUnlock
 {
-    class WinHelloStub : IWinHello, IWin32Window
+    class XorProvider : IAuthProvider, IWin32Window
     {
         private const byte _entropy = 42;
 

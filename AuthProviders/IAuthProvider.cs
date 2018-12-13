@@ -2,24 +2,24 @@
 
 namespace WinHelloQuickUnlock
 {
-    public interface IWinHello
+    public interface IAuthProvider
     {
         byte[] Encrypt(byte[] data);
         byte[] PromptToDecrypt(byte[] data);
     }
 
-    static class WinHelloCryptProvider
+    static class AuthProviderFactory
     {
-        public static IWinHello GetInstance(string message, IntPtr windowHandle)
+        public static IAuthProvider GetInstance(string message, IntPtr windowHandle)
         {
 #if DEBUG
-            return new WinHelloStub
+            return new XorProvider
             {
                 Message = message,
                 Handle = windowHandle,
             };
 #else
-            return new WinHello
+            return new WinHelloProvider
             {
                 Message = message,
                 ParentHandle = windowHandle,
@@ -32,7 +32,7 @@ namespace WinHelloQuickUnlock
 #if DEBUG
             return true;
 #else
-            return WinHello.IsAvailable();
+            return WinHelloProvider.IsAvailable();
 #endif
         }
     }

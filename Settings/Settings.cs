@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using KeePass.App.Configuration;
 
 namespace WinHelloQuickUnlock
@@ -80,7 +77,7 @@ namespace WinHelloQuickUnlock
             }
         }
 
-        public const string ConfirmationMessage = "[TBD] Authentication to access KeePass database";
+        public const string ConfirmationMessage = "Authentication to access KeePass database";
         public const string OptionsTabName = "WindowsHello";
     }
 }

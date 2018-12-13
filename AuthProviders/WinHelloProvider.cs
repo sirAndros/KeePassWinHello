@@ -6,13 +6,14 @@ using Microsoft.Win32.SafeHandles;
 
 namespace WinHelloQuickUnlock
 {
-    internal class WinHello : IWinHello
+    internal class WinHelloProvider : IAuthProvider
     {
         private const string MS_NGC_KEY_STORAGE_PROVIDER = "Microsoft Passport Key Storage Provider";
         private const string NCRYPT_WINDOW_HANDLE_PROPERTY = "HWND Handle";
         private const string NCRYPT_USE_CONTEXT_PROPERTY = "Use Context";
         private const string NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY = "PinCacheIsGestureRequired";
         private const int NCRYPT_PAD_PKCS1_FLAG = 0x00000002;
+        private const int NTE_USER_CANCELLED = unchecked((int)0x80090036);
 
         [DllImport("cryptngc.dll", CharSet = CharSet.Unicode)]
         private static extern int NgcGetDefaultDecryptionKeyName(string pszSid, int dwReserved1, int dwReserved2, [Out] out string ppszKeyName);
@@ -75,8 +76,15 @@ namespace WinHelloQuickUnlock
                      * NTE_PERM
                      * NTE_NO_MEMORY
                      * NTE_NOT_SUPPORTED
+                     * NTE_USER_CANCELLED
                      */
-                    throw new ExternalException("External error occurred", value);
+                    switch (value)
+                    {
+                        case NTE_USER_CANCELLED:
+                            throw new UnauthorizedAccessException("Canceled");
+                        default:
+                            throw new ExternalException("External error occurred", value);
+                    }
                 }
             }
         }
@@ -87,7 +95,7 @@ namespace WinHelloQuickUnlock
             return !string.IsNullOrEmpty(m_CurrentPassportKeyName.Value);
         }
 
-        public WinHello() { }
+        public WinHelloProvider() { }
 
         public string Message { get; set; }
 
