@@ -11,11 +11,8 @@ namespace WinHelloQuickUnlock
 
         private const string CFG_VALID_PERIOD = "WindowsHello.QuickUnlock.ValidPeriod";
         private const string CFG_ENABLED = "WindowsHello.QuickUnlock.Enabled";
-        private const long VALID_PERIOD_DEFAULT = 1000 * 60 * 60 * 24; // one day in ms
 
         private static Lazy<Settings> _instance = new Lazy<Settings>(() => new Settings(), true);
-        public static Settings Instance = _instance.Value;
-
         private AceCustomConfig _customConfig;
 
         private void UpgradeConfig()
@@ -29,11 +26,8 @@ namespace WinHelloQuickUnlock
             if (validPeriod != -1)
             {
                 _customConfig.SetString(deprecatedCfgValidPeriod, null);
-                if (validPeriod == 0)
-                    validPeriod = -1;
-                else
-                    validPeriod *= 1000;
 
+                validPeriod *= 1000;
                 _customConfig.SetLong(CFG_VALID_PERIOD, validPeriod);
             }
         }
@@ -50,18 +44,23 @@ namespace WinHelloQuickUnlock
             UpgradeConfig();
         }
 
+        public static Settings Instance = _instance.Value;
+
         public TimeSpan InvalidatingTime
         {
             get
             {
                 var ms = _customConfig.GetLong(CFG_VALID_PERIOD, VALID_PERIOD_DEFAULT);
-                if (ms < 0)
-                    ms = -1;
+                if (ms <= 0)
+                    ms = VALID_UNLIMITED_PERIOD;
                 return TimeSpan.FromMilliseconds(ms);
             }
             set
             {
-                _customConfig.SetLong(CFG_VALID_PERIOD, (long)value.TotalMilliseconds);
+                var ms = (long)value.TotalMilliseconds;
+                if (ms == VALID_UNLIMITED_PERIOD)
+                    ms = 0;
+                _customConfig.SetLong(CFG_VALID_PERIOD, ms);
             }
         }
 
@@ -76,6 +75,9 @@ namespace WinHelloQuickUnlock
                 _customConfig.SetBool(CFG_ENABLED, value);
             }
         }
+
+        public const long VALID_PERIOD_DEFAULT = 1000 * 60 * 60 * 24; // one day in ms
+        public const long VALID_UNLIMITED_PERIOD = 922337203685476; // TimeSpan.MaxValue.TotalMilliseconds - 1
 
         public const string ConfirmationMessage = "Authentication to access KeePass database";
         public const string OptionsTabName = "WindowsHello";

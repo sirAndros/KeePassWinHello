@@ -7,7 +7,7 @@ namespace WinHelloQuickUnlock
 {
 	public partial class OptionsPanel : UserControl
 	{
-        private const long VALID_UNLIMITED = -1;
+        private const long VALID_UNLIMITED = Settings.VALID_UNLIMITED_PERIOD;
         private const long VALID_1MINUTE = 60 * 1000;
         private const long VALID_5MINUTES = VALID_1MINUTE * 5;
         private const long VALID_10MINUTES = VALID_5MINUTES * 2;
@@ -20,7 +20,7 @@ namespace WinHelloQuickUnlock
         private const long VALID_1DAY = VALID_12HOURS * 2;
         private const long VALID_7DAYS = VALID_1DAY * 7;
         private const long VALID_MONTH = VALID_1DAY * 30;
-        private const long VALID_DEFAULT = VALID_1DAY;
+        private const long VALID_DEFAULT = Settings.VALID_PERIOD_DEFAULT;
 
         private readonly bool _isAvailable;
         private bool _initialized = false;
