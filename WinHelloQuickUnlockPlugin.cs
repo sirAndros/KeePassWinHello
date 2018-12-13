@@ -18,8 +18,7 @@ namespace WinHelloQuickUnlock
 
         public override string UpdateUrl
         {
-            get { return "https://github.com/sirAndros/KeePassWinHello/raw/QuickUnlockX/keepass.version"; }
-            //get { return "https://raw.githubusercontent.com/sirAndros/KeePassWinHello/QuickUnlockX/keepass.version"; }
+            get { return "https://github.com/sirAndros/KeePassWinHello/raw/master/keepass.version"; }
         }
 
         public override bool Initialize(IPluginHost host)
