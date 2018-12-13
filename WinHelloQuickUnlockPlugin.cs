@@ -12,6 +12,9 @@ namespace WinHelloQuickUnlock
 {
     public class WinHelloQuickUnlockExt : Plugin
     {
+        private IPluginHost _host;
+        private KeyManager _keyManager;
+
         public override Image SmallIcon
         {
             get { return Properties.Resources.windows_hello16x16; }
@@ -20,11 +23,8 @@ namespace WinHelloQuickUnlock
         public override string UpdateUrl
         {
             get { return "https://github.com/sirAndros/KeePassWinHello/raw/QuickUnlockX/keepass.version"; }
+            //get { return "https://raw.githubusercontent.com/sirAndros/KeePassWinHello/QuickUnlockX/keepass.version"; }
         }
-
-
-        private IPluginHost _host;
-        private KeyManager _keyManager;
 
         public override bool Initialize(IPluginHost host)
         {
@@ -37,7 +37,7 @@ namespace WinHelloQuickUnlock
             _host.MainWindow.FileClosingPre += _keyManager.OnDBClosing;
             GlobalWindowManager.WindowAdded += OnWindowAdded;
 
-            Settings.Instance.Initialize();
+            Settings.Instance.Initialize(_host.CustomConfig);
 
             return true;
         }
@@ -65,7 +65,8 @@ namespace WinHelloQuickUnlock
             var optionsForm = e.Form as OptionsForm;
             if (optionsForm != null)
             {
-                //todo new OptionsPanel
+                _keyManager.OnOptionsLoad(optionsForm);
+                return;
             }
         }
     }

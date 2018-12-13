@@ -7,106 +7,152 @@ namespace WinHelloQuickUnlock
 {
 	public partial class OptionsPanel : UserControl
 	{
-		///// <summary>Intialize with the config.</summary>
-		//public OptionsPanel(KeePassWinHelloExt plugin)
-		//{
-		//	InitializeComponent();
+        private const long VALID_UNLIMITED = -1;
+        private const long VALID_1MINUTE = 60 * 1000;
+        private const long VALID_5MINUTES = VALID_1MINUTE * 5;
+        private const long VALID_10MINUTES = VALID_5MINUTES * 2;
+        private const long VALID_15MINUTES = VALID_5MINUTES * 3;
+        private const long VALID_30MINUTES = VALID_15MINUTES * 2;
+        private const long VALID_1HOUR = VALID_30MINUTES * 2;
+        private const long VALID_2HOURS = VALID_1HOUR * 2;
+        private const long VALID_6HOURS = VALID_2HOURS * 3;
+        private const long VALID_12HOURS = VALID_6HOURS * 2;
+        private const long VALID_1DAY = VALID_12HOURS * 2;
+        private const long VALID_7DAYS = VALID_1DAY * 7;
+        private const long VALID_MONTH = VALID_1DAY * 30;
+        private const long VALID_DEFAULT = VALID_1DAY;
 
-		//	SetStyle(ControlStyles.SupportsTransparentBackColor, true);
-		//	BackColor = Color.Transparent;
+        private readonly bool _isAvailable;
+        private bool _initialized = false;
 
-		//	var config = KeePassWinHelloExt.Host.CustomConfig;
+        private static long IndexToPeriod(int index)
+        {
+            switch (index)
+            {
+                case 0: return VALID_UNLIMITED;
+                case 1: return VALID_1MINUTE;
+                case 2: return VALID_5MINUTES;
+                case 3: return VALID_10MINUTES;
+                case 4: return VALID_15MINUTES;
+                case 5: return VALID_30MINUTES;
+                case 6: return VALID_1HOUR;
+                case 7: return VALID_2HOURS;
+                case 8: return VALID_6HOURS;
+                case 9: return VALID_12HOURS;
+                case 10: return VALID_1DAY;
+                case 11: return VALID_7DAYS;
+                case 12: return VALID_MONTH;
+                default: return VALID_DEFAULT;
+            }
+        }
 
-		//	autoPromptCheckBox.Checked = config.GetBool(WinHelloKeyProvider.CfgAutoPrompt, true);
+        private static int PeriodToIndex(TimeSpan timeSpan)
+        {
+            switch ((long)timeSpan.TotalMilliseconds)
+            {
+                case VALID_UNLIMITED: return 0;
+                case VALID_1MINUTE: return 1;
+                case VALID_5MINUTES: return 2;
+                case VALID_10MINUTES: return 3;
+                case VALID_15MINUTES: return 4;
+                case VALID_30MINUTES: return 5;
+                case VALID_1HOUR: return 6;
+                case VALID_2HOURS: return 7;
+                case VALID_6HOURS: return 8;
+                case VALID_12HOURS: return 9;
+                case VALID_1DAY: return 10;
+                case VALID_7DAYS: return 11;
+                case VALID_MONTH: return 12;
+                default: return 10;
+            }
+        }
 
-		//	validPeriodComboBox.SelectedIndex = PeriodToIndex(
-		//		config.GetULong(
-		//			WinHelloKeyProvider.CfgValidPeriod,
-		//			WinHelloKeyProvider.VALID_DEFAULT
-		//		)
-		//	);
-		//}
+        internal static void AddTab(TabControl m_tabMain, ImageList imageList, bool isAvailable)
+        {
+            Debug.Assert(m_tabMain != null);
+            if (m_tabMain == null)
+                return;
 
-		///// <summary>Converts the combobox index to a valid period.</summary>
-		///// <param name="index">Index of the combobox.</param>
-		///// <returns>The valid periods in seconds.</returns>
-		//private ulong IndexToPeriod(int index)
-		//{
-		//	switch (index)
-		//	{
-		//		case 0: return WinHelloKeyProvider.VALID_UNLIMITED;
-		//		case 1: return WinHelloKeyProvider.VALID_1MINUTE;
-		//		case 2: return WinHelloKeyProvider.VALID_5MINUTES;
-		//		case 3: return WinHelloKeyProvider.VALID_10MINUTES;
-		//		case 4: return WinHelloKeyProvider.VALID_15MINUTES;
-		//		case 5: return WinHelloKeyProvider.VALID_30MINUTES;
-		//		case 6: return WinHelloKeyProvider.VALID_1HOUR;
-		//		case 7: return WinHelloKeyProvider.VALID_2HOURS;
-		//		case 8: return WinHelloKeyProvider.VALID_6HOURS;
-		//		case 9: return WinHelloKeyProvider.VALID_12HOURS;
-		//		case 10: return WinHelloKeyProvider.VALID_1DAY;
-		//		case 11: return WinHelloKeyProvider.VALID_7DAYS;
-		//		case 12: return WinHelloKeyProvider.VALID_MONTH;
-  //              default:return WinHelloKeyProvider.VALID_DEFAULT;
-		//	}
-		//}
+            if (imageList == null)
+            {
+                if (m_tabMain.ImageList == null)
+                    m_tabMain.ImageList = new ImageList();
+                imageList = m_tabMain.ImageList;
+            }
 
-		///// <summary>Converts the valid period to the combobox item index.</summary>
-		///// <param name="period">The valid period in secons.</param>
-		///// <returns>The index of the combobox item.</returns>
-		//private int PeriodToIndex(ulong period)
-		//{
-		//	switch (period)
-		//	{
-		//		case WinHelloKeyProvider.VALID_UNLIMITED: return 0;
-		//		case WinHelloKeyProvider.VALID_1MINUTE: return 1;
-		//		case WinHelloKeyProvider.VALID_5MINUTES: return 2;
-		//		case WinHelloKeyProvider.VALID_10MINUTES: return 3;
-		//		case WinHelloKeyProvider.VALID_15MINUTES: return 4;
-		//		case WinHelloKeyProvider.VALID_30MINUTES: return 5;
-		//		case WinHelloKeyProvider.VALID_1HOUR: return 6;
-		//		case WinHelloKeyProvider.VALID_2HOURS: return 7;
-		//		case WinHelloKeyProvider.VALID_6HOURS: return 8;
-		//		case WinHelloKeyProvider.VALID_12HOURS: return 9;
-		//		case WinHelloKeyProvider.VALID_1DAY: return 10;
-		//		case WinHelloKeyProvider.VALID_7DAYS: return 11;
-		//		case WinHelloKeyProvider.VALID_MONTH: return 12;
-  //              default: return 10;
-		//	}
-		//}
+            var imageIndex = imageList.Images.Add(Properties.Resources.windows_hello16x16, Color.Transparent);
+            var optionsPanel = new OptionsPanel(isAvailable);
 
-		///// <summary>Register for the FormClosing event.</summary>
-		//protected override void OnLoad(EventArgs e)
-		//{
-		//	base.OnLoad(e);
+            var newTab = new TabPage(Settings.OptionsTabName)
+            {
+                UseVisualStyleBackColor = true,
+                ImageIndex = imageIndex
+            };
 
-		//	if (ParentForm != null)
-		//	{
-		//		// Save the settings on FormClosing.
-		//		ParentForm.FormClosing += delegate (object sender2, FormClosingEventArgs e2)
-		//		{
-		//			if (ParentForm.DialogResult == DialogResult.OK)
-		//			{
-		//				var config = KeePassWinHelloExt.Host.CustomConfig;
+            newTab.Controls.Add(optionsPanel);
+            optionsPanel.Dock = DockStyle.Fill;
 
-		//				config.SetBool(
-		//					WinHelloKeyProvider.CfgAutoPrompt,
-		//					autoPromptCheckBox.Checked
-		//				);
-		//				config.SetULong(
-		//					WinHelloKeyProvider.CfgValidPeriod,
-		//					IndexToPeriod(validPeriodComboBox.SelectedIndex)
-		//				);
-		//			}
-		//		};
-		//	}
+            m_tabMain.TabPages.Add(newTab);
+            m_tabMain.Multiline = false;
+        }
 
-  //          if (!WinHelloCryptProvider.IsAvailable())
-  //          {
-  //              autoPromptCheckBox.Enabled = false;
-  //              validPeriodComboBox.Enabled = false;
-  //              winHelloDisabled.Visible = true;
-  //          }
-		//}
-	}
+        OptionsPanel(bool isAvailable)
+        {
+            InitializeComponent();
+
+            _isAvailable = isAvailable;
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+
+            if (_initialized)
+                return;
+
+            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
+            BackColor = Color.Transparent;
+
+            validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
+            bool isEnabled = Settings.Instance.Enabled;
+
+            Debug.Assert(ParentForm != null);
+            if (ParentForm != null)
+                ParentForm.FormClosing += OnClosing;
+
+            if (!_isAvailable || !isEnabled)
+            {
+                isEnabledCheckBox.Checked = false;
+                validPeriodComboBox.Enabled = false;
+                btnRevokeAll.Enabled = false;
+
+                if (!_isAvailable)
+                {
+                    isEnabledCheckBox.Enabled = false;
+                    winHelloDisabled.Visible = true;
+                }
+            }
+
+            _initialized = true;
+        }
+
+        private void OnClosing(object sender, FormClosingEventArgs e)
+        {
+            if (ParentForm.DialogResult == DialogResult.OK)
+            {
+                Settings.Instance.Enabled = isEnabledCheckBox.Checked;
+                if (isEnabledCheckBox.Checked)
+                {
+                    Settings.Instance.InvalidatingTime =
+                        TimeSpan.FromMilliseconds(IndexToPeriod(validPeriodComboBox.SelectedIndex));
+                }
+            }
+        }
+
+        private void isEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            validPeriodComboBox.Enabled = isEnabledCheckBox.Checked;
+            btnRevokeAll.Enabled = isEnabledCheckBox.Checked;
+        }
+    }
 }

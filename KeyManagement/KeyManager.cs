@@ -29,13 +29,11 @@ namespace WinHelloQuickUnlock
             if (keyPromptForm.SecureDesktopMode)
                 return;
 
-            ProtectedKey encryptedData;
-            var dbPath = GetDbPath(keyPromptForm);
-            if (!FindQuickUnlockData(dbPath, out encryptedData))
+            if (!Settings.Instance.Enabled)
                 return;
 
             CompositeKey compositeKey;
-            if (TryGetCompositeKey(encryptedData, out compositeKey))
+            if (ExtractCompositeKey(GetDbPath(keyPromptForm), out compositeKey))
             {
                 SetCompositeKey(keyPromptForm, compositeKey);
                 // Remove flushing
@@ -45,6 +43,11 @@ namespace WinHelloQuickUnlock
                 keyPromptForm.DialogResult = DialogResult.OK;
                 keyPromptForm.Close();
             }
+        }
+
+        public void OnOptionsLoad(OptionsForm optionsForm)
+        {
+            OptionsPanel.AddTab(GetTabControl(optionsForm), GetTabsImageList(optionsForm), _keyCipher.IsAvailable);
         }
 
         public void OnDBClosing(object sender, FileClosingEventArgs e)
@@ -63,10 +66,45 @@ namespace WinHelloQuickUnlock
             {
                 _keyStorage.Remove(dbPath);
             }
-            else if (WinHelloCryptProvider.IsAvailable())
+            else if (WinHelloCryptProvider.IsAvailable() && Settings.Instance.Enabled)
             {
                 _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
             }
+        }
+
+        private bool ExtractCompositeKey(string dbPath, out CompositeKey compositeKey)
+        {
+            compositeKey = null;
+
+            if (String.IsNullOrEmpty(dbPath))
+                return false;
+
+            ProtectedKey encryptedData;
+            if (!_keyStorage.TryGetValue(dbPath, out encryptedData))
+                return false;
+
+            try
+            {
+                compositeKey = encryptedData.GetCompositeKey(_keyCipher);
+                return true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                _keyStorage.Remove(dbPath);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail(ex.ToString()); // TODO: fix canceled exception
+                _keyStorage.Remove(dbPath);
+            }
+            return false;
+        }
+
+        private static void SetCompositeKey(KeyPromptForm keyPromptForm, CompositeKey compositeKey)
+        {
+            var fieldInfo = keyPromptForm.GetType().GetField("m_pKey", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (fieldInfo != null)
+                fieldInfo.SetValue(keyPromptForm, compositeKey);
         }
 
         private static bool IsDBLocking(FileClosingEventArgs e)
@@ -98,39 +136,6 @@ namespace WinHelloQuickUnlock
             return true;
         }
 
-        private void SetCompositeKey(KeyPromptForm keyPromptForm, CompositeKey compositeKey)
-        {
-            var fieldInfo = keyPromptForm.GetType().GetField("m_pKey", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (fieldInfo != null)
-                fieldInfo.SetValue(keyPromptForm, compositeKey);
-        }
-
-        private bool TryGetCompositeKey(ProtectedKey encryptedData, out CompositeKey compositeKey)
-        {
-            try
-            {
-                compositeKey = encryptedData.GetCompositeKey(_keyCipher);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Debug.Fail(ex.ToString()); // TODO: fix canceled exception
-                compositeKey = null;
-                return false;
-            }
-        }
-
-        private bool FindQuickUnlockData(string dbPath, out ProtectedKey encryptedData)
-        {
-            if (String.IsNullOrEmpty(dbPath))
-            {
-                encryptedData = null;
-                return false;
-            }
-
-            return _keyStorage.TryGetValue(dbPath, out encryptedData);
-        }
-
         private static string GetDbPath(KeyPromptForm keyPromptForm)
         {
             var ioInfo = GetIoInfo(keyPromptForm);
@@ -145,6 +150,19 @@ namespace WinHelloQuickUnlock
             if (fieldInfo == null)
                 return null;
             return fieldInfo.GetValue(keyPromptForm) as IOConnectionInfo;
+        }
+
+        private static TabControl GetTabControl(OptionsForm optionsForm)
+        {
+            return optionsForm.Controls.Find("m_tabMain", true).FirstOrDefault() as TabControl;
+        }
+
+        private static ImageList GetTabsImageList(OptionsForm optionsForm)
+        {
+            var m_ilIconsField = optionsForm.GetType().GetField("m_ilIcons", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (m_ilIconsField == null)
+                return null;
+            return m_ilIconsField.GetValue(optionsForm) as ImageList;
         }
     }
 }

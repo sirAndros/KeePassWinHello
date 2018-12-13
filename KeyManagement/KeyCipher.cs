@@ -27,6 +27,8 @@ namespace WinHelloQuickUnlock
             _cryptProvider = WinHelloCryptProvider.GetInstance(message, windowHandle);
         }
 
+        public bool IsAvailable { get { return WinHelloCryptProvider.IsAvailable(); } }
+
         public ProtectedBinary Protect(ProtectedBinary key)
         {
             byte[] data = key.ReadData();

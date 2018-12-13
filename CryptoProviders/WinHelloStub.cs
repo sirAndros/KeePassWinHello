@@ -27,7 +27,7 @@ namespace WinHelloQuickUnlock
             }
             else
             {
-                throw new Exception("Canceled");
+                throw new UnauthorizedAccessException("Canceled");
             }
         }
     }

@@ -30,8 +30,9 @@
 		{
             this.infoLabel = new System.Windows.Forms.Label();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
-            this.autoPromptCheckBox = new System.Windows.Forms.CheckBox();
+            this.isEnabledCheckBox = new System.Windows.Forms.CheckBox();
             this.winHelloDisabled = new System.Windows.Forms.Label();
+            this.btnRevokeAll = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // infoLabel
@@ -39,9 +40,10 @@
             this.infoLabel.AutoSize = true;
             this.infoLabel.Location = new System.Drawing.Point(0, 33);
             this.infoLabel.Name = "infoLabel";
-            this.infoLabel.Size = new System.Drawing.Size(317, 13);
+            this.infoLabel.Size = new System.Drawing.Size(407, 13);
             this.infoLabel.TabIndex = 4;
-            this.infoLabel.Text = "Select the time range after which a WinHello key gets invalidated:";
+            this.infoLabel.Text = "Select the time range after which a key protected by Windows Hello gets invalidat" +
+    "ed:";
             // 
             // validPeriodComboBox
             // 
@@ -66,17 +68,18 @@
             this.validPeriodComboBox.Size = new System.Drawing.Size(186, 21);
             this.validPeriodComboBox.TabIndex = 5;
             // 
-            // autoPromptCheckBox
+            // isEnabledCheckBox
             // 
-            this.autoPromptCheckBox.AutoSize = true;
-            this.autoPromptCheckBox.Checked = true;
-            this.autoPromptCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.autoPromptCheckBox.Location = new System.Drawing.Point(3, 13);
-            this.autoPromptCheckBox.Name = "autoPromptCheckBox";
-            this.autoPromptCheckBox.Size = new System.Drawing.Size(256, 17);
-            this.autoPromptCheckBox.TabIndex = 8;
-            this.autoPromptCheckBox.Text = "Auto prompt for the WinHello key if it is available.";
-            this.autoPromptCheckBox.UseVisualStyleBackColor = true;
+            this.isEnabledCheckBox.AutoSize = true;
+            this.isEnabledCheckBox.Checked = true;
+            this.isEnabledCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.isEnabledCheckBox.Location = new System.Drawing.Point(3, 13);
+            this.isEnabledCheckBox.Name = "isEnabledCheckBox";
+            this.isEnabledCheckBox.Size = new System.Drawing.Size(337, 17);
+            this.isEnabledCheckBox.TabIndex = 8;
+            this.isEnabledCheckBox.Text = "Use quick unlock via Windows Hello authorization if it is available.";
+            this.isEnabledCheckBox.UseVisualStyleBackColor = true;
+            this.isEnabledCheckBox.CheckedChanged += new System.EventHandler(this.isEnabledCheckBox_CheckedChanged);
             // 
             // winHelloDisabled
             // 
@@ -90,12 +93,23 @@
     "gs";
             this.winHelloDisabled.Visible = false;
             // 
+            // btnRevokeAll
+            // 
+            this.btnRevokeAll.Location = new System.Drawing.Point(114, 76);
+            this.btnRevokeAll.Name = "btnRevokeAll";
+            this.btnRevokeAll.Size = new System.Drawing.Size(75, 23);
+            this.btnRevokeAll.TabIndex = 10;
+            this.btnRevokeAll.Text = "Revoke all";
+            this.btnRevokeAll.UseVisualStyleBackColor = true;
+            this.btnRevokeAll.Visible = false;
+            // 
             // OptionsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.btnRevokeAll);
             this.Controls.Add(this.winHelloDisabled);
-            this.Controls.Add(this.autoPromptCheckBox);
+            this.Controls.Add(this.isEnabledCheckBox);
             this.Controls.Add(this.infoLabel);
             this.Controls.Add(this.validPeriodComboBox);
             this.Name = "OptionsPanel";
@@ -109,7 +123,8 @@
 
 		private System.Windows.Forms.Label infoLabel;
 		private System.Windows.Forms.ComboBox validPeriodComboBox;
-		private System.Windows.Forms.CheckBox autoPromptCheckBox;
+		private System.Windows.Forms.CheckBox isEnabledCheckBox;
         private System.Windows.Forms.Label winHelloDisabled;
+        private System.Windows.Forms.Button btnRevokeAll;
     }
 }
