@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using KeePass.Forms;
 using KeePassLib.Keys;
@@ -13,6 +15,7 @@ namespace KeePassWinHello
     {
         private readonly KeyCipher _keyCipher;
         private readonly KeyStorage _keyStorage;
+        private bool _isSecureDesktopSettingChanged = false;
 
         public KeyManager(IntPtr windowHandle)
         {
@@ -20,24 +23,46 @@ namespace KeePassWinHello
             _keyCipher = new KeyCipher(Settings.ConfirmationMessage, windowHandle);
         }
 
-        public void OnKeyPrompt(KeyPromptForm keyPromptForm)
+        public void OnKeyPrompt(KeyPromptForm keyPromptForm, MainForm mainWindow)
         {
-            if (keyPromptForm.SecureDesktopMode)
-                return;
-
             if (!Settings.Instance.Enabled)
                 return;
 
-            CompositeKey compositeKey;
-            if (ExtractCompositeKey(GetDbPath(keyPromptForm), out compositeKey))
+            string dbPath = GetDbPath(keyPromptForm);
+            if (keyPromptForm.SecureDesktopMode)
             {
-                SetCompositeKey(keyPromptForm, compositeKey);
-                // Remove flushing
-                keyPromptForm.Visible = false;
-                keyPromptForm.Opacity = 0;
-
-                keyPromptForm.DialogResult = DialogResult.OK;
-                keyPromptForm.Close();
+                if (IsKeyForDataBaseExist(dbPath))
+                {
+                    var dbFile = GetIoInfo(keyPromptForm);
+                    CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
+                    Task.Factory.StartNew(() =>
+                    {
+                        KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = false;
+                        _isSecureDesktopSettingChanged = true;
+                        Thread.Yield();
+                        ReOpenKeyPromptForm(mainWindow, dbFile);
+                    })
+                    .ContinueWith(_ =>
+                    {
+                        KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = true;
+                        _isSecureDesktopSettingChanged = false;
+                    });
+                }
+            }
+            else
+            {
+                CompositeKey compositeKey;
+                if (ExtractCompositeKey(dbPath, out compositeKey))
+                {
+                    SetCompositeKey(keyPromptForm, compositeKey);
+                    CloseFormWithResult(keyPromptForm, DialogResult.OK);
+                }
+                else if (_isSecureDesktopSettingChanged)
+                {
+                    var dbFile = GetIoInfo(keyPromptForm);
+                    CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
+                    Task.Factory.StartNew(() => ReOpenKeyPromptForm(mainWindow, dbFile));
+                }
             }
         }
 
@@ -66,6 +91,28 @@ namespace KeePassWinHello
             {
                 _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
             }
+        }
+
+        private static void CloseFormWithResult(KeyPromptForm keyPromptForm, DialogResult result)
+        {
+            // Remove flushing
+            keyPromptForm.Visible = false;
+            keyPromptForm.Opacity = 0;
+
+            keyPromptForm.DialogResult = result;
+            keyPromptForm.Close();
+        }
+
+        private static void ReOpenKeyPromptForm(MainForm mainWindow, IOConnectionInfo dbFile)
+        {
+            Action action = () => mainWindow.OpenDatabase(dbFile, null, false);
+            mainWindow.Invoke(action);
+        }
+
+        private bool IsKeyForDataBaseExist(string dbPath)
+        {
+            return !String.IsNullOrEmpty(dbPath)
+                && _keyStorage.ContainsKey(dbPath);
         }
 
         private bool ExtractCompositeKey(string dbPath, out CompositeKey compositeKey)

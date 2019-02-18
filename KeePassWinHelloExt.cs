@@ -53,7 +53,7 @@ namespace KeePassWinHello
             var keyPromptForm = e.Form as KeyPromptForm;
             if (keyPromptForm != null)
             {
-                _keyManager.OnKeyPrompt(keyPromptForm);
+                _keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
                 return;
             }
 

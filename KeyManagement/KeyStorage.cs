@@ -40,6 +40,13 @@ namespace KeePassWinHello
             _keys.Remove(dbPath);
         }
 
+        public bool ContainsKey(string dbPath)
+        {
+            Data data;
+            return _keys.TryGetValue(dbPath, out data)
+                && data.IsValid();
+        }
+
         public bool TryGetValue(string dbPath, out ProtectedKey protectedKey)
         {
             Data data;
