@@ -15,7 +15,7 @@ namespace KeePassWinHello
     {
         private readonly KeyCipher _keyCipher;
         private readonly KeyStorage _keyStorage;
-        private bool _isSecureDesktopSettingChanged = false;
+        private volatile bool _isSecureDesktopSettingChanged = false;
 
         public KeyManager(IntPtr windowHandle)
         {
@@ -57,7 +57,7 @@ namespace KeePassWinHello
                     SetCompositeKey(keyPromptForm, compositeKey);
                     CloseFormWithResult(keyPromptForm, DialogResult.OK);
                 }
-                else if (_isSecureDesktopSettingChanged)
+                else if (_isSecureDesktopSettingChanged)    // can be here only from recursive call. No extra sync needed.
                 {
                     var dbFile = GetIoInfo(keyPromptForm);
                     CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
