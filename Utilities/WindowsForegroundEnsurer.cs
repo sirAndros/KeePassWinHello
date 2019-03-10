@@ -1,24 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 namespace KeePassWinHello.Utilities
 {
     class WindowsForegroundEnsurer
     {
-        public static void EnsureForeground(IntPtr currentWindowHandle, string targetWindowClass, string targetWindowTitle)
+        public static bool EnsureForeground(IntPtr currentWindowHandle, string targetWindowClass, string targetWindowTitle, int timeoutMs)
+        {
+            if (timeoutMs < 1)
+                throw new ArgumentOutOfRangeException("attemptsCount");
+
+            const int waitTimeMs = 25;
+            var attemptsCount = timeoutMs / waitTimeMs;
+            if (attemptsCount < 1)
+                attemptsCount = 1;
+
+            IntPtr targetWindowHandle = IntPtr.Zero;
+            for (int i = 0; i < attemptsCount && targetWindowHandle == IntPtr.Zero; i++)
+            {
+                targetWindowHandle = WinAPI.FindWindowEx(currentWindowHandle, IntPtr.Zero, targetWindowClass, targetWindowTitle);
+                if (targetWindowHandle == IntPtr.Zero)
+                {
+                    ThrowIfErrorPersists();
+                    Thread.Sleep(waitTimeMs);
+                }
+            }
+            targetWindowHandle.CheckAndPass();
+            return EnsureForeground(currentWindowHandle, targetWindowHandle);
+        }
+
+        public static bool EnsureForeground(IntPtr currentWindowHandle, string targetWindowClass, string targetWindowTitle)
         {
             var targetWindowHandle = WinAPI.FindWindowEx(currentWindowHandle, IntPtr.Zero, targetWindowClass, targetWindowTitle)
                     .CheckAndPass();
-            EnsureForeground(currentWindowHandle, targetWindowHandle);
+            return EnsureForeground(currentWindowHandle, targetWindowHandle);
         }
 
-        public static void EnsureForeground(IntPtr currentWindowHandle, IntPtr targetWindowHandle)
+        public static bool EnsureForeground(IntPtr currentWindowHandle, IntPtr targetWindowHandle)
         {
-            SilentlyBecomeForeground(currentWindowHandle);
-            BringToFrontAndActivate(targetWindowHandle);
+            if (currentWindowHandle != IntPtr.Zero)
+                SilentlyBecomeForeground(currentWindowHandle);
+            return BringToFrontAndActivate(targetWindowHandle);
+        }
+
+        private static void ThrowIfErrorPersists()
+        {
+            const int ERROR_ACCESS_DENIED = 0x5;
+
+            int errorNum = Marshal.GetLastWin32Error();
+            if (errorNum == ERROR_ACCESS_DENIED)
+                throw new Win32Exception(errorNum);
         }
 
         private static void SilentlyBecomeForeground(IntPtr winHandle)
@@ -27,10 +63,10 @@ namespace KeePassWinHello.Utilities
             MinimizeWindow(winHandle);
         }
 
-        private static void BringToFrontAndActivate(IntPtr winHandle)
+        private static bool BringToFrontAndActivate(IntPtr winHandle)
         {
-            WinAPI.SetForegroundWindow(winHandle);
             ResotoreAndFocus(winHandle);
+            return WinAPI.SetForegroundWindow(winHandle);
         }
 
         private static void ResotoreAndFocus(IntPtr winHandle)
@@ -66,10 +102,6 @@ namespace KeePassWinHello.Utilities
 
             [DllImport(User32, SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string lpClassName, string lpWindowName);
-
-
-            [DllImport(User32, SetLastError = true, CharSet = CharSet.Unicode)]
-            public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
         }
     }
 }

@@ -19,11 +19,12 @@ namespace KeePassWinHello
                 Handle = windowHandle,
             };
 #else
-            return new WinHelloProvider
+            var provider = new WinHelloProvider
             {
                 Message = message,
                 ParentHandle = windowHandle,
             };
+            return new WinHelloProviderForegroundDecorator(provider);   // todo determine IsElevated
 #endif
         }
 
