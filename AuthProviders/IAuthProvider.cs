@@ -24,7 +24,11 @@ namespace KeePassWinHello
                 Message = message,
                 ParentHandle = windowHandle,
             };
-            return new WinHelloProviderForegroundDecorator(provider);   // todo determine IsElevated
+
+            if (UAC.IsCurrentProcessElevated())
+                return new WinHelloProviderForegroundDecorator(provider);
+            else
+                return provider;
 #endif
         }
 

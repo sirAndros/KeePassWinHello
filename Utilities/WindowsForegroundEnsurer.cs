@@ -10,10 +10,20 @@ namespace KeePassWinHello.Utilities
 {
     class WindowsForegroundEnsurer
     {
+        public static bool IsWindowOnForeground(IntPtr windowHandle)
+        {
+            return windowHandle == WinAPI.GetForegroundWindow();
+        }
+
+        public static bool EnsureForeground(IntPtr windowHandle)
+        {
+            return EnsureForeground(IntPtr.Zero, windowHandle);
+        }
+
         public static bool EnsureForeground(IntPtr currentWindowHandle, string targetWindowClass, string targetWindowTitle, int timeoutMs)
         {
             if (timeoutMs < 1)
-                throw new ArgumentOutOfRangeException("attemptsCount");
+                throw new ArgumentOutOfRangeException("timeoutMs");
 
             const int waitTimeMs = 25;
             var attemptsCount = timeoutMs / waitTimeMs;
@@ -26,7 +36,7 @@ namespace KeePassWinHello.Utilities
                 targetWindowHandle = WinAPI.FindWindowEx(currentWindowHandle, IntPtr.Zero, targetWindowClass, targetWindowTitle);
                 if (targetWindowHandle == IntPtr.Zero)
                 {
-                    ThrowIfErrorPersists();
+                    //ThrowIfErrorPersists();
                     Thread.Sleep(waitTimeMs);
                 }
             }
@@ -95,6 +105,9 @@ namespace KeePassWinHello.Utilities
 
             [DllImport(User32, SetLastError = true)]
             public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+            [DllImport(User32, SetLastError = true)]
+            public static extern IntPtr GetForegroundWindow();
 
 
             [DllImport(User32, SetLastError = true, CharSet = CharSet.Unicode)]
