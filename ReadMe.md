@@ -37,6 +37,12 @@ Place [KeePassWinHelloPlugin.plgx][binLink] into `Plugins` folder in your KeePas
 
 [binLink]: https://github.com/sirAndros/KeePassWinHello/releases "Plugin Releases"
 
+Setup
+-----
+This plugin requires KeePass to remain open to function as intended. Ensure that your KeePass lock settings do not close the program as shown below:
+
+<img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/KeePassLockOptions.png?raw=true" width=500/>
+
 Options
 -------
 
