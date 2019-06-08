@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Principal;
-using System.Text;
 using Microsoft.Win32;
 
 namespace KeePassWinHello
@@ -101,21 +98,21 @@ namespace KeePassWinHello
                     return IsCurrentPrincipalAdmin();
                 }
             }
-            catch (SecurityException)
+            catch (Exception ex) when (IsAccessDeniedException(ex))
             {
                 return false;
             }
-            catch (UnauthorizedAccessException)
-            {
-                return false;
-            }
-            catch (Win32Exception ex)
-            {
-                const int ACCESS_DENIED = 0x5;
-                if (ex.NativeErrorCode == ACCESS_DENIED)
-                    return false;
-                throw;
-            }
+        }
+
+        private static bool IsAccessDeniedException(Exception ex)
+        {
+            if (ex is SecurityException || ex is UnauthorizedAccessException)
+                return true;
+
+            const int ACCESS_DENIED = 0x5;
+            var winEx = ex as Win32Exception;
+            return winEx != null
+                && winEx.NativeErrorCode == ACCESS_DENIED;
         }
 
         private static TokenElevationType GetElevationType(IntPtr tokenHandle)
