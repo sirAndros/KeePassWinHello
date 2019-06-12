@@ -98,9 +98,11 @@ namespace KeePassWinHello
                     return IsCurrentPrincipalAdmin();
                 }
             }
-            catch (Exception ex) when (IsAccessDeniedException(ex))
+            catch (Exception ex)
             {
-                return false;
+                if (IsAccessDeniedException(ex))
+                    return false;
+                throw;
             }
         }
 
@@ -117,7 +119,7 @@ namespace KeePassWinHello
 
         private static TokenElevationType GetElevationType(IntPtr tokenHandle)
         {
-            int elevationResultSize = Marshal.SizeOf(typeof(TokenElevationType));
+            int elevationResultSize = Marshal.SizeOf(Enum.GetUnderlyingType(typeof(TokenElevationType)));
             IntPtr elevationTypePtr = Marshal.AllocHGlobal(elevationResultSize);
             try
             {
