@@ -33,6 +33,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>5</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="KeePass">
@@ -47,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AuthProviders\IAuthProvider.cs" />
+    <Compile Include="AuthProviders\WinHelloProviderForegroundDecorator.cs" />
     <Compile Include="KeyManagement\KeyCipher.cs" />
     <Compile Include="KeyManagement\KeyManager.cs" />
     <Compile Include="KeyManagement\KeyStorage.cs" />
@@ -67,6 +69,9 @@
     <Compile Include="AuthProviders\WinHelloProvider.cs" />
     <Compile Include="KeePassWinHelloExt.cs" />
     <Compile Include="AuthProviders\XorProvider.cs" />
+    <Compile Include="Utilities\UAC.cs" />
+    <Compile Include="Utilities\WinAPIResultExtensions.cs" />
+    <Compile Include="Utilities\WindowsForegroundEnsurer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Settings\OptionsPanel.resx">

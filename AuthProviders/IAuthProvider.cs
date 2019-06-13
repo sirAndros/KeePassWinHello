@@ -19,11 +19,16 @@ namespace KeePassWinHello
                 Handle = windowHandle,
             };
 #else
-            return new WinHelloProvider
+            var provider = new WinHelloProvider
             {
                 Message = message,
                 ParentHandle = windowHandle,
             };
+
+            if (UAC.IsCurrentProcessElevated())
+                return new WinHelloProviderForegroundDecorator(provider);
+            else
+                return provider;
 #endif
         }
 
