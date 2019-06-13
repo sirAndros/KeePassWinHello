@@ -10,6 +10,12 @@ namespace KeePassWinHello.Utilities
 {
     class WindowsForegroundEnsurer
     {
+        public static bool AllowAllSetForeground()
+        {
+            const int ASFW_ANY = -1;
+            return WinAPI.AllowSetForegroundWindow(ASFW_ANY);
+        }
+
         public static bool IsWindowOnForeground(IntPtr windowHandle)
         {
             return windowHandle == WinAPI.GetForegroundWindow();
@@ -53,8 +59,25 @@ namespace KeePassWinHello.Utilities
 
         public static bool EnsureForeground(IntPtr currentWindowHandle, IntPtr targetWindowHandle)
         {
+            if (IsWindowOnForeground(targetWindowHandle))
+                return true;
+
+            /*
+              To set foreground we need at least one of this:
+              * The process is the foreground process.
+              * The process received the last input event.
+              * There is no foreground process.
+              * The foreground process is not a Modern Application or the Start Screen.
+              * The foreground is not locked (see LockSetForegroundWindow).
+              * The foreground lock time-out has expired (see SPI_GETFOREGROUNDLOCKTIMEOUT in SystemParametersInfo).
+              * No menus are active.
+              
+              https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-setforegroundwindow
+             */
+
             if (currentWindowHandle != IntPtr.Zero)
                 SilentlyBecomeForeground(currentWindowHandle);
+            UnlockForeground();
             return BringToFrontAndActivate(targetWindowHandle);
         }
 
@@ -65,6 +88,17 @@ namespace KeePassWinHello.Utilities
             int errorNum = Marshal.GetLastWin32Error();
             if (errorNum == ERROR_ACCESS_DENIED)
                 throw new Win32Exception(errorNum);
+        }
+
+        private static void UnlockForeground()
+        {
+            const byte ALT = 0xA4;
+            const int EXTENDEDKEY = 0x1;
+            const int KEYUP = 0x2;
+
+            // Send ALT key to counteract LockSetForegroundWindow (https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-locksetforegroundwindow)
+            WinAPI.keybd_event(ALT, 0x45, EXTENDEDKEY, UIntPtr.Zero);           // Simulate a key press
+            WinAPI.keybd_event(ALT, 0x45, EXTENDEDKEY | KEYUP, UIntPtr.Zero);   // Simulate a key release
         }
 
         private static void SilentlyBecomeForeground(IntPtr winHandle)
@@ -109,6 +143,11 @@ namespace KeePassWinHello.Utilities
             [DllImport(User32, SetLastError = true)]
             public static extern IntPtr GetForegroundWindow();
 
+            [DllImport(User32, SetLastError = true)]
+            public static extern bool AllowSetForegroundWindow(Int32 pid);
+
+            [DllImport(User32, SetLastError = true)]
+            public static extern void keybd_event(Byte bVk, Byte bScan, UInt32 dwFlags, UIntPtr dwExtraInfo);
 
             [DllImport(User32, SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);

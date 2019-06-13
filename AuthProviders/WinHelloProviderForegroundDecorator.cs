@@ -25,11 +25,14 @@ namespace KeePassWinHello
         {
             using (var tokenSource = new CancellationTokenSource())
             {
+                Utilities.WindowsForegroundEnsurer.AllowAllSetForeground();
                 Task.Factory.StartNew(MakePromptWindowForegroundSafe, tokenSource.Token);
 
                 try
                 {
-                    return _winHelloProvider.PromptToDecrypt(data);
+                    var result = _winHelloProvider.PromptToDecrypt(data);
+                    Utilities.WindowsForegroundEnsurer.EnsureForeground(_winHelloProvider.ParentHandle);
+                    return result;
                 }
                 catch
                 {
@@ -39,12 +42,11 @@ namespace KeePassWinHello
             }
         }
 
-        private static void MakePromptWindowForegroundSafe()
+        private void MakePromptWindowForegroundSafe()
         {
             try
             {
-                bool success = Utilities.WindowsForegroundEnsurer.EnsureForeground(IntPtr.Zero, "Credential Dialog Xaml Host", "Windows Security", 2000);
-                // todo: if (success) SetForeground(KeePassWin)
+                Utilities.WindowsForegroundEnsurer.EnsureForeground(IntPtr.Zero, "Credential Dialog Xaml Host", "Windows Security", 2000); 
             }
             catch (Exception ex)
             {
