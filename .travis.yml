@@ -1,2 +1,19 @@
 language: csharp
 solution: KeePassWinHello.sln
+
+addons:
+  apt:
+    packages:
+      - openjdk-8-jdk
+  sonarcloud:
+    organization: "sirandros-github"
+
+jdk:
+  - oraclejdk8
+
+script:
+  - sonar-scanner
+
+cache:
+  directories:
+    - '$HOME/.sonar/cache'
