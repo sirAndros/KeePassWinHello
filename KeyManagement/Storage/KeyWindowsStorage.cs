@@ -365,7 +365,7 @@ ref IntPtr TokenHandle // handle to open access token
 
         public KeyWindowsStorage()
         {
-            if (!UAC.IsCurrentProcessElevated())
+            if (!UAC.IsCurrentProcessElevated)
                 throw new Exception("Process is not elevated");
 
             //Privileges.EnablePrivilege(SecurityEntity.SE_DEBUG_NAME);

@@ -75,7 +75,16 @@ namespace KeePassWinHello
             }
         }
 
-        public static bool IsCurrentProcessElevated()
+        public static bool IsCurrentProcessElevated
+        {
+            get
+            {
+                return _isCurrentProcessElevated.Value;
+            }
+        }
+        private static readonly Lazy<bool> _isCurrentProcessElevated = new Lazy<bool>(CheckIsCurrentProcessElevated);
+
+        private static bool CheckIsCurrentProcessElevated()
         {
             try
             {
