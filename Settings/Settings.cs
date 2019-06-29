@@ -11,6 +11,7 @@ namespace KeePassWinHello
 
         private const string CFG_VALID_PERIOD = "WindowsHello.QuickUnlock.ValidPeriod";
         private const string CFG_ENABLED = "WindowsHello.QuickUnlock.Enabled";
+        private const string CFG_WINSTORAGE_ENABLED = "WindowsHello.QuickUnlock.WindowsStorage.Enabled";
 
         private static Lazy<Settings> _instance = new Lazy<Settings>(() => new Settings(), true);
         private AceCustomConfig _customConfig;
@@ -44,7 +45,7 @@ namespace KeePassWinHello
             UpgradeConfig();
         }
 
-        public static Settings Instance = _instance.Value;
+        public static readonly Settings Instance = _instance.Value;
 
         public TimeSpan InvalidatingTime
         {
@@ -73,6 +74,18 @@ namespace KeePassWinHello
             set
             {
                 _customConfig.SetBool(CFG_ENABLED, value);
+            }
+        }
+
+        public bool WinStorageEnabled
+        {
+            get
+            {
+                return _customConfig.GetBool(CFG_WINSTORAGE_ENABLED, false);
+            }
+            set
+            {
+                _customConfig.SetBool(CFG_WINSTORAGE_ENABLED, value);
             }
         }
 

@@ -14,12 +14,12 @@ namespace KeePassWinHello
     class KeyManager
     {
         private readonly KeyCipher _keyCipher;
-        private readonly KeyStorage _keyStorage;
+        private readonly IKeyStorage _keyStorage;
         private volatile bool _isSecureDesktopSettingChanged = false;
 
         public KeyManager(IntPtr windowHandle)
         {
-            _keyStorage = new KeyStorage();
+            _keyStorage = KeyStorageFactory.Create();
             _keyCipher = new KeyCipher(Settings.ConfirmationMessage, windowHandle);
         }
 
