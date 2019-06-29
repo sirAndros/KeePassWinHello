@@ -15,7 +15,7 @@ namespace KeePassWinHello
     {
         public static IKeyStorage Create()
         {
-            if (UAC.IsCurrentProcessElevated() && Settings.Instance.WinStorageEnabled)
+            if (UAC.IsCurrentProcessElevated && Settings.Instance.WinStorageEnabled)
                 throw new NotImplementedException();
 
             return new KeyMemoryStorage();

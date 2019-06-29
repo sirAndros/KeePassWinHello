@@ -25,7 +25,7 @@ namespace KeePassWinHello
                 ParentHandle = windowHandle,
             };
 
-            if (UAC.IsCurrentProcessElevated())
+            if (UAC.IsCurrentProcessElevated)
                 return new WinHelloProviderForegroundDecorator(provider);
             else
                 return provider;

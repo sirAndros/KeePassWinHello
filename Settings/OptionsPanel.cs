@@ -134,7 +134,7 @@ namespace KeePassWinHello
             }
             else
             {
-                bool isElevated = UAC.IsCurrentProcessElevated();
+                bool isElevated = UAC.IsCurrentProcessElevated;
                 isNotElevatedLabel.Visible = !isElevated;
                 winKeyStorageCheckBox.Enabled = isElevated;
             }
@@ -169,7 +169,7 @@ namespace KeePassWinHello
             bool isEnabled = isEnabledCheckBox.Checked;
             btnRevokeAll.Enabled = isEnabled;
             validPeriodComboBox.Enabled = isEnabled;
-            winKeyStorageCheckBox.Enabled = isEnabled && UAC.IsCurrentProcessElevated();
+            winKeyStorageCheckBox.Enabled = isEnabled && UAC.IsCurrentProcessElevated;
         }
     }
 }
