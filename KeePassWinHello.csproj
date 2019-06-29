@@ -49,11 +49,17 @@
   <ItemGroup>
     <Compile Include="AuthProviders\IAuthProvider.cs" />
     <Compile Include="AuthProviders\WinHelloProviderForegroundDecorator.cs" />
+    <Compile Include="KeyManagement\Storage\CredMan\Credential.cs" />
+    <Compile Include="KeyManagement\Storage\CredMan\CredentialExtensions.cs" />
+    <Compile Include="KeyManagement\Storage\CredMan\CredentialManager.cs" />
+    <Compile Include="KeyManagement\Storage\CredMan\CriticalCredentialHandle.cs" />
+    <Compile Include="KeyManagement\Storage\CredMan\NativeCode.cs" />
     <Compile Include="KeyManagement\Storage\IKeyStorage.cs" />
     <Compile Include="KeyManagement\KeyCipher.cs" />
     <Compile Include="KeyManagement\KeyManager.cs" />
     <Compile Include="KeyManagement\Storage\KeyMemoryStorage.cs" />
     <Compile Include="KeyManagement\ProtectedKey.cs" />
+    <Compile Include="KeyManagement\Storage\KeyWindowsStorage.cs" />
     <Compile Include="Settings\OptionsPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
