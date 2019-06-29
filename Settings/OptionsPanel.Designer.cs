@@ -28,17 +28,21 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+            this.components = new System.ComponentModel.Container();
             this.infoLabel = new System.Windows.Forms.Label();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
             this.isEnabledCheckBox = new System.Windows.Forms.CheckBox();
             this.winHelloDisabled = new System.Windows.Forms.Label();
             this.btnRevokeAll = new System.Windows.Forms.Button();
+            this.winKeyStorageCheckBox = new System.Windows.Forms.CheckBox();
+            this.winKeyStorageToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.isNotElevatedLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // infoLabel
             // 
             this.infoLabel.AutoSize = true;
-            this.infoLabel.Location = new System.Drawing.Point(0, 33);
+            this.infoLabel.Location = new System.Drawing.Point(0, 66);
             this.infoLabel.Name = "infoLabel";
             this.infoLabel.Size = new System.Drawing.Size(407, 13);
             this.infoLabel.TabIndex = 4;
@@ -63,10 +67,10 @@
             "1 Day",
             "Week",
             "Month"});
-            this.validPeriodComboBox.Location = new System.Drawing.Point(3, 49);
+            this.validPeriodComboBox.Location = new System.Drawing.Point(3, 82);
             this.validPeriodComboBox.Name = "validPeriodComboBox";
             this.validPeriodComboBox.Size = new System.Drawing.Size(186, 21);
-            this.validPeriodComboBox.TabIndex = 5;
+            this.validPeriodComboBox.TabIndex = 10;
             // 
             // isEnabledCheckBox
             // 
@@ -75,9 +79,9 @@
             this.isEnabledCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.isEnabledCheckBox.Location = new System.Drawing.Point(3, 13);
             this.isEnabledCheckBox.Name = "isEnabledCheckBox";
-            this.isEnabledCheckBox.Size = new System.Drawing.Size(337, 17);
+            this.isEnabledCheckBox.Size = new System.Drawing.Size(334, 17);
             this.isEnabledCheckBox.TabIndex = 8;
-            this.isEnabledCheckBox.Text = "Use quick unlock via Windows Hello authorization if it is available.";
+            this.isEnabledCheckBox.Text = "Use quick unlock via Windows Hello authorization if it is available";
             this.isEnabledCheckBox.UseVisualStyleBackColor = true;
             this.isEnabledCheckBox.CheckedChanged += new System.EventHandler(this.isEnabledCheckBox_CheckedChanged);
             // 
@@ -95,18 +99,43 @@
             // 
             // btnRevokeAll
             // 
-            this.btnRevokeAll.Location = new System.Drawing.Point(114, 76);
+            this.btnRevokeAll.Location = new System.Drawing.Point(460, 265);
             this.btnRevokeAll.Name = "btnRevokeAll";
             this.btnRevokeAll.Size = new System.Drawing.Size(75, 23);
-            this.btnRevokeAll.TabIndex = 10;
+            this.btnRevokeAll.TabIndex = 36;
             this.btnRevokeAll.Text = "Revoke all";
             this.btnRevokeAll.UseVisualStyleBackColor = true;
             this.btnRevokeAll.Visible = false;
+            // 
+            // winKeyStorageCheckBox
+            // 
+            this.winKeyStorageCheckBox.AutoSize = true;
+            this.winKeyStorageCheckBox.Location = new System.Drawing.Point(3, 36);
+            this.winKeyStorageCheckBox.Name = "winKeyStorageCheckBox";
+            this.winKeyStorageCheckBox.Size = new System.Drawing.Size(247, 17);
+            this.winKeyStorageCheckBox.TabIndex = 9;
+            this.winKeyStorageCheckBox.Text = "Store keys in the Windows Credential Manager";
+            this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for store databases access keys while KeePass is n" +
+        "ot running.\nRequires KeePass process to be running as Administrator.");
+            this.winKeyStorageCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // isNotElevatedLabel
+            // 
+            this.isNotElevatedLabel.AutoSize = true;
+            this.isNotElevatedLabel.ForeColor = System.Drawing.Color.DarkGoldenrod;
+            this.isNotElevatedLabel.Location = new System.Drawing.Point(259, 37);
+            this.isNotElevatedLabel.Name = "isNotElevatedLabel";
+            this.isNotElevatedLabel.Size = new System.Drawing.Size(279, 13);
+            this.isNotElevatedLabel.TabIndex = 37;
+            this.isNotElevatedLabel.Text = "Requires KeePass process to be running as Administrator.";
+            this.isNotElevatedLabel.Visible = false;
             // 
             // OptionsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.isNotElevatedLabel);
+            this.Controls.Add(this.winKeyStorageCheckBox);
             this.Controls.Add(this.btnRevokeAll);
             this.Controls.Add(this.winHelloDisabled);
             this.Controls.Add(this.isEnabledCheckBox);
@@ -126,5 +155,8 @@
 		private System.Windows.Forms.CheckBox isEnabledCheckBox;
         private System.Windows.Forms.Label winHelloDisabled;
         private System.Windows.Forms.Button btnRevokeAll;
+        private System.Windows.Forms.CheckBox winKeyStorageCheckBox;
+        private System.Windows.Forms.ToolTip winKeyStorageToolTip;
+        private System.Windows.Forms.Label isNotElevatedLabel;
     }
 }

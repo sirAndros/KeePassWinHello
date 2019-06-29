@@ -113,17 +113,17 @@ namespace KeePassWinHello
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
             BackColor = Color.Transparent;
 
-            validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
-            bool isEnabled = Settings.Instance.Enabled;
-
             Debug.Assert(ParentForm != null);
             if (ParentForm != null)
                 ParentForm.FormClosing += OnClosing;
 
+            LoadValuesFromSettings();
+
+            bool isEnabled = Settings.Instance.Enabled;
             if (!_isAvailable || !isEnabled)
             {
-                isEnabledCheckBox.Checked = false;
                 validPeriodComboBox.Enabled = false;
+                winKeyStorageCheckBox.Enabled = false;
                 btnRevokeAll.Enabled = false;
 
                 if (!_isAvailable)
@@ -132,27 +132,44 @@ namespace KeePassWinHello
                     winHelloDisabled.Visible = true;
                 }
             }
+            else
+            {
+                bool isElevated = UAC.IsCurrentProcessElevated();
+                isNotElevatedLabel.Visible = !isElevated;
+                winKeyStorageCheckBox.Enabled = isElevated;
+            }
 
             _initialized = true;
+        }
+
+        private void LoadValuesFromSettings()
+        {
+            isEnabledCheckBox.Checked = Settings.Instance.Enabled;
+            winKeyStorageCheckBox.Checked = Settings.Instance.WinStorageEnabled;
+            validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
         }
 
         private void OnClosing(object sender, FormClosingEventArgs e)
         {
             if (ParentForm.DialogResult == DialogResult.OK)
             {
-                Settings.Instance.Enabled = isEnabledCheckBox.Checked;
+                var settings = Settings.Instance;
+                settings.Enabled = isEnabledCheckBox.Checked;
                 if (isEnabledCheckBox.Checked)
                 {
-                    Settings.Instance.InvalidatingTime =
+                    settings.InvalidatingTime =
                         TimeSpan.FromMilliseconds(IndexToPeriod(validPeriodComboBox.SelectedIndex));
+                    settings.WinStorageEnabled = winKeyStorageCheckBox.Enabled;
                 }
             }
         }
 
         private void isEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            validPeriodComboBox.Enabled = isEnabledCheckBox.Checked;
-            btnRevokeAll.Enabled = isEnabledCheckBox.Checked;
+            bool isEnabled = isEnabledCheckBox.Checked;
+            btnRevokeAll.Enabled = isEnabled;
+            validPeriodComboBox.Enabled = isEnabled;
+            winKeyStorageCheckBox.Enabled = isEnabled && UAC.IsCurrentProcessElevated();
         }
     }
 }

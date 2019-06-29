@@ -26,13 +26,13 @@ namespace KeePassWinHello
             if (_host != null) { Debug.Assert(false); Terminate(); }
             if (host == null) { return false; }
 
+            Settings.Instance.Initialize(host.CustomConfig);
+
             _host = host;
             _keyManager = new KeyManager(_host.MainWindow.Handle);
 
             _host.MainWindow.FileClosingPre += _keyManager.OnDBClosing;
             GlobalWindowManager.WindowAdded += OnWindowAdded;
-
-            Settings.Instance.Initialize(_host.CustomConfig);
 
             return true;
         }
