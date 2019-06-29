@@ -1,13 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
+using System.Xml.Serialization;
 using KeePassLib.Keys;
 using KeePassLib.Security;
 using KeePassLib.Utility;
 
 namespace KeePassWinHello
 {
-    class ProtectedKey
+    [Serializable]
+    class ProtectedKey : SerializationBinder, ISerializable
     {
         enum KcpType
         {
@@ -32,6 +37,42 @@ namespace KeePassWinHello
 
         private readonly ProtectedBinary _protectedPassword;
         private readonly List<KcpData> _keys;
+
+        protected ProtectedKey(SerializationInfo info, StreamingContext context)
+        {
+            var p = (byte[])info.GetValue("p", typeof(byte[]));
+            _protectedPassword = new ProtectedBinary(false, p);
+
+            var kl = info.GetInt32("kl");
+            _keys = new List<KcpData>(kl);
+            for (int i = 0; i != kl; ++i)
+            {
+                var pfx = string.Format("k{0}", i);
+                var n = info.GetString(pfx + "n");
+                var t = (KcpType)info.GetValue(pfx + "t", typeof(KcpType));
+                var d = (byte[])info.GetValue(pfx + "d", typeof(byte[]));
+                _keys.Add(new KcpData(t, d != null ? new ProtectedBinary(false, d) : null, n));
+            }
+        }
+
+        public ProtectedKey() { }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            //info.AddValue("pl", _protectedPassword.Length, typeof(uint));
+            info.AddValue("p", _protectedPassword.ReadData(), typeof(byte[]));
+
+            info.AddValue("kl", _keys.Count, typeof(int));
+            for (int i = 0; i != _keys.Count; ++i)
+            {
+                var key = _keys[i];
+                var pfx = string.Format("k{0}", i);
+                info.AddValue(pfx + "t", key.KcpType, typeof(KcpType));
+                info.AddValue(pfx + "n", key.CustomName, typeof(string));
+                //info.AddValue(pfx + "dl", key.EncryptedData.Length, typeof(uint));
+                info.AddValue(pfx + "d", key.EncryptedData != null ? key.EncryptedData.ReadData() : null, typeof(byte[]));
+            }
+        }
 
         public static ProtectedKey Create(CompositeKey compositeKey, KeyCipher keyCipher)
         {
@@ -119,6 +160,18 @@ namespace KeePassWinHello
             }
 
             return compositeKey;
+        }
+
+        public override Type BindToType(string assemblyName, string typeName)
+        {
+            return Assembly.GetExecutingAssembly().GetType(typeName);
+
+            if (typeName.EndsWith("KcpData"))
+                return typeof(ProtectedKey.KcpData);
+            else if (typeName.EndsWith("KcpType"))
+                return typeof(ProtectedKey.KcpType);
+
+            return typeof(ProtectedKey);
         }
     }
 }

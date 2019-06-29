@@ -17,7 +17,8 @@ namespace KeePassWinHello
         public KeyCipher(string message, IntPtr windowHandle)
         {
             _randomSeedBits = 256;
-            _encryptionIV = CryptoRandom.Instance.GetRandomBytes(16);
+            //_encryptionIV = CryptoRandom.Instance.GetRandomBytes(16);
+            _encryptionIV = new byte[16];
             _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
             _cryptProvider = AuthProviderFactory.GetInstance(message, windowHandle);
         }

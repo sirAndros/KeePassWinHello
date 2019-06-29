@@ -1,14 +1,20 @@
 ﻿using AdysTech.CredentialManager;
+using KeePassLib.Utility;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Security;
 using System.Security.Principal;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace KeePassWinHello
 {
@@ -383,75 +389,73 @@ ref IntPtr TokenHandle // handle to open access token
             //{
             //    system = IsWellKnownSid(pTokenUser->User.Sid, WinLocalSystemSid);
             //}
-
-            // test
-            try
-            {
-                using (var context = WindowsIdentity.Impersonate(_systemToken))
-                {
-                    var cred = new NetworkCredential("TestUser", "Pwd11!!");
-                    CredentialManager.SaveCredentials("TestSystem", cred);
-
-                    //context.Undo(); // auto?
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-            }
-
-            try
-            {
-                var cred = CredentialManager.GetCredentials("TestSystem");
-                Debug.WriteLine(cred.UserName);
-                Debug.WriteLine(cred.Password);
-            }
-            catch(Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-            }
-
-            try
-            {
-                using (var context = WindowsIdentity.Impersonate(_systemToken))
-                {
-                    var cred = CredentialManager.GetCredentials(@"KeePassWinHello_d:\bin\KeePass\Plugins\HistoryComparer - Copy.kdbx");
-                    Debug.WriteLine(cred.UserName);
-                    Debug.WriteLine(cred.Password);
-
-                    context.Undo(); // auto?
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-            }
-
         }
 
         public void AddOrUpdate(string dbPath, ProtectedKey protectedKey)
         {
-            throw new NotImplementedException();
+            var stream = new MemoryStream();
+            var formatter = new BinaryFormatter();
+            //var formatter = new XmlSerializer(typeof(ProtectedKey));
+            formatter.Serialize(stream, protectedKey);
+
+            var pass = new SecureString();
+            byte[] data = stream.ToArray();
+            try
+            {
+                foreach (char c in Convert.ToBase64String(data))
+                    pass.AppendChar(c);
+            }
+            finally
+            {
+                MemUtil.ZeroByteArray(data);
+            }
+
+            var cred = new NetworkCredential("dummy", pass);
+
+            using (var context = WindowsIdentity.Impersonate(_systemToken))
+                CredentialManager.SaveCredentials("KeePassWinHello_" + dbPath, cred);
         }
 
         public bool ContainsKey(string dbPath)
         {
-            throw new NotImplementedException();
+            ProtectedKey dummy;
+            return TryGetValue(dbPath, out dummy);
         }
 
         public void Purge()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void Remove(string dbPath)
         {
-            throw new NotImplementedException();
+            using (var context = WindowsIdentity.Impersonate(_systemToken))
+                CredentialManager.RemoveCredentials("KeePassWinHello_" + dbPath);
         }
 
         public bool TryGetValue(string dbPath, out ProtectedKey protectedKey)
         {
-            throw new NotImplementedException();
+            try
+            {
+                NetworkCredential cred;
+                using (var context = WindowsIdentity.Impersonate(_systemToken))
+                    cred = CredentialManager.GetCredentials("KeePassWinHello_" + dbPath);
+
+                var stream = new MemoryStream();
+                var data = Convert.FromBase64String(cred.Password);
+                stream.Write(data, 0, data.Length);
+                stream.Position = 0;
+
+                var formatter = new BinaryFormatter();
+                formatter.Binder = new ProtectedKey();
+                protectedKey = (ProtectedKey)formatter.Deserialize(stream);
+                return true;
+            }
+            catch
+            {
+                protectedKey = null;
+                return false;
+            }
         }
     }
 }

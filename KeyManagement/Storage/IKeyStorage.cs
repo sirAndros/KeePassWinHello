@@ -15,7 +15,6 @@ namespace KeePassWinHello
     {
         public static IKeyStorage Create()
         {
-            System.Windows.Forms.MessageBox.Show("Open!");
             if (UAC.IsCurrentProcessElevated() && Settings.Instance.WinStorageEnabled)
                 return new KeyWindowsStorage();
 
