@@ -129,13 +129,14 @@ namespace KeePassWinHello
                 if (!_isAvailable)
                 {
                     isEnabledCheckBox.Enabled = false;
-                    winHelloDisabled.Visible = true;
+                    winHelloDisabledPanel.Visible = true;
                 }
             }
             else
             {
                 bool isElevated = UAC.IsCurrentProcessElevated;
-                isNotElevatedLabel.Visible = !isElevated;
+                isNotElevatedPanel.Visible = !isElevated;
+                splitContainer1.Panel1Collapsed = isElevated;
                 winKeyStorageCheckBox.Enabled = isElevated;
             }
 
