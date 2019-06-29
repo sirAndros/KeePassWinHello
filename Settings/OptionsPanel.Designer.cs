@@ -40,12 +40,14 @@
             this.btnRevokeAll = new System.Windows.Forms.Button();
             this.infoLabel = new System.Windows.Forms.Label();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
+            this.uacIco = new System.Windows.Forms.PictureBox();
             this.winHelloDisabledPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.isNotElevatedPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.uacIco)).BeginInit();
             this.SuspendLayout();
             // 
             // isEnabledCheckBox
@@ -119,13 +121,13 @@
             // 
             this.isNotElevatedPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(251)))), ((int)(((byte)(172)))));
             this.isNotElevatedPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.isNotElevatedPanel.Controls.Add(this.uacIco);
             this.isNotElevatedPanel.Controls.Add(this.isNotElevatedLabel);
             this.isNotElevatedPanel.ForeColor = System.Drawing.SystemColors.ScrollBar;
             this.isNotElevatedPanel.Location = new System.Drawing.Point(0, 1);
             this.isNotElevatedPanel.Name = "isNotElevatedPanel";
             this.isNotElevatedPanel.Size = new System.Drawing.Size(550, 24);
             this.isNotElevatedPanel.TabIndex = 39;
-            this.isNotElevatedPanel.Visible = false;
             // 
             // isNotElevatedLabel
             // 
@@ -175,10 +177,18 @@
             "1 Day",
             "Week",
             "Month"});
-            this.validPeriodComboBox.Location = new System.Drawing.Point(177, 4);
+            this.validPeriodComboBox.Location = new System.Drawing.Point(192, 4);
             this.validPeriodComboBox.Name = "validPeriodComboBox";
             this.validPeriodComboBox.Size = new System.Drawing.Size(136, 21);
             this.validPeriodComboBox.TabIndex = 38;
+            // 
+            // uacIco
+            // 
+            this.uacIco.Location = new System.Drawing.Point(3, 3);
+            this.uacIco.Name = "uacIco";
+            this.uacIco.Size = new System.Drawing.Size(16, 16);
+            this.uacIco.TabIndex = 42;
+            this.uacIco.TabStop = false;
             // 
             // OptionsPanel
             // 
@@ -199,6 +209,7 @@
             this.splitContainer1.ResumeLayout(false);
             this.isNotElevatedPanel.ResumeLayout(false);
             this.isNotElevatedPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.uacIco)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -216,5 +227,6 @@
         private System.Windows.Forms.Button btnRevokeAll;
         private System.Windows.Forms.Label infoLabel;
         private System.Windows.Forms.ComboBox validPeriodComboBox;
+        private System.Windows.Forms.PictureBox uacIco;
     }
 }

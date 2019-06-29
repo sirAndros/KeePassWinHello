@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace KeePassWinHello
@@ -135,9 +136,9 @@ namespace KeePassWinHello
             else
             {
                 bool isElevated = UAC.IsCurrentProcessElevated;
-                isNotElevatedPanel.Visible = !isElevated;
-                splitContainer1.Panel1Collapsed = isElevated;
                 winKeyStorageCheckBox.Enabled = isElevated;
+                splitContainer1.Panel1Collapsed = isElevated;
+                DrawUacShild();
             }
 
             _initialized = true;
@@ -171,6 +172,35 @@ namespace KeePassWinHello
             btnRevokeAll.Enabled = isEnabled;
             validPeriodComboBox.Enabled = isEnabled;
             winKeyStorageCheckBox.Enabled = isEnabled && UAC.IsCurrentProcessElevated;
+        }
+
+        private void DrawUacShild()
+        {
+            if (!isNotElevatedPanel.Visible)
+                return;
+
+            const int IDI_SHIELD = 32518;
+            const int SM_CXSMICON = 49;
+            const int SM_CYSMICON = 50;
+
+            int cx = WinAPI.GetSystemMetrics(SM_CXSMICON);
+            int cy = WinAPI.GetSystemMetrics(SM_CYSMICON);
+            IntPtr hShieldIcon;
+            int result = WinAPI.LoadIconWithScaleDown(IntPtr.Zero, IDI_SHIELD, cx, cy, out hShieldIcon);
+            if (result >= 0)
+            {
+                uacIco.Image = Bitmap.FromHicon(hShieldIcon);
+            }
+        }
+
+
+        private static class WinAPI
+        {
+            [DllImport("comctl32.dll", SetLastError = true)]
+            public static extern int LoadIconWithScaleDown(IntPtr hinst, int pszName, int cx, int cy, out IntPtr phico);
+
+            [DllImport("user32.dll", SetLastError = true)]
+            public static extern int GetSystemMetrics(int nIndex);
         }
     }
 }
