@@ -31,23 +31,22 @@
             this.components = new System.ComponentModel.Container();
             this.isEnabledCheckBox = new System.Windows.Forms.CheckBox();
             this.winKeyStorageToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.winKeyStorageCheckBox = new System.Windows.Forms.CheckBox();
             this.winHelloDisabledPanel = new System.Windows.Forms.Panel();
             this.winHelloDisabledLabel = new System.Windows.Forms.Label();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.winKeyStorageCheckBox = new System.Windows.Forms.CheckBox();
             this.isNotElevatedPanel = new System.Windows.Forms.Panel();
             this.isNotElevatedLabel = new System.Windows.Forms.Label();
             this.btnRevokeAll = new System.Windows.Forms.Button();
             this.infoLabel = new System.Windows.Forms.Label();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
-            this.uacIco = new System.Windows.Forms.PictureBox();
+            this.uacIcoPanel = new System.Windows.Forms.Panel();
             this.winHelloDisabledPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.isNotElevatedPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.uacIco)).BeginInit();
             this.SuspendLayout();
             // 
             // isEnabledCheckBox
@@ -62,6 +61,18 @@
             this.isEnabledCheckBox.Text = "Use quick unlock via Windows Hello authorization if it is available";
             this.isEnabledCheckBox.UseVisualStyleBackColor = true;
             this.isEnabledCheckBox.CheckedChanged += new System.EventHandler(this.isEnabledCheckBox_CheckedChanged);
+            // 
+            // winKeyStorageCheckBox
+            // 
+            this.winKeyStorageCheckBox.AutoSize = true;
+            this.winKeyStorageCheckBox.Location = new System.Drawing.Point(3, 36);
+            this.winKeyStorageCheckBox.Name = "winKeyStorageCheckBox";
+            this.winKeyStorageCheckBox.Size = new System.Drawing.Size(247, 17);
+            this.winKeyStorageCheckBox.TabIndex = 9;
+            this.winKeyStorageCheckBox.Text = "Store keys in the Windows Credential Manager";
+            this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for store databases access keys while KeePass is n" +
+        "ot running.\r\nRequires for KeePass process to be running as Administrator.");
+            this.winKeyStorageCheckBox.UseVisualStyleBackColor = true;
             // 
             // winHelloDisabledPanel
             // 
@@ -105,23 +116,11 @@
             this.splitContainer1.SplitterDistance = 25;
             this.splitContainer1.TabIndex = 40;
             // 
-            // winKeyStorageCheckBox
-            // 
-            this.winKeyStorageCheckBox.AutoSize = true;
-            this.winKeyStorageCheckBox.Location = new System.Drawing.Point(3, 36);
-            this.winKeyStorageCheckBox.Name = "winKeyStorageCheckBox";
-            this.winKeyStorageCheckBox.Size = new System.Drawing.Size(247, 17);
-            this.winKeyStorageCheckBox.TabIndex = 9;
-            this.winKeyStorageCheckBox.Text = "Store keys in the Windows Credential Manager";
-            this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for store databases access keys while KeePass is n" +
-        "ot running.\r\nRequires for KeePass process to be running as Administrator.");
-            this.winKeyStorageCheckBox.UseVisualStyleBackColor = true;
-            // 
             // isNotElevatedPanel
             // 
             this.isNotElevatedPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(251)))), ((int)(((byte)(172)))));
             this.isNotElevatedPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.isNotElevatedPanel.Controls.Add(this.uacIco);
+            this.isNotElevatedPanel.Controls.Add(this.uacIcoPanel);
             this.isNotElevatedPanel.Controls.Add(this.isNotElevatedLabel);
             this.isNotElevatedPanel.ForeColor = System.Drawing.SystemColors.ScrollBar;
             this.isNotElevatedPanel.Location = new System.Drawing.Point(0, 1);
@@ -182,13 +181,12 @@
             this.validPeriodComboBox.Size = new System.Drawing.Size(136, 21);
             this.validPeriodComboBox.TabIndex = 38;
             // 
-            // uacIco
+            // uacIcoPanel
             // 
-            this.uacIco.Location = new System.Drawing.Point(3, 3);
-            this.uacIco.Name = "uacIco";
-            this.uacIco.Size = new System.Drawing.Size(16, 16);
-            this.uacIco.TabIndex = 42;
-            this.uacIco.TabStop = false;
+            this.uacIcoPanel.Location = new System.Drawing.Point(3, 3);
+            this.uacIcoPanel.Name = "uacIcoPanel";
+            this.uacIcoPanel.Size = new System.Drawing.Size(16, 16);
+            this.uacIcoPanel.TabIndex = 42;
             // 
             // OptionsPanel
             // 
@@ -209,7 +207,6 @@
             this.splitContainer1.ResumeLayout(false);
             this.isNotElevatedPanel.ResumeLayout(false);
             this.isNotElevatedPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.uacIco)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -227,6 +224,6 @@
         private System.Windows.Forms.Button btnRevokeAll;
         private System.Windows.Forms.Label infoLabel;
         private System.Windows.Forms.ComboBox validPeriodComboBox;
-        private System.Windows.Forms.PictureBox uacIco;
+        private System.Windows.Forms.Panel uacIcoPanel;
     }
 }
