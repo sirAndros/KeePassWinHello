@@ -11,11 +11,22 @@ using KeePassLib.Serialization;
 
 namespace KeePassWinHello
 {
-    class KeyManager
+    interface IKeyManager
+    {
+        bool IsAvailable { get; }
+        int KeysCount { get; }
+
+        void RevokeAll();
+    }
+
+    class KeyManager : IKeyManager
     {
         private readonly KeyCipher _keyCipher;
         private readonly KeyStorage _keyStorage;
         private volatile bool _isSecureDesktopSettingChanged = false;
+
+        public bool IsAvailable { get { return _keyCipher.IsAvailable; } }
+        public int  KeysCount   { get { return _keyStorage.Count; } }
 
         public KeyManager(IntPtr windowHandle)
         {
@@ -68,7 +79,7 @@ namespace KeePassWinHello
 
         public void OnOptionsLoad(OptionsForm optionsForm)
         {
-            OptionsPanel.AddTab(GetTabControl(optionsForm), GetTabsImageList(optionsForm), _keyCipher.IsAvailable);
+            OptionsPanel.AddTab(GetTabControl(optionsForm), GetTabsImageList(optionsForm), this);
         }
 
         public void OnDBClosing(object sender, FileClosingEventArgs e)

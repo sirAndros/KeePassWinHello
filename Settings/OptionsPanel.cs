@@ -8,17 +8,17 @@ namespace KeePassWinHello
 {
 	public partial class OptionsPanel : UserControl
 	{
-        private readonly bool _isAvailable;
+        private readonly IKeyManager _keyManager;
         private bool _initialized = false;
 
-        public OptionsPanel(bool isAvailable)
+        private OptionsPanel(IKeyManager keyManager)
         {
             InitializeComponent();
 
-            _isAvailable = isAvailable;
+            _keyManager = keyManager;
         }
 
-        internal static void AddTab(TabControl m_tabMain, ImageList imageList, bool isAvailable)
+        internal static void AddTab(TabControl m_tabMain, ImageList imageList, IKeyManager keyManager)
         {
             Debug.Assert(m_tabMain != null);
             if (m_tabMain == null)
@@ -32,7 +32,7 @@ namespace KeePassWinHello
             }
 
             var imageIndex = imageList.Images.Add(Properties.Resources.windows_hello16x16, Color.Transparent);
-            var optionsPanel = new OptionsPanel(isAvailable);
+            var optionsPanel = new OptionsPanel(keyManager);
 
             var newTab = new TabPage(Settings.OptionsTabName)
             {
@@ -59,18 +59,19 @@ namespace KeePassWinHello
 
             validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
             bool isEnabled = Settings.Instance.Enabled;
+            bool isAvailable = _keyManager != null && _keyManager.IsAvailable;
 
             Debug.Assert(ParentForm != null);
             if (ParentForm != null)
                 ParentForm.FormClosing += OnClosing;
 
-            if (!_isAvailable || !isEnabled)
+            if (!isAvailable || !isEnabled)
             {
                 isEnabledCheckBox.Checked = false;
                 validPeriodComboBox.Enabled = false;
                 btnRevokeAll.Enabled = false;
 
-                if (!_isAvailable)
+                if (!isAvailable)
                 {
                     isEnabledCheckBox.Enabled = false;
                     winHelloDisabled.Visible = true;
@@ -109,7 +110,8 @@ namespace KeePassWinHello
 
         private void BtnRevokeAll_Click(object sender, EventArgs e)
         {
-            // todo
+            if (_keyManager != null)
+                _keyManager.RevokeAll();
         }
 
 
