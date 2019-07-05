@@ -11,11 +11,25 @@ using KeePassLib.Serialization;
 
 namespace KeePassWinHello
 {
+    class StorageEventArgs : EventArgs
+    {
+        public readonly int OldKeysCount;
+        public readonly int NewKeysCount;
+
+        public StorageEventArgs(int oldCount, int newCount)
+        {
+            OldKeysCount = oldCount;
+            NewKeysCount = newCount;
+        }
+    }
+
     class KeyManager
     {
         private readonly KeyCipher _keyCipher;
         private readonly KeyStorage _keyStorage;
         private volatile bool _isSecureDesktopSettingChanged = false;
+
+        public event EventHandler<StorageEventArgs> StorageChanged;
 
         public KeyManager(IntPtr windowHandle)
         {
@@ -85,17 +99,17 @@ namespace KeePassWinHello
             string dbPath = e.Database.IOConnectionInfo.Path;
             if (!IsDBLocking(e))
             {
-                _keyStorage.Remove(dbPath);
+                RemoveKey(dbPath);
             }
             else if (AuthProviderFactory.IsAvailable() && Settings.Instance.Enabled)
             {
-                _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
+                AddOrUpdateKey(e.Database.MasterKey, dbPath);
             }
         }
 
         public void RevokeAll()
         {
-            _keyStorage.Clear();
+            NotifyKeyStorageChangeAfterAction(() => _keyStorage.Clear());
         }
 
         private static void CloseFormWithResult(KeyPromptForm keyPromptForm, DialogResult result)
@@ -138,12 +152,12 @@ namespace KeePassWinHello
             }
             catch (UnauthorizedAccessException)
             {
-                _keyStorage.Remove(dbPath);
+                RemoveKey(dbPath);
             }
             catch (Exception ex)
             {
                 Debug.Fail(ex.ToString()); // TODO: fix canceled exception
-                _keyStorage.Remove(dbPath);
+                RemoveKey(dbPath);
             }
             return false;
         }
@@ -182,6 +196,28 @@ namespace KeePassWinHello
             }
             catch { }
             return true;
+        }
+
+        private void AddOrUpdateKey(CompositeKey compositeKey, string dbPath)
+        {
+            NotifyKeyStorageChangeAfterAction(() =>
+                _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(compositeKey, _keyCipher)));
+        }
+
+        private void RemoveKey(string dbPath)
+        {
+            NotifyKeyStorageChangeAfterAction(() => _keyStorage.Remove(dbPath));
+        }
+
+        private void NotifyKeyStorageChangeAfterAction(Action action)
+        {
+            var oldCount = _keyStorage.Count;
+
+            action();
+
+            var evnt = StorageChanged;
+            if (evnt != null)
+                evnt.Invoke(this, new StorageEventArgs(oldCount, _keyStorage.Count));
         }
 
         private static string GetDbPath(KeyPromptForm keyPromptForm)

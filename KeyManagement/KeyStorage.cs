@@ -30,6 +30,8 @@ namespace KeePassWinHello
 
         private readonly IDictionary<string, Data> _keys = new ConcurrentDictionary<string, Data>();
 
+        public int Count { get { return _keys.Count; } }
+
         public void AddOrUpdate(string dbPath, ProtectedKey protectedKey)
         {
             _keys[dbPath] = new Data(protectedKey);
