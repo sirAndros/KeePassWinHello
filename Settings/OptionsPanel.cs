@@ -6,29 +6,8 @@ using System.Windows.Forms;
 
 namespace KeePassWinHello
 {
-	public partial class OptionsPanel : UserControl, IObservable<OptionsPanel.ChangedOptions>
+	public partial class OptionsPanel : UserControl
 	{
-        public enum OptionsChangeType
-        {
-            Unknown = 0,
-            Settings_Enabled = 1,
-            Settings_ValidPeriod = 2,
-            RevokeAll = 100,
-        }
-
-        public class ChangedOptions
-        {
-            public OptionsChangeType ChangeType { get; private set; }
-
-            public ChangedOptions(OptionsChangeType changeType)
-            {
-                ChangeType = changeType;
-            }
-        }
-
-
-        private static readonly List<IObserver<ChangedOptions>> _observers = new List<IObserver<ChangedOptions>>();
-
         private readonly bool _isAvailable;
         private bool _initialized = false;
 
@@ -37,15 +16,6 @@ namespace KeePassWinHello
             InitializeComponent();
 
             _isAvailable = isAvailable;
-        }
-
-        public static IDisposable Subscribe(IObserver<ChangedOptions> observer)
-        {
-            if (observer == null)
-                throw new ArgumentNullException("observer");
-
-            _observers.Add(observer);
-            return new Unsubscriber(_observers, observer);
         }
 
         internal static void AddTab(TabControl m_tabMain, ImageList imageList, bool isAvailable)
@@ -118,7 +88,6 @@ namespace KeePassWinHello
                 if (settings.Enabled != isEnabledCheckBox.Checked)
                 {
                     settings.Enabled = isEnabledCheckBox.Checked;
-                    NotifySubscribers(OptionsChangeType.Settings_Enabled);
                 }
               
                 if (isEnabledCheckBox.Checked)
@@ -127,7 +96,6 @@ namespace KeePassWinHello
                     if (settings.InvalidatingTime != newInvalidatingTime)
                     {
                         settings.InvalidatingTime = newInvalidatingTime;
-                        NotifySubscribers(OptionsChangeType.Settings_ValidPeriod);
                     }
                 }
             }
@@ -141,14 +109,7 @@ namespace KeePassWinHello
 
         private void BtnRevokeAll_Click(object sender, EventArgs e)
         {
-            NotifySubscribers(OptionsChangeType.RevokeAll);
-        }
-
-        private void NotifySubscribers(OptionsChangeType changeType)
-        {
-            var msg = new ChangedOptions(changeType);
-            foreach (var observer in _observers)
-                observer.OnNext(msg);
+            // todo
         }
 
 
@@ -212,27 +173,5 @@ namespace KeePassWinHello
         }
 
         #endregion InvalidatingTimeProcessing
-
-        IDisposable IObservable<ChangedOptions>.Subscribe(IObserver<ChangedOptions> observer)
-        {
-            return Subscribe(observer);
-        }
-
-        private class Unsubscriber : IDisposable
-        {
-            private readonly List<IObserver<ChangedOptions>> _observers;
-            private readonly IObserver<ChangedOptions> _observer;
-
-            public Unsubscriber(List<IObserver<ChangedOptions>> observers, IObserver<ChangedOptions> observer)
-            {
-                _observers = observers;
-                _observer = observer;
-            }
-
-            public void Dispose()
-            {
-                _observers.Remove(_observer);
-            }
-        }
     }
 }

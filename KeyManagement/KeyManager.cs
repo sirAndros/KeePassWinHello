@@ -11,25 +11,11 @@ using KeePassLib.Serialization;
 
 namespace KeePassWinHello
 {
-    class StorageEventArgs : EventArgs
-    {
-        public readonly int OldKeysCount;
-        public readonly int NewKeysCount;
-
-        public StorageEventArgs(int oldCount, int newCount)
-        {
-            OldKeysCount = oldCount;
-            NewKeysCount = newCount;
-        }
-    }
-
     class KeyManager
     {
         private readonly KeyCipher _keyCipher;
         private readonly KeyStorage _keyStorage;
         private volatile bool _isSecureDesktopSettingChanged = false;
-
-        public event EventHandler<StorageEventArgs> StorageChanged;
 
         public KeyManager(IntPtr windowHandle)
         {
@@ -109,7 +95,7 @@ namespace KeePassWinHello
 
         public void RevokeAll()
         {
-            NotifyKeyStorageChangeAfterAction(() => _keyStorage.Clear());
+            _keyStorage.Clear();
         }
 
         private static void CloseFormWithResult(KeyPromptForm keyPromptForm, DialogResult result)
@@ -200,24 +186,12 @@ namespace KeePassWinHello
 
         private void AddOrUpdateKey(CompositeKey compositeKey, string dbPath)
         {
-            NotifyKeyStorageChangeAfterAction(() =>
-                _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(compositeKey, _keyCipher)));
+            _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(compositeKey, _keyCipher));
         }
 
         private void RemoveKey(string dbPath)
         {
-            NotifyKeyStorageChangeAfterAction(() => _keyStorage.Remove(dbPath));
-        }
-
-        private void NotifyKeyStorageChangeAfterAction(Action action)
-        {
-            var oldCount = _keyStorage.Count;
-
-            action();
-
-            var evnt = StorageChanged;
-            if (evnt != null)
-                evnt.Invoke(this, new StorageEventArgs(oldCount, _keyStorage.Count));
+            _keyStorage.Remove(dbPath);
         }
 
         private static string GetDbPath(KeyPromptForm keyPromptForm)
