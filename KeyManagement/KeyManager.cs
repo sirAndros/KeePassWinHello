@@ -96,11 +96,11 @@ namespace KeePassWinHello
             string dbPath = e.Database.IOConnectionInfo.Path;
             if (!IsDBLocking(e))
             {
-                RemoveKey(dbPath);
+                _keyStorage.Remove(dbPath);
             }
             else if (AuthProviderFactory.IsAvailable() && Settings.Instance.Enabled)
             {
-                AddOrUpdateKey(e.Database.MasterKey, dbPath);
+                _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
             }
         }
 
@@ -149,12 +149,12 @@ namespace KeePassWinHello
             }
             catch (UnauthorizedAccessException)
             {
-                RemoveKey(dbPath);
+                _keyStorage.Remove(dbPath);
             }
             catch (Exception ex)
             {
                 Debug.Fail(ex.ToString()); // TODO: fix canceled exception
-                RemoveKey(dbPath);
+                _keyStorage.Remove(dbPath);
             }
             return false;
         }
@@ -193,16 +193,6 @@ namespace KeePassWinHello
             }
             catch { }
             return true;
-        }
-
-        private void AddOrUpdateKey(CompositeKey compositeKey, string dbPath)
-        {
-            _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(compositeKey, _keyCipher));
-        }
-
-        private void RemoveKey(string dbPath)
-        {
-            _keyStorage.Remove(dbPath);
         }
 
         private static string GetDbPath(KeyPromptForm keyPromptForm)
