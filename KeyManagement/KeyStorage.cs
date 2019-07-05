@@ -64,6 +64,11 @@ namespace KeePassWinHello
             return false;
         }
 
+        public void Clear()
+        {
+            _keys.Clear();
+        }
+
         public void Purge()
         {
             foreach (var item in _keys)

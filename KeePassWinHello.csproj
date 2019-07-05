@@ -65,6 +65,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="KeyManagement\RevocationProcessor.cs" />
     <Compile Include="Settings\Settings.cs" />
     <Compile Include="AuthProviders\WinHelloProvider.cs" />
     <Compile Include="KeePassWinHelloExt.cs" />

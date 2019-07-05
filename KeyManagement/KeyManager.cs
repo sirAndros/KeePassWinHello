@@ -93,6 +93,11 @@ namespace KeePassWinHello
             }
         }
 
+        public void RevokeAll()
+        {
+            _keyStorage.Clear();
+        }
+
         private static void CloseFormWithResult(KeyPromptForm keyPromptForm, DialogResult result)
         {
             // Remove flushing

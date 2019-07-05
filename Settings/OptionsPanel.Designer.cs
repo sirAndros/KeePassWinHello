@@ -101,7 +101,7 @@
             this.btnRevokeAll.TabIndex = 10;
             this.btnRevokeAll.Text = "Revoke all";
             this.btnRevokeAll.UseVisualStyleBackColor = true;
-            this.btnRevokeAll.Visible = false;
+            this.btnRevokeAll.Click += new System.EventHandler(this.BtnRevokeAll_Click);
             // 
             // OptionsPanel
             // 

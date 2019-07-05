@@ -1,12 +1,159 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 
 namespace KeePassWinHello
 {
-	public partial class OptionsPanel : UserControl
+	public partial class OptionsPanel : UserControl, IObservable<OptionsPanel.ChangedOptions>
 	{
+        public enum OptionsChangeType
+        {
+            Unknown = 0,
+            Settings_Enabled = 1,
+            Settings_ValidPeriod = 2,
+            RevokeAll = 100,
+        }
+
+        public class ChangedOptions
+        {
+            public OptionsChangeType ChangeType { get; private set; }
+
+            public ChangedOptions(OptionsChangeType changeType)
+            {
+                ChangeType = changeType;
+            }
+        }
+
+
+        private static readonly List<IObserver<ChangedOptions>> _observers = new List<IObserver<ChangedOptions>>();
+
+        private readonly bool _isAvailable;
+        private bool _initialized = false;
+
+        public OptionsPanel(bool isAvailable)
+        {
+            InitializeComponent();
+
+            _isAvailable = isAvailable;
+        }
+
+        public static IDisposable Subscribe(IObserver<ChangedOptions> observer)
+        {
+            if (observer == null)
+                throw new ArgumentNullException("observer");
+
+            _observers.Add(observer);
+            return new Unsubscriber(_observers, observer);
+        }
+
+        internal static void AddTab(TabControl m_tabMain, ImageList imageList, bool isAvailable)
+        {
+            Debug.Assert(m_tabMain != null);
+            if (m_tabMain == null)
+                return;
+
+            if (imageList == null)
+            {
+                if (m_tabMain.ImageList == null)
+                    m_tabMain.ImageList = new ImageList();
+                imageList = m_tabMain.ImageList;
+            }
+
+            var imageIndex = imageList.Images.Add(Properties.Resources.windows_hello16x16, Color.Transparent);
+            var optionsPanel = new OptionsPanel(isAvailable);
+
+            var newTab = new TabPage(Settings.OptionsTabName)
+            {
+                UseVisualStyleBackColor = true,
+                ImageIndex = imageIndex
+            };
+
+            newTab.Controls.Add(optionsPanel);
+            optionsPanel.Dock = DockStyle.Fill;
+
+            m_tabMain.TabPages.Add(newTab);
+            m_tabMain.Multiline = false;
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+
+            if (_initialized)
+                return;
+
+            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
+            BackColor = Color.Transparent;
+
+            validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
+            bool isEnabled = Settings.Instance.Enabled;
+
+            Debug.Assert(ParentForm != null);
+            if (ParentForm != null)
+                ParentForm.FormClosing += OnClosing;
+
+            if (!_isAvailable || !isEnabled)
+            {
+                isEnabledCheckBox.Checked = false;
+                validPeriodComboBox.Enabled = false;
+                btnRevokeAll.Enabled = false;
+
+                if (!_isAvailable)
+                {
+                    isEnabledCheckBox.Enabled = false;
+                    winHelloDisabled.Visible = true;
+                }
+            }
+
+            _initialized = true;
+        }
+
+        private void OnClosing(object sender, FormClosingEventArgs e)
+        {
+            if (ParentForm.DialogResult == DialogResult.OK)
+            {
+                Settings settings = Settings.Instance;
+                if (settings.Enabled != isEnabledCheckBox.Checked)
+                {
+                    settings.Enabled = isEnabledCheckBox.Checked;
+                    NotifySubscribers(OptionsChangeType.Settings_Enabled);
+                }
+              
+                if (isEnabledCheckBox.Checked)
+                {
+                    var newInvalidatingTime = TimeSpan.FromMilliseconds(IndexToPeriod(validPeriodComboBox.SelectedIndex));
+                    if (settings.InvalidatingTime != newInvalidatingTime)
+                    {
+                        settings.InvalidatingTime = newInvalidatingTime;
+                        NotifySubscribers(OptionsChangeType.Settings_ValidPeriod);
+                    }
+                }
+            }
+        }
+
+        private void isEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            validPeriodComboBox.Enabled = isEnabledCheckBox.Checked;
+            btnRevokeAll.Enabled = isEnabledCheckBox.Checked;
+        }
+
+        private void BtnRevokeAll_Click(object sender, EventArgs e)
+        {
+            NotifySubscribers(OptionsChangeType.RevokeAll);
+        }
+
+        private void NotifySubscribers(OptionsChangeType changeType)
+        {
+            var msg = new ChangedOptions(changeType);
+            foreach (var observer in _observers)
+                observer.OnNext(msg);
+        }
+
+
+        #region InvalidatingTimeProcessing
+
         private const long VALID_UNLIMITED = Settings.VALID_UNLIMITED_PERIOD;
         private const long VALID_1MINUTE = 60 * 1000;
         private const long VALID_5MINUTES = VALID_1MINUTE * 5;
@@ -21,9 +168,6 @@ namespace KeePassWinHello
         private const long VALID_7DAYS = VALID_1DAY * 7;
         private const long VALID_MONTH = VALID_1DAY * 30;
         private const long VALID_DEFAULT = Settings.VALID_PERIOD_DEFAULT;
-
-        private readonly bool _isAvailable;
-        private bool _initialized = false;
 
         private static long IndexToPeriod(int index)
         {
@@ -67,92 +211,28 @@ namespace KeePassWinHello
             }
         }
 
-        internal static void AddTab(TabControl m_tabMain, ImageList imageList, bool isAvailable)
-        {
-            Debug.Assert(m_tabMain != null);
-            if (m_tabMain == null)
-                return;
+        #endregion InvalidatingTimeProcessing
 
-            if (imageList == null)
+        IDisposable IObservable<ChangedOptions>.Subscribe(IObserver<ChangedOptions> observer)
+        {
+            return Subscribe(observer);
+        }
+
+        private class Unsubscriber : IDisposable
+        {
+            private readonly List<IObserver<ChangedOptions>> _observers;
+            private readonly IObserver<ChangedOptions> _observer;
+
+            public Unsubscriber(List<IObserver<ChangedOptions>> observers, IObserver<ChangedOptions> observer)
             {
-                if (m_tabMain.ImageList == null)
-                    m_tabMain.ImageList = new ImageList();
-                imageList = m_tabMain.ImageList;
+                _observers = observers;
+                _observer = observer;
             }
 
-            var imageIndex = imageList.Images.Add(Properties.Resources.windows_hello16x16, Color.Transparent);
-            var optionsPanel = new OptionsPanel(isAvailable);
-
-            var newTab = new TabPage(Settings.OptionsTabName)
+            public void Dispose()
             {
-                UseVisualStyleBackColor = true,
-                ImageIndex = imageIndex
-            };
-
-            newTab.Controls.Add(optionsPanel);
-            optionsPanel.Dock = DockStyle.Fill;
-
-            m_tabMain.TabPages.Add(newTab);
-            m_tabMain.Multiline = false;
-        }
-
-        OptionsPanel(bool isAvailable)
-        {
-            InitializeComponent();
-
-            _isAvailable = isAvailable;
-        }
-
-        protected override void OnLoad(EventArgs e)
-        {
-            base.OnLoad(e);
-
-            if (_initialized)
-                return;
-
-            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
-            BackColor = Color.Transparent;
-
-            validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
-            bool isEnabled = Settings.Instance.Enabled;
-
-            Debug.Assert(ParentForm != null);
-            if (ParentForm != null)
-                ParentForm.FormClosing += OnClosing;
-
-            if (!_isAvailable || !isEnabled)
-            {
-                isEnabledCheckBox.Checked = false;
-                validPeriodComboBox.Enabled = false;
-                btnRevokeAll.Enabled = false;
-
-                if (!_isAvailable)
-                {
-                    isEnabledCheckBox.Enabled = false;
-                    winHelloDisabled.Visible = true;
-                }
+                _observers.Remove(_observer);
             }
-
-            _initialized = true;
-        }
-
-        private void OnClosing(object sender, FormClosingEventArgs e)
-        {
-            if (ParentForm.DialogResult == DialogResult.OK)
-            {
-                Settings.Instance.Enabled = isEnabledCheckBox.Checked;
-                if (isEnabledCheckBox.Checked)
-                {
-                    Settings.Instance.InvalidatingTime =
-                        TimeSpan.FromMilliseconds(IndexToPeriod(validPeriodComboBox.SelectedIndex));
-                }
-            }
-        }
-
-        private void isEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            validPeriodComboBox.Enabled = isEnabledCheckBox.Checked;
-            btnRevokeAll.Enabled = isEnabledCheckBox.Checked;
         }
     }
 }

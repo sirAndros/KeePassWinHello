@@ -10,6 +10,7 @@ namespace KeePassWinHello
     {
         private IPluginHost _host;
         private KeyManager _keyManager;
+        private RevocationProcessor _revocationProcessor;
 
         public override Image SmallIcon
         {
@@ -28,6 +29,7 @@ namespace KeePassWinHello
 
             _host = host;
             _keyManager = new KeyManager(_host.MainWindow.Handle);
+            _revocationProcessor = new RevocationProcessor(_keyManager);
 
             _host.MainWindow.FileClosingPre += _keyManager.OnDBClosing;
             GlobalWindowManager.WindowAdded += OnWindowAdded;
@@ -44,6 +46,7 @@ namespace KeePassWinHello
 
             GlobalWindowManager.WindowAdded -= OnWindowAdded;
             _host.MainWindow.FileClosingPre -= _keyManager.OnDBClosing;
+            _revocationProcessor.Dispose();
 
             _host = null;
         }
