@@ -92,6 +92,10 @@ namespace KeePassWinHello
                 if (settings.Enabled != isEnabledCheckBox.Checked)
                 {
                     settings.Enabled = isEnabledCheckBox.Checked;
+                    if (!isEnabledCheckBox.Checked)
+                    {
+                        RevokeAllKeys();
+                    }
                 }
               
                 if (isEnabledCheckBox.Checked)
@@ -112,6 +116,11 @@ namespace KeePassWinHello
         }
 
         private void BtnRevokeAll_Click(object sender, EventArgs e)
+        {
+            RevokeAllKeys();
+        }
+
+        private void RevokeAllKeys()
         {
             if (_keyManager != null)
             {
