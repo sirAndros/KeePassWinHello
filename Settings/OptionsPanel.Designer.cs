@@ -32,7 +32,11 @@
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
             this.isEnabledCheckBox = new System.Windows.Forms.CheckBox();
             this.winHelloDisabled = new System.Windows.Forms.Label();
+            this.storedKeysInfoPanel = new System.Windows.Forms.Panel();
             this.btnRevokeAll = new System.Windows.Forms.Button();
+            this.storedKeysCountLabel = new System.Windows.Forms.Label();
+            this.storedKeysInfoLabel = new System.Windows.Forms.Label();
+            this.storedKeysInfoPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // infoLabel
@@ -93,27 +97,59 @@
     "gs";
             this.winHelloDisabled.Visible = false;
             // 
+            // storedKeysInfoPanel
+            // 
+            this.storedKeysInfoPanel.Controls.Add(this.btnRevokeAll);
+            this.storedKeysInfoPanel.Controls.Add(this.storedKeysCountLabel);
+            this.storedKeysInfoPanel.Controls.Add(this.storedKeysInfoLabel);
+            this.storedKeysInfoPanel.Location = new System.Drawing.Point(3, 76);
+            this.storedKeysInfoPanel.Name = "storedKeysInfoPanel";
+            this.storedKeysInfoPanel.Size = new System.Drawing.Size(186, 25);
+            this.storedKeysInfoPanel.TabIndex = 13;
+            // 
             // btnRevokeAll
             // 
-            this.btnRevokeAll.Location = new System.Drawing.Point(114, 76);
+            this.btnRevokeAll.Dock = System.Windows.Forms.DockStyle.Right;
+            this.btnRevokeAll.Location = new System.Drawing.Point(111, 0);
             this.btnRevokeAll.Name = "btnRevokeAll";
-            this.btnRevokeAll.Size = new System.Drawing.Size(75, 23);
-            this.btnRevokeAll.TabIndex = 10;
+            this.btnRevokeAll.Size = new System.Drawing.Size(75, 25);
+            this.btnRevokeAll.TabIndex = 16;
             this.btnRevokeAll.Text = "Revoke all";
             this.btnRevokeAll.UseVisualStyleBackColor = true;
-            this.btnRevokeAll.Visible = false;
+            this.btnRevokeAll.Click += new System.EventHandler(this.BtnRevokeAll_Click);
+            // 
+            // storedKeysCountLabel
+            // 
+            this.storedKeysCountLabel.AutoSize = true;
+            this.storedKeysCountLabel.Location = new System.Drawing.Point(62, 6);
+            this.storedKeysCountLabel.Name = "storedKeysCountLabel";
+            this.storedKeysCountLabel.Size = new System.Drawing.Size(13, 13);
+            this.storedKeysCountLabel.TabIndex = 14;
+            this.storedKeysCountLabel.Text = "0";
+            this.storedKeysCountLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // storedKeysInfoLabel
+            // 
+            this.storedKeysInfoLabel.AutoSize = true;
+            this.storedKeysInfoLabel.Location = new System.Drawing.Point(0, 6);
+            this.storedKeysInfoLabel.Name = "storedKeysInfoLabel";
+            this.storedKeysInfoLabel.Size = new System.Drawing.Size(66, 13);
+            this.storedKeysInfoLabel.TabIndex = 13;
+            this.storedKeysInfoLabel.Text = "Stored keys:";
             // 
             // OptionsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.btnRevokeAll);
+            this.Controls.Add(this.storedKeysInfoPanel);
             this.Controls.Add(this.winHelloDisabled);
             this.Controls.Add(this.isEnabledCheckBox);
             this.Controls.Add(this.infoLabel);
             this.Controls.Add(this.validPeriodComboBox);
             this.Name = "OptionsPanel";
             this.Size = new System.Drawing.Size(556, 298);
+            this.storedKeysInfoPanel.ResumeLayout(false);
+            this.storedKeysInfoPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -125,6 +161,9 @@
 		private System.Windows.Forms.ComboBox validPeriodComboBox;
 		private System.Windows.Forms.CheckBox isEnabledCheckBox;
         private System.Windows.Forms.Label winHelloDisabled;
+        private System.Windows.Forms.Panel storedKeysInfoPanel;
         private System.Windows.Forms.Button btnRevokeAll;
+        private System.Windows.Forms.Label storedKeysCountLabel;
+        private System.Windows.Forms.Label storedKeysInfoLabel;
     }
 }

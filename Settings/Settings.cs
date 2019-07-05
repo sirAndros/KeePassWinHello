@@ -44,7 +44,7 @@ namespace KeePassWinHello
             UpgradeConfig();
         }
 
-        public static Settings Instance = _instance.Value;
+        public static readonly Settings Instance = _instance.Value;
 
         public TimeSpan InvalidatingTime
         {
