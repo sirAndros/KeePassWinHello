@@ -58,6 +58,9 @@ namespace KeePassWinHello
             BackColor = Color.Transparent;
 
             validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
+            if (_keyManager != null)
+                storedKeysCountLabel.Text = _keyManager.KeysCount.ToString();
+
             bool isEnabled = Settings.Instance.Enabled;
             bool isAvailable = _keyManager != null && _keyManager.IsAvailable;
 
@@ -111,7 +114,10 @@ namespace KeePassWinHello
         private void BtnRevokeAll_Click(object sender, EventArgs e)
         {
             if (_keyManager != null)
+            {
                 _keyManager.RevokeAll();
+                storedKeysCountLabel.Text = _keyManager.KeysCount.ToString();
+            }
         }
 
 
