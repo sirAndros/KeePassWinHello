@@ -361,7 +361,32 @@ ref IntPtr TokenHandle // handle to open access token
             return dupeTokenHandle;
         }
 
+        private const int _maxBlobSize = 512 * 5;
+        private const string _credPrefix = "KeePassWinHello_";
         private readonly IntPtr _systemToken;
+
+        class CredData : IDisposable
+        {
+            public string Target { get; set; }
+            public string Name { get; set; }
+            public byte[] Blob { get; set; }
+            public DateTime LastWritten { get; set; }
+
+            public CredData() { }
+
+            public CredData(string target, string name, byte[] blob)
+            {
+                Target = target;
+                Name = name;
+                Blob = blob;
+            }
+
+            public void Dispose()
+            {
+                if (Blob != null)
+                    MemUtil.ZeroByteArray(Blob);
+            }
+        }
 
         public KeyWindowsStorage()
         {
@@ -391,71 +416,171 @@ ref IntPtr TokenHandle // handle to open access token
             //}
         }
 
+        private string GetTarget(string path)
+        {
+            return _credPrefix + path;
+        }
+
         public void AddOrUpdate(string dbPath, ProtectedKey protectedKey)
         {
             var stream = new MemoryStream();
             var formatter = new BinaryFormatter();
-            //var formatter = new XmlSerializer(typeof(ProtectedKey));
             formatter.Serialize(stream, protectedKey);
 
-            var pass = new SecureString();
             byte[] data = stream.ToArray();
             try
             {
-                foreach (char c in Convert.ToBase64String(data))
-                    pass.AppendChar(c);
+                if (data.Length > _maxBlobSize)
+                    throw new ArgumentOutOfRangeException("protectedKey", "protectedKey blob has exceeded 2560 bytes");
+
+                NativeCode.NativeCredential ncred = new NativeCode.NativeCredential();
+                try
+                {
+                    ncred.Type = NativeCode.CredentialType.Generic;
+                    ncred.Persist = (uint)NativeCode.Persistance.LocalMachine;
+                    ncred.UserName = Marshal.StringToCoTaskMemUni("dummy");
+                    ncred.TargetName = Marshal.StringToCoTaskMemUni(GetTarget(dbPath));
+                    ncred.CredentialBlob = Marshal.AllocCoTaskMem(data.Length);
+                    Marshal.Copy(data, 0, ncred.CredentialBlob, data.Length);
+                    ncred.CredentialBlobSize = (uint)data.Length;
+
+                    using (var context = WindowsIdentity.Impersonate(_systemToken))
+                    {
+                        if (!NativeCode.CredWrite(ref ncred, 0))
+                            throw new Win32Exception(Marshal.GetLastWin32Error());
+                    }
+                }
+                finally
+                {
+                    Marshal.FreeCoTaskMem(ncred.UserName);
+                    Marshal.FreeCoTaskMem(ncred.TargetName);
+                    Marshal.FreeCoTaskMem(ncred.CredentialBlob); // TODO: Zero data
+                }
             }
             finally
             {
                 MemUtil.ZeroByteArray(data);
             }
-
-            var cred = new NetworkCredential("dummy", pass);
-
-            using (var context = WindowsIdentity.Impersonate(_systemToken))
-                CredentialManager.SaveCredentials("KeePassWinHello_" + dbPath, cred);
         }
 
         public bool ContainsKey(string dbPath)
         {
-            ProtectedKey dummy;
-            return TryGetValue(dbPath, out dummy);
+            IntPtr ncredPtr = IntPtr.Zero;
+            try
+            {
+                using (var context = WindowsIdentity.Impersonate(_systemToken))
+                    return NativeCode.CredRead(GetTarget(dbPath), NativeCode.CredentialType.Generic, 0, out ncredPtr);
+            }
+            finally
+            {
+                if (ncredPtr != IntPtr.Zero)
+                    NativeCode.CredFree(ncredPtr);
+            }
         }
 
         public void Purge()
         {
-            //throw new NotImplementedException();
+            IntPtr ncredsPtr = IntPtr.Zero;
+            uint count = 0;
+
+            using (var context = WindowsIdentity.Impersonate(_systemToken))
+            {
+                if (!NativeCode.CredEnumerate(GetTarget("*"), 0, out count, out ncredsPtr))
+                {
+                    var lastError = Marshal.GetLastWin32Error();
+                    if (lastError == (int)NativeCode.CredentialUIReturnCodes.NotFound)
+                        return;
+
+                    throw new Win32Exception(lastError);
+                }
+            }
+
+            var credsToRemove = new List<string>();
+            try
+            {
+                for (int i = 0; i != count; ++i)
+                {
+                    IntPtr ncredPtr = Marshal.ReadIntPtr(ncredsPtr, i * IntPtr.Size);
+                    var ncred = (NativeCode.NativeCredential)Marshal.PtrToStructure(ncredPtr, typeof(NativeCode.NativeCredential));
+                    bool isValid = true;
+                    try
+                    {
+                        var createdDate = DateTime.FromFileTime((long)(((ulong)ncred.LastWritten.dwHighDateTime << 32) | (ulong)ncred.LastWritten.dwLowDateTime));
+                        if (DateTime.UtcNow - createdDate >= Settings.Instance.InvalidatingTime)
+                            isValid = false;
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        isValid = false;
+                    }
+
+                    if (!isValid)
+                        credsToRemove.Add(Marshal.PtrToStringUni(ncred.TargetName));
+                }
+            }
+            finally
+            {
+                NativeCode.CredFree(ncredsPtr);
+            }
+
+            if (credsToRemove.Count == 0)
+                return;
+
+            using (var context = WindowsIdentity.Impersonate(_systemToken))
+            {
+                foreach (var target in credsToRemove)
+                    NativeCode.CredDelete(target, NativeCode.CredentialType.Generic, 0);
+            }
         }
 
         public void Remove(string dbPath)
         {
             using (var context = WindowsIdentity.Impersonate(_systemToken))
-                CredentialManager.RemoveCredentials("KeePassWinHello_" + dbPath);
+            {
+                if (!NativeCode.CredDelete(GetTarget(dbPath), NativeCode.CredentialType.Generic, 0))
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
         }
 
         public bool TryGetValue(string dbPath, out ProtectedKey protectedKey)
         {
+            protectedKey = null;
+            IntPtr ncredPtr = IntPtr.Zero;
+
+            using (var context = WindowsIdentity.Impersonate(_systemToken))
+            {
+                if (!NativeCode.CredRead(GetTarget(dbPath), NativeCode.CredentialType.Generic, 0, out ncredPtr))
+                {
+                    Debug.Assert(Marshal.GetLastWin32Error() == (int)NativeCode.CredentialUIReturnCodes.NotFound);
+                    return false;
+                }
+            }
+
+            byte[] data = null;
             try
             {
-                NetworkCredential cred;
-                using (var context = WindowsIdentity.Impersonate(_systemToken))
-                    cred = CredentialManager.GetCredentials("KeePassWinHello_" + dbPath);
+                var ncred = (NativeCode.NativeCredential)Marshal.PtrToStructure(ncredPtr, typeof(NativeCode.NativeCredential));
+                data = new byte[ncred.CredentialBlobSize];
+                Marshal.Copy(ncred.CredentialBlob, data, 0, data.Length);
 
                 var stream = new MemoryStream();
-                var data = Convert.FromBase64String(cred.Password);
                 stream.Write(data, 0, data.Length);
                 stream.Position = 0;
 
                 var formatter = new BinaryFormatter();
                 formatter.Binder = new ProtectedKey();
                 protectedKey = (ProtectedKey)formatter.Deserialize(stream);
-                return true;
             }
             catch
             {
-                protectedKey = null;
                 return false;
             }
+            finally
+            {
+                NativeCode.CredFree(ncredPtr);
+                MemUtil.ZeroByteArray(data);
+            }
+            return true;
         }
     }
 }
