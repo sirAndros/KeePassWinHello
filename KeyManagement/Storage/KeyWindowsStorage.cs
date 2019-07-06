@@ -1,5 +1,4 @@
-﻿using AdysTech.CredentialManager;
-using KeePassLib.Utility;
+﻿using KeePassLib.Utility;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,277 +17,6 @@ using System.Xml.Serialization;
 
 namespace KeePassWinHello
 {
-   //Needed code:
-   public static class Privileges
-    {
-        public static void EnablePrivilege(SecurityEntity securityEntity)
-        {
-            if (!Enum.IsDefined(typeof(SecurityEntity), securityEntity))
-                throw new InvalidEnumArgumentException("securityEntity", (int)securityEntity, typeof(SecurityEntity));
-
-            var securityEntityValue = GetSecurityEntityValue(securityEntity);
-            try
-            {
-                var locallyUniqueIdentifier = new NativeMethods.LUID();
-
-                if (NativeMethods.LookupPrivilegeValue(null, securityEntityValue, ref locallyUniqueIdentifier))
-                {
-                    var TOKEN_PRIVILEGES = new NativeMethods.TOKEN_PRIVILEGES();
-                    TOKEN_PRIVILEGES.PrivilegeCount = 1;
-                    TOKEN_PRIVILEGES.Attributes = NativeMethods.SE_PRIVILEGE_ENABLED;
-                    TOKEN_PRIVILEGES.Luid = locallyUniqueIdentifier;
-
-                    var tokenHandle = IntPtr.Zero;
-                    try
-                    {
-                        var currentProcess = NativeMethods.GetCurrentProcess();
-                        if (NativeMethods.OpenProcessToken(currentProcess, NativeMethods.TOKEN_ADJUST_PRIVILEGES | NativeMethods.TOKEN_QUERY, out tokenHandle))
-                        {
-                            if (NativeMethods.AdjustTokenPrivileges(tokenHandle, false,
-                                                ref TOKEN_PRIVILEGES,
-               1024, IntPtr.Zero, IntPtr.Zero))
-                            {
-                                var lastError = Marshal.GetLastWin32Error();
-                                if (lastError == NativeMethods.ERROR_NOT_ALL_ASSIGNED)
-                                {
-                                    var win32Exception = new Win32Exception();
-                                    throw new InvalidOperationException("AdjustTokenPrivileges failed.", win32Exception);
-                                }
-                            }
-                            else
-                            {
-                                var win32Exception = new Win32Exception();
-                                throw new InvalidOperationException("AdjustTokenPrivileges failed.", win32Exception);
-                            }
-                        }
-                        else
-                        {
-                            var win32Exception = new Win32Exception();
-
-                            var exceptionMessage = string.Format(CultureInfo.InvariantCulture,
-                                                "OpenProcessToken failed. CurrentProcess: {0}",
-                                                currentProcess.ToInt32());
-
-                            throw new InvalidOperationException(exceptionMessage, win32Exception);
-                        }
-                    }
-                    finally
-                    {
-                        if (tokenHandle != IntPtr.Zero)
-                            NativeMethods.CloseHandle(tokenHandle);
-                    }
-                }
-                else
-                {
-                    var win32Exception = new Win32Exception();
-
-                    var exceptionMessage = string.Format(CultureInfo.InvariantCulture,
-                                        "LookupPrivilegeValue failed. SecurityEntityValue: {0}",
-                                        securityEntityValue);
-
-                    throw new InvalidOperationException(exceptionMessage, win32Exception);
-                }
-            }
-            catch (Exception e)
-            {
-                var exceptionMessage = string.Format(CultureInfo.InvariantCulture,
-                                 "GrandPrivilege failed. SecurityEntity: {0}",
-                                 securityEntityValue);
-
-                throw new InvalidOperationException(exceptionMessage, e);
-            }
-        }
-
-        /// <summary>
-        /// Gets the security entity value.
-        /// </summary>
-        /// <param name="securityEntity">The security entity.</param>
-        private static string GetSecurityEntityValue(SecurityEntity securityEntity)
-        {
-            switch (securityEntity)
-            {
-                case SecurityEntity.SE_ASSIGNPRIMARYTOKEN_NAME:
-                    return "SeAssignPrimaryTokenPrivilege";
-                case SecurityEntity.SE_AUDIT_NAME:
-                    return "SeAuditPrivilege";
-                case SecurityEntity.SE_BACKUP_NAME:
-                    return "SeBackupPrivilege";
-                case SecurityEntity.SE_CHANGE_NOTIFY_NAME:
-                    return "SeChangeNotifyPrivilege";
-                case SecurityEntity.SE_CREATE_GLOBAL_NAME:
-                    return "SeCreateGlobalPrivilege";
-                case SecurityEntity.SE_CREATE_PAGEFILE_NAME:
-                    return "SeCreatePagefilePrivilege";
-                case SecurityEntity.SE_CREATE_PERMANENT_NAME:
-                    return "SeCreatePermanentPrivilege";
-                case SecurityEntity.SE_CREATE_SYMBOLIC_LINK_NAME:
-                    return "SeCreateSymbolicLinkPrivilege";
-                case SecurityEntity.SE_CREATE_TOKEN_NAME:
-                    return "SeCreateTokenPrivilege";
-                case SecurityEntity.SE_DEBUG_NAME:
-                    return "SeDebugPrivilege";
-                case SecurityEntity.SE_ENABLE_DELEGATION_NAME:
-                    return "SeEnableDelegationPrivilege";
-                case SecurityEntity.SE_IMPERSONATE_NAME:
-                    return "SeImpersonatePrivilege";
-                case SecurityEntity.SE_INC_BASE_PRIORITY_NAME:
-                    return "SeIncreaseBasePriorityPrivilege";
-                case SecurityEntity.SE_INCREASE_QUOTA_NAME:
-                    return "SeIncreaseQuotaPrivilege";
-                case SecurityEntity.SE_INC_WORKING_SET_NAME:
-                    return "SeIncreaseWorkingSetPrivilege";
-                case SecurityEntity.SE_LOAD_DRIVER_NAME:
-                    return "SeLoadDriverPrivilege";
-                case SecurityEntity.SE_LOCK_MEMORY_NAME:
-                    return "SeLockMemoryPrivilege";
-                case SecurityEntity.SE_MACHINE_ACCOUNT_NAME:
-                    return "SeMachineAccountPrivilege";
-                case SecurityEntity.SE_MANAGE_VOLUME_NAME:
-                    return "SeManageVolumePrivilege";
-                case SecurityEntity.SE_PROF_SINGLE_PROCESS_NAME:
-                    return "SeProfileSingleProcessPrivilege";
-                case SecurityEntity.SE_RELABEL_NAME:
-                    return "SeRelabelPrivilege";
-                case SecurityEntity.SE_REMOTE_SHUTDOWN_NAME:
-                    return "SeRemoteShutdownPrivilege";
-                case SecurityEntity.SE_RESTORE_NAME:
-                    return "SeRestorePrivilege";
-                case SecurityEntity.SE_SECURITY_NAME:
-                    return "SeSecurityPrivilege";
-                case SecurityEntity.SE_SHUTDOWN_NAME:
-                    return "SeShutdownPrivilege";
-                case SecurityEntity.SE_SYNC_AGENT_NAME:
-                    return "SeSyncAgentPrivilege";
-                case SecurityEntity.SE_SYSTEM_ENVIRONMENT_NAME:
-                    return "SeSystemEnvironmentPrivilege";
-                case SecurityEntity.SE_SYSTEM_PROFILE_NAME:
-                    return "SeSystemProfilePrivilege";
-                case SecurityEntity.SE_SYSTEMTIME_NAME:
-                    return "SeSystemtimePrivilege";
-                case SecurityEntity.SE_TAKE_OWNERSHIP_NAME:
-                    return "SeTakeOwnershipPrivilege";
-                case SecurityEntity.SE_TCB_NAME:
-                    return "SeTcbPrivilege";
-                case SecurityEntity.SE_TIME_ZONE_NAME:
-                    return "SeTimeZonePrivilege";
-                case SecurityEntity.SE_TRUSTED_CREDMAN_ACCESS_NAME:
-                    return "SeTrustedCredManAccessPrivilege";
-                case SecurityEntity.SE_UNDOCK_NAME:
-                    return "SeUndockPrivilege";
-                default:
-                    throw new ArgumentOutOfRangeException(typeof(SecurityEntity).Name);
-            }
-        }
-    }
-
-    public enum SecurityEntity
-    {
-        SE_CREATE_TOKEN_NAME,
-        SE_ASSIGNPRIMARYTOKEN_NAME,
-        SE_LOCK_MEMORY_NAME,
-        SE_INCREASE_QUOTA_NAME,
-        SE_UNSOLICITED_INPUT_NAME,
-        SE_MACHINE_ACCOUNT_NAME,
-        SE_TCB_NAME,
-        SE_SECURITY_NAME,
-        SE_TAKE_OWNERSHIP_NAME,
-        SE_LOAD_DRIVER_NAME,
-        SE_SYSTEM_PROFILE_NAME,
-        SE_SYSTEMTIME_NAME,
-        SE_PROF_SINGLE_PROCESS_NAME,
-        SE_INC_BASE_PRIORITY_NAME,
-        SE_CREATE_PAGEFILE_NAME,
-        SE_CREATE_PERMANENT_NAME,
-        SE_BACKUP_NAME,
-        SE_RESTORE_NAME,
-        SE_SHUTDOWN_NAME,
-        SE_DEBUG_NAME,
-        SE_AUDIT_NAME,
-        SE_SYSTEM_ENVIRONMENT_NAME,
-        SE_CHANGE_NOTIFY_NAME,
-        SE_REMOTE_SHUTDOWN_NAME,
-        SE_UNDOCK_NAME,
-        SE_SYNC_AGENT_NAME,
-        SE_ENABLE_DELEGATION_NAME,
-        SE_MANAGE_VOLUME_NAME,
-        SE_IMPERSONATE_NAME,
-        SE_CREATE_GLOBAL_NAME,
-        SE_CREATE_SYMBOLIC_LINK_NAME,
-        SE_INC_WORKING_SET_NAME,
-        SE_RELABEL_NAME,
-        SE_TIME_ZONE_NAME,
-        SE_TRUSTED_CREDMAN_ACCESS_NAME
-    }
-
-    internal static class NativeMethods
-    {
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool LookupPrivilegeValue(string lpsystemname, string lpname, [MarshalAs(UnmanagedType.Struct)] ref LUID lpLuid);
-
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool AdjustTokenPrivileges(IntPtr tokenhandle,
-                                 [MarshalAs(UnmanagedType.Bool)] bool disableAllPrivileges,
-                                 [MarshalAs(UnmanagedType.Struct)]ref TOKEN_PRIVILEGES newstate,
-                                 uint bufferlength, IntPtr previousState, IntPtr returnlength);
-
-        internal const int SE_PRIVILEGE_ENABLED = 0x00000002;
-
-        internal const int ERROR_NOT_ALL_ASSIGNED = 1300;
-
-        internal const UInt32 STANDARD_RIGHTS_REQUIRED = 0x000F0000;
-        internal const UInt32 STANDARD_RIGHTS_READ = 0x00020000;
-        internal const UInt32 TOKEN_ASSIGN_PRIMARY = 0x0001;
-        internal const UInt32 TOKEN_DUPLICATE = 0x0002;
-        internal const UInt32 TOKEN_IMPERSONATE = 0x0004;
-        internal const UInt32 TOKEN_QUERY = 0x0008;
-        internal const UInt32 TOKEN_QUERY_SOURCE = 0x0010;
-        internal const UInt32 TOKEN_ADJUST_PRIVILEGES = 0x0020;
-        internal const UInt32 TOKEN_ADJUST_GROUPS = 0x0040;
-        internal const UInt32 TOKEN_ADJUST_DEFAULT = 0x0080;
-        internal const UInt32 TOKEN_ADJUST_SESSIONID = 0x0100;
-        internal const UInt32 TOKEN_READ = (STANDARD_RIGHTS_READ | TOKEN_QUERY);
-        internal const UInt32 TOKEN_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED |
-                            TOKEN_ASSIGN_PRIMARY |
-                            TOKEN_DUPLICATE |
-                            TOKEN_IMPERSONATE |
-                            TOKEN_QUERY |
-                            TOKEN_QUERY_SOURCE |
-                            TOKEN_ADJUST_PRIVILEGES |
-                            TOKEN_ADJUST_GROUPS |
-                            TOKEN_ADJUST_DEFAULT |
-                            TOKEN_ADJUST_SESSIONID);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        internal static extern IntPtr GetCurrentProcess();
-
-        [DllImport("Advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool OpenProcessToken(IntPtr processHandle,
-                            uint desiredAccesss,
-                            out IntPtr tokenHandle);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern Boolean CloseHandle(IntPtr hObject);
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct LUID
-        {
-            internal Int32 LowPart;
-            internal UInt32 HighPart;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct TOKEN_PRIVILEGES
-        {
-            internal Int32 PrivilegeCount;
-            internal LUID Luid;
-            internal Int32 Attributes;
-        }
-    }
-
     class KeyWindowsStorage : IKeyStorage
     {
         [DllImport("advapi32", SetLastError = true)/*, SuppressUnmanagedCodeSecurityAttribute*/]
@@ -308,6 +36,50 @@ ref IntPtr TokenHandle // handle to open access token
         public const int TOKEN_QUERY = 0X00000008;
         public const int TOKEN_IMPERSONATE = 0X00000004;
 
+        internal const int SecurityImpersonation = 2;
+
+        #region Credential Manager
+        internal const int ERROR_NOT_FOUND = 0x490;
+
+        internal const int CRED_TYPE_GENERIC = 0x1;
+
+        internal const int CRED_PERSIST_LOCAL_MACHINE = 0x2;
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        internal struct CREDENTIAL
+        {
+            public UInt32 Flags;
+            public UInt32 Type;
+            public IntPtr TargetName;
+            public IntPtr Comment;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastWritten;
+            public UInt32 CredentialBlobSize;
+            public IntPtr CredentialBlob;
+            public UInt32 Persist;
+            public UInt32 AttributeCount;
+            public IntPtr Attributes;
+            public IntPtr TargetAlias;
+            public IntPtr UserName;
+
+        }
+
+        [DllImport("advapi32.dll", EntryPoint = "CredDeleteW", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern bool CredDelete(string target, uint type, int reservedFlag);
+
+        [DllImport("advapi32.dll", EntryPoint = "CredEnumerateW", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern bool CredEnumerate(string target, uint flags, out uint count, out IntPtr credentialsPtr);
+
+        [DllImport("advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern bool CredRead(string target, uint type, int reservedFlag, out IntPtr CredentialPtr);
+
+        [DllImport("advapi32.dll", EntryPoint = "CredWriteW", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern bool CredWrite([In] ref CREDENTIAL userCredential, uint flags);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        internal static extern bool CredFree([In] IntPtr cred);
+
+        #endregion
+
         IntPtr GetProcessToken(IntPtr processHandle)
         {
             IntPtr hToken = IntPtr.Zero;
@@ -322,9 +94,7 @@ ref IntPtr TokenHandle // handle to open access token
 #endif
                 try
                 {
-                    const int SecurityImpersonation = 2;
-                    dupeTokenHandle = DupeToken(hToken,
-                    SecurityImpersonation);
+                    DuplicateToken(hToken, SecurityImpersonation, ref dupeTokenHandle);
                     if (IntPtr.Zero == dupeTokenHandle)
                     {
                         string s = String.Format("Dup failed {0}, privilege not held",
@@ -354,39 +124,10 @@ ref IntPtr TokenHandle // handle to open access token
 
             return dupeTokenHandle;
         }
-        static IntPtr DupeToken(IntPtr token, int Level)
-        {
-            IntPtr dupeTokenHandle = IntPtr.Zero;
-            bool retVal = DuplicateToken(token, Level, ref dupeTokenHandle);
-            return dupeTokenHandle;
-        }
 
         private const int _maxBlobSize = 512 * 5;
         private const string _credPrefix = "KeePassWinHello_";
         private readonly IntPtr _systemToken;
-
-        class CredData : IDisposable
-        {
-            public string Target { get; set; }
-            public string Name { get; set; }
-            public byte[] Blob { get; set; }
-            public DateTime LastWritten { get; set; }
-
-            public CredData() { }
-
-            public CredData(string target, string name, byte[] blob)
-            {
-                Target = target;
-                Name = name;
-                Blob = blob;
-            }
-
-            public void Dispose()
-            {
-                if (Blob != null)
-                    MemUtil.ZeroByteArray(Blob);
-            }
-        }
 
         public KeyWindowsStorage()
         {
@@ -433,11 +174,11 @@ ref IntPtr TokenHandle // handle to open access token
                 if (data.Length > _maxBlobSize)
                     throw new ArgumentOutOfRangeException("protectedKey", "protectedKey blob has exceeded 2560 bytes");
 
-                NativeCode.NativeCredential ncred = new NativeCode.NativeCredential();
+                var ncred = new CREDENTIAL();
                 try
                 {
-                    ncred.Type = NativeCode.CredentialType.Generic;
-                    ncred.Persist = (uint)NativeCode.Persistance.LocalMachine;
+                    ncred.Type = CRED_TYPE_GENERIC;
+                    ncred.Persist = CRED_PERSIST_LOCAL_MACHINE;
                     ncred.UserName = Marshal.StringToCoTaskMemUni("dummy");
                     ncred.TargetName = Marshal.StringToCoTaskMemUni(GetTarget(dbPath));
                     ncred.CredentialBlob = Marshal.AllocCoTaskMem(data.Length);
@@ -446,7 +187,7 @@ ref IntPtr TokenHandle // handle to open access token
 
                     using (var context = WindowsIdentity.Impersonate(_systemToken))
                     {
-                        if (!NativeCode.CredWrite(ref ncred, 0))
+                        if (!CredWrite(ref ncred, 0))
                             throw new Win32Exception(Marshal.GetLastWin32Error());
                     }
                 }
@@ -469,12 +210,12 @@ ref IntPtr TokenHandle // handle to open access token
             try
             {
                 using (var context = WindowsIdentity.Impersonate(_systemToken))
-                    return NativeCode.CredRead(GetTarget(dbPath), NativeCode.CredentialType.Generic, 0, out ncredPtr);
+                    return CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr);
             }
             finally
             {
                 if (ncredPtr != IntPtr.Zero)
-                    NativeCode.CredFree(ncredPtr);
+                    CredFree(ncredPtr);
             }
         }
 
@@ -485,10 +226,10 @@ ref IntPtr TokenHandle // handle to open access token
 
             using (var context = WindowsIdentity.Impersonate(_systemToken))
             {
-                if (!NativeCode.CredEnumerate(GetTarget("*"), 0, out count, out ncredsPtr))
+                if (!CredEnumerate(GetTarget("*"), 0, out count, out ncredsPtr))
                 {
                     var lastError = Marshal.GetLastWin32Error();
-                    if (lastError == (int)NativeCode.CredentialUIReturnCodes.NotFound)
+                    if (lastError == ERROR_NOT_FOUND)
                         return;
 
                     throw new Win32Exception(lastError);
@@ -501,7 +242,7 @@ ref IntPtr TokenHandle // handle to open access token
                 for (int i = 0; i != count; ++i)
                 {
                     IntPtr ncredPtr = Marshal.ReadIntPtr(ncredsPtr, i * IntPtr.Size);
-                    var ncred = (NativeCode.NativeCredential)Marshal.PtrToStructure(ncredPtr, typeof(NativeCode.NativeCredential));
+                    var ncred = (CREDENTIAL)Marshal.PtrToStructure(ncredPtr, typeof(CREDENTIAL));
                     bool isValid = true;
                     try
                     {
@@ -520,7 +261,7 @@ ref IntPtr TokenHandle // handle to open access token
             }
             finally
             {
-                NativeCode.CredFree(ncredsPtr);
+                CredFree(ncredsPtr);
             }
 
             if (credsToRemove.Count == 0)
@@ -529,7 +270,7 @@ ref IntPtr TokenHandle // handle to open access token
             using (var context = WindowsIdentity.Impersonate(_systemToken))
             {
                 foreach (var target in credsToRemove)
-                    NativeCode.CredDelete(target, NativeCode.CredentialType.Generic, 0);
+                    CredDelete(target, CRED_TYPE_GENERIC, 0);
             }
         }
 
@@ -537,7 +278,7 @@ ref IntPtr TokenHandle // handle to open access token
         {
             using (var context = WindowsIdentity.Impersonate(_systemToken))
             {
-                if (!NativeCode.CredDelete(GetTarget(dbPath), NativeCode.CredentialType.Generic, 0))
+                if (!CredDelete(GetTarget(dbPath), CRED_TYPE_GENERIC, 0))
                     throw new Win32Exception(Marshal.GetLastWin32Error());
             }
         }
@@ -549,9 +290,9 @@ ref IntPtr TokenHandle // handle to open access token
 
             using (var context = WindowsIdentity.Impersonate(_systemToken))
             {
-                if (!NativeCode.CredRead(GetTarget(dbPath), NativeCode.CredentialType.Generic, 0, out ncredPtr))
+                if (!CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr))
                 {
-                    Debug.Assert(Marshal.GetLastWin32Error() == (int)NativeCode.CredentialUIReturnCodes.NotFound);
+                    Debug.Assert(Marshal.GetLastWin32Error() == ERROR_NOT_FOUND);
                     return false;
                 }
             }
@@ -559,7 +300,7 @@ ref IntPtr TokenHandle // handle to open access token
             byte[] data = null;
             try
             {
-                var ncred = (NativeCode.NativeCredential)Marshal.PtrToStructure(ncredPtr, typeof(NativeCode.NativeCredential));
+                var ncred = (CREDENTIAL)Marshal.PtrToStructure(ncredPtr, typeof(CREDENTIAL));
                 data = new byte[ncred.CredentialBlobSize];
                 Marshal.Copy(ncred.CredentialBlob, data, 0, data.Length);
 
@@ -577,7 +318,7 @@ ref IntPtr TokenHandle // handle to open access token
             }
             finally
             {
-                NativeCode.CredFree(ncredPtr);
+                CredFree(ncredPtr);
                 MemUtil.ZeroByteArray(data);
             }
             return true;
