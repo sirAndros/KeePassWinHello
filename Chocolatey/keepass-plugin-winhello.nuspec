@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <metadata>
+    <id>keepass-plugin-winhello</id>
+    <title>KeePass Windows Hello Unlock Plugin</title>
+    <version>$Version$</version>
+    <authors>Sasha Sitnikov, Andrei Osipkov</authors>
+    <owners>shuffle-c, sirAndros</owners>
+    <summary>KeePass plugin to unlock database via Windows Hello</summary>
+    <description>
+This plugin for [KeePass 2](https://keepass.info/) password manager is intended for fast authorization to a database after its first unlock using [Windows Hello technology](https://support.microsoft.com/en-us/help/17215/windows-10-what-is-hello).
+    </description>
+    <packageSourceUrl>https://github.com/sirAndros/KeePassWinHello/chocolatey/</packageSourceUrl>
+    <projectUrl>https://keepass.info/plugins.html#winhello</projectUrl>
+    <projectSourceUrl>https://github.com/sirAndros/KeePassWinHello</projectSourceUrl>
+    <tags>keepass plugin unlock winhello security password-manager</tags>
+    <copyright>© AS &amp; AO</copyright>
+    <licenseUrl>https://github.com/sirAndros/KeePassWinHello/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <releaseNotes>$ReleaseNotes$</releaseNotes>
+    <dependencies>
+      <dependency id="keepass" version="[2.39, 3.0)" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+    <file src="..\releases\*.plgx" target="plugin" />
+  </files>
+</package>

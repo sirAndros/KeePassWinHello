@@ -1,5 +1,5 @@
 language: csharp
-solution: KeePassWinHello.sln
+solution: src/KeePassWinHello.sln
 
 addons:
   apt:
