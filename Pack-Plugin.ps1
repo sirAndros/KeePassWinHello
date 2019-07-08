@@ -1,6 +1,6 @@
 param (
     [string] $ProjectDir = $null,
-    [string] $TempDirName = 'KeePassWinHelloPlugin',
+    [string] $OutputFileNameBase = 'KeePassWinHelloPlugin',
     [string] $OutputDir = $null
 )
 $keePassExe = 'C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe'
@@ -16,34 +16,25 @@ if (!$OutputDir) {
 }
 
 $sources = "$ProjectDir\src"
-
-
-if (!(Test-Path $OutputDir)) {
-    mkdir $OutputDir > $null
+$tempDirName = $OutputFileNameBase
+$packingSourcesFolder = "$OutputDir\$tempDirName"
+if (Test-Path $packingSourcesFolder) {
+    Remove-Item $packingSourcesFolder -Force -Recurse
 }
+New-Item $packingSourcesFolder -Type Directory > $null
 
-$dest = "$OutputDir\$TempDirName"
-if (Test-Path $dest) {
-    rm $dest -Force -Recurse
-}
-mkdir $dest > $null
 
-if (!(Test-Path $OutputDir)) {
-    mkdir $OutputDir > $null
-}
-
-$ExcludedItems = '.*', '*.sln', 'bin', 'obj', '*.user', '*.ps1', '*.plgx', '*.md', $TempDirName, 'Screenshots'
-dir $sources | 
-    ?{ $i=$_; $res=$true; $ExcludedItems | %{ $i -notlike $_ } | %{ $res = $_ -and $res }; $res } |
-    %{ copy $_.FullName $dest -Recurse }
+$excludedItems = '.*', '*.sln', 'bin', 'obj', '*.user', '*.ps1', '*.plgx', '*.md', $tempDirName, 'Screenshots'
+Get-ChildItem $sources | 
+    Where-Object   { $i=$_; $res=$true; $excludedItems | ForEach-Object { $i -notlike $_ } | ForEach-Object { $res = $_ -and $res }; $res } |
+    ForEach-Object { Copy-Item $_.FullName $packingSourcesFolder -Recurse }
 
 try {
     Push-Location
-    cd $OutputDir
-    Start-Process $keePassExe -arg '--plgx-create',"`"$dest`"" -Wait
+    Set-Location $OutputDir
+    Start-Process $keePassExe -arg '--plgx-create',"`"$packingSourcesFolder`"" -Wait
 } finally {
     Pop-Location
 }
 
-
-rm $dest -Force -Recurse
+Remove-Item $packingSourcesFolder -Force -Recurse
