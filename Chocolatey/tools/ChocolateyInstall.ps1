@@ -8,8 +8,8 @@ if ($psver -ge 3) {
 
 $packageName = 'keepass-plugin-winhello'
 $keePassDisplayName = 'KeePass Password Safe'
-$version = '2.2.0'
-$checksum = 'C43DFA64C258DD5E07601261B96DA9C34DF83F1EC338A942B528CB44B89826E1'
+$version = '2.2'
+$checksum = 'E229ABF83B52CBE09E68E7095582AA8ED529F3B0214D527728AF3CE48C29B9D8'
 $checksumType = 'sha256'
 $pluginFileName = 'KeePassWinHelloPlugin.plgx'
 $url = "https://github.com/sirAndros/KeePassWinHello/releases/download/v$version/$pluginFileName"
