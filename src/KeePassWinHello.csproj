@@ -83,10 +83,12 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include=".gitignore" />
-    <None Include="keepass.version" />
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="..\.gitignore">
+      <Link>.gitignore</Link>
+    </None>
+    <None Include="..\keepass.version">
+      <Link>keepass.version</Link>
+    </None>
     <None Include="Resources\windows-hello16x16.png" />
   </ItemGroup>
   <ItemGroup>
@@ -94,7 +96,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$(ProjectDir)Pack-Plugin.ps1"</PostBuildEvent>
+    <PostBuildEvent>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$(ProjectDir)..\Pack-Plugin.ps1"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
