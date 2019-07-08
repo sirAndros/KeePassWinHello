@@ -3,7 +3,7 @@ param (
     [string] $OutputFileNameBase = 'KeePassWinHelloPlugin',
     [string] $OutputDir = $null,
     [string] $Version = $null,
-    [string] $ReleaseNotes = '[TBD]'
+    [string] $ReleaseNotes = $null
 )
 $keePassExe = 'C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe'
 $versionPattern = '[\d\.]+(?:\-\w+)?'
@@ -17,6 +17,10 @@ if (!$ProjectDir) {
 if (!$OutputDir) {
     $OutputDir = "$ProjectDir\releases"
 }
+if (!$ReleaseNotes) {
+    $ReleaseNotes = Get-Content "$ProjectDir\ReleaseNotes.md" -Raw
+}
+
 $sources = "$ProjectDir\src"
 $versionFile = "$ProjectDir\keepass.version"
 $assInfoPath = "$sources\Properties\AssemblyInfo.cs"
