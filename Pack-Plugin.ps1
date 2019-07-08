@@ -1,9 +1,12 @@
 param (
     [string] $ProjectDir = $null,
     [string] $OutputFileNameBase = 'KeePassWinHelloPlugin',
-    [string] $OutputDir = $null
+    [string] $OutputDir = $null,
+    [string] $Version = $null,
+    [string] $ReleaseNotes = '[TBD]'
 )
 $keePassExe = 'C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe'
+$versionPattern = '[\d\.]+(?:\-\w+)?'
 
 if (!$PSScriptRoot) {
     $PSScriptRoot = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
@@ -13,6 +16,9 @@ if (!$ProjectDir) {
 }
 if (!$OutputDir) {
     $OutputDir = "$ProjectDir\out"
+}
+if (!$Version) {
+    $Version = (Select-String -Pattern "(?<=\:)$versionPattern" -Path ".\keepass.version").Matches[0].Value
 }
 
 $sources = "$ProjectDir\src"
@@ -38,3 +44,14 @@ try {
 }
 
 Remove-Item $packingSourcesFolder -Force -Recurse
+
+$outputFile = "$OutputDir\$OutputFileNameBase.plgx"
+$chocoDir = "$ProjectDir\Chocolatey"
+$chocoInstallScriptFile = "$chocoDir\tools\ChocolateyInstall.ps1"
+$hash = (Get-FileHash $outputFile -Algorithm SHA256).Hash
+(Get-Content $chocoInstallScriptFile) `
+    -replace "\`$version\s*\=\s*['`"]$versionPattern['`"]", "`$version = '$Version'" `
+    -replace "\`$checksum\s*\=\s*['`"][\w\d]+['`"]", "`$checksum = '$hash'" `
+    | Set-Content $chocoInstallScriptFile
+
+& choco pack "`"$chocoDir\keepass-plugin-winhello.nuspec`"" --version $Version --out `"$OutputDir`" ReleaseNotes=`"$ReleaseNotes`"
