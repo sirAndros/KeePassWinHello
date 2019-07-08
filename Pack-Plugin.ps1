@@ -15,7 +15,7 @@ if (!$ProjectDir) {
     $ProjectDir = $PSScriptRoot
 }
 if (!$OutputDir) {
-    $OutputDir = "$ProjectDir\out"
+    $OutputDir = "$ProjectDir\releases"
 }
 if (!$Version) {
     $Version = (Select-String -Pattern "(?<=\:)$versionPattern" -Path ".\keepass.version").Matches[0].Value
