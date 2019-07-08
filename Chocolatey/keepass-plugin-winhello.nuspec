@@ -24,5 +24,6 @@ This plugin is intended for fast authorization to a database (after its first un
   </metadata>
   <files>
     <file src="tools\**" target="tools" />
+    <file src="..\out\*.plgx" target="plugin" />
   </files>
 </package>

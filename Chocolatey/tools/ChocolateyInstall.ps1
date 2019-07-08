@@ -8,10 +8,11 @@ if ($psver -ge 3) {
 
 $packageName = 'keepass-plugin-winhello'
 $keePassDisplayName = 'KeePass Password Safe'
-$version = '2.1'
-$checksum = '4604AA9AC953BD806F82A66F4EBB1F5CDCFC2C0B5666079A6219C6964C1DEAFA'
+$version = '2.2.0'
+$checksum = 'C43DFA64C258DD5E07601261B96DA9C34DF83F1EC338A942B528CB44B89826E1'
 $checksumType = 'sha256'
-$url = "https://github.com/sirAndros/KeePassWinHello/releases/download/v$version/KeePassWinHelloPlugin.plgx"
+$pluginFileName = 'KeePassWinHelloPlugin.plgx'
+$url = "https://github.com/sirAndros/KeePassWinHello/releases/download/v$version/$pluginFileName"
 
 try {
     Write-Verbose "Searching registry for installed KeePass..."
@@ -50,12 +51,19 @@ try {
     }
     Write-Verbose "`t...found."
 
-    Write-Verbose "Download plugin files into Plugins dir"
-    Get-ChocolateyWebFile -PackageName "$packageName" `
-                          -Url "$url" `
-                          -FileFullPath  "$pluginPath" `
-                          -Checksum "$checksum" `
-                          -ChecksumType "$checksumType"
+    $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
+    $source = "$toolsDir\..\plugin"
+    if (!(Test-Path $source)) {
+        Write-Verbose "Download plugin files"
+        Get-ChocolateyWebFile -PackageName "$packageName" `
+                              -Url "$url" `
+                              -FileFullPath  "$source\$pluginFileName" `
+                              -Checksum "$checksum" `
+                              -ChecksumType "$checksumType"
+    }
+    
+    Write-Verbose "Copy plugin files into Plugins dir"
+    Copy-Item -Path "$source\*" -Destination $pluginPath -Recurse -Force
 
     if ( Get-Process -Name "KeePass" -ErrorAction SilentlyContinue ) {
         Write-Warning "$keePassDisplayName is currently running. Plugin will be available at next restart of KeePass process." 
