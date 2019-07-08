@@ -17,11 +17,16 @@ if (!$ProjectDir) {
 if (!$OutputDir) {
     $OutputDir = "$ProjectDir\releases"
 }
-if (!$Version) {
-    $Version = (Select-String -Pattern "(?<=\:)$versionPattern" -Path ".\keepass.version").Matches[0].Value
-}
-
 $sources = "$ProjectDir\src"
+$versionFile = "$ProjectDir\keepass.version"
+$assInfoPath = "$sources\Properties\AssemblyInfo.cs"
+
+if (!$Version) {
+    $Version = (Select-String -Pattern "AssemblyVersion\s*\(\s*['`"]($versionPattern)['`"]\s*\)" -Path $assInfoPath).Matches[0].Groups[1].Value
+}
+(Get-Content $versionFile) -replace "(?<=\:)$versionPattern", $Version | Set-Content $versionFile
+
+
 $tempDirName = $OutputFileNameBase
 $packingSourcesFolder = "$OutputDir\$tempDirName"
 if (Test-Path $packingSourcesFolder) {
