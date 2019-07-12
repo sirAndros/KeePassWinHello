@@ -10,7 +10,7 @@
     <description>
 This plugin for [KeePass 2](https://keepass.info/) password manager is intended for fast authorization to a database after its first unlock using [Windows Hello technology](https://support.microsoft.com/en-us/help/17215/windows-10-what-is-hello).
     </description>
-    <packageSourceUrl>https://github.com/sirAndros/KeePassWinHello/chocolatey/</packageSourceUrl>
+    <packageSourceUrl>https://github.com/sirAndros/KeePassWinHello/tree/master/Chocolatey</packageSourceUrl>
     <projectUrl>https://keepass.info/plugins.html#winhello</projectUrl>
     <projectSourceUrl>https://github.com/sirAndros/KeePassWinHello</projectSourceUrl>
     <tags>keepass plugin unlock winhello security password-manager</tags>
