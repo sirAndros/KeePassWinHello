@@ -63,4 +63,9 @@ $hash = (Get-FileHash $outputFile -Algorithm SHA256).Hash
     -replace "\`$checksum\s*\=\s*['`"][\w\d]+['`"]", "`$checksum = '$hash'" `
     | Set-Content $chocoInstallScriptFile
 
+$chocoVerificationFile = "$chocoDir\tools\VERIFICATION.txt"
+(Get-Content $chocoVerificationFile) `
+    -replace "checksum\:\s*[\w\d]+", "checksum: $hash" `
+    | Set-Content $chocoVerificationFile
+
 & choco pack "`"$chocoDir\keepass-plugin-winhello.nuspec`"" --version $Version --out `"$OutputDir`" ReleaseNotes=`"$ReleaseNotes`"
