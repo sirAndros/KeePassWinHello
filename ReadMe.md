@@ -37,6 +37,12 @@ Place [KeePassWinHelloPlugin.plgx][binLink] into `Plugins` folder in your KeePas
 
 [binLink]: https://github.com/sirAndros/KeePassWinHello/releases "Plugin Releases"
 
+Or you can use [Chocolatey](https://chocolatey.org/packages/keepass-plugin-winhello) to install it in a more automated manner:
+
+``` powershell
+choco install keepass-plugin-winhello
+```
+
 Setup
 -----
 
