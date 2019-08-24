@@ -42,10 +42,14 @@
             this.isNotElevatedPanel = new System.Windows.Forms.Panel();
             this.uacIcoPanel = new System.Windows.Forms.Panel();
             this.isNotElevatedLabel = new System.Windows.Forms.Label();
+            this.keyCreatePanel = new System.Windows.Forms.Panel();
+            this.keyCreateIcoPanel = new System.Windows.Forms.Panel();
+            this.keyCreateLabel = new System.Windows.Forms.Label();
             this.winHelloDisabledPanel.SuspendLayout();
             this.invalidationPanel.SuspendLayout();
             this.persistentStoragePanel.SuspendLayout();
             this.isNotElevatedPanel.SuspendLayout();
+            this.keyCreatePanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // winHelloDisabledPanel
@@ -78,7 +82,7 @@
             this.invalidationPanel.Controls.Add(this.validPeriodComboBox);
             this.invalidationPanel.Controls.Add(this.infoLabel);
             this.invalidationPanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.invalidationPanel.Location = new System.Drawing.Point(0, 73);
+            this.invalidationPanel.Location = new System.Drawing.Point(0, 97);
             this.invalidationPanel.Name = "invalidationPanel";
             this.invalidationPanel.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
             this.invalidationPanel.Size = new System.Drawing.Size(550, 31);
@@ -136,12 +140,13 @@
             // persistentStoragePanel
             // 
             this.persistentStoragePanel.AutoSize = true;
+            this.persistentStoragePanel.Controls.Add(this.keyCreatePanel);
             this.persistentStoragePanel.Controls.Add(this.isNotElevatedPanel);
             this.persistentStoragePanel.Controls.Add(this.winKeyStorageCheckBox);
             this.persistentStoragePanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.persistentStoragePanel.Location = new System.Drawing.Point(0, 22);
             this.persistentStoragePanel.Name = "persistentStoragePanel";
-            this.persistentStoragePanel.Size = new System.Drawing.Size(550, 51);
+            this.persistentStoragePanel.Size = new System.Drawing.Size(550, 75);
             this.persistentStoragePanel.TabIndex = 50;
             // 
             // winKeyStorageCheckBox
@@ -185,6 +190,7 @@
             this.isNotElevatedPanel.Name = "isNotElevatedPanel";
             this.isNotElevatedPanel.Size = new System.Drawing.Size(550, 24);
             this.isNotElevatedPanel.TabIndex = 54;
+            this.isNotElevatedPanel.Visible = false;
             // 
             // uacIcoPanel
             // 
@@ -204,6 +210,38 @@
             this.isNotElevatedLabel.TabIndex = 38;
             this.isNotElevatedLabel.Text = "Requires for KeePass process to be running as Administrator.";
             // 
+            // keyCreatePanel
+            // 
+            this.keyCreatePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(217)))), ((int)(((byte)(254)))));
+            this.keyCreatePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.keyCreatePanel.Controls.Add(this.keyCreateIcoPanel);
+            this.keyCreatePanel.Controls.Add(this.keyCreateLabel);
+            this.keyCreatePanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.keyCreatePanel.ForeColor = System.Drawing.SystemColors.ScrollBar;
+            this.keyCreatePanel.Location = new System.Drawing.Point(0, 51);
+            this.keyCreatePanel.Name = "keyCreatePanel";
+            this.keyCreatePanel.Size = new System.Drawing.Size(550, 24);
+            this.keyCreatePanel.TabIndex = 55;
+            // 
+            // keyCreateIcoPanel
+            // 
+            this.keyCreateIcoPanel.Location = new System.Drawing.Point(3, 3);
+            this.keyCreateIcoPanel.Name = "keyCreateIcoPanel";
+            this.keyCreateIcoPanel.Size = new System.Drawing.Size(16, 16);
+            this.keyCreateIcoPanel.TabIndex = 42;
+            // 
+            // keyCreateLabel
+            // 
+            this.keyCreateLabel.AutoSize = true;
+            this.keyCreateLabel.BackColor = System.Drawing.Color.Transparent;
+            this.keyCreateLabel.ForeColor = System.Drawing.SystemColors.InfoText;
+            this.keyCreateLabel.Location = new System.Drawing.Point(19, 5);
+            this.keyCreateLabel.Name = "keyCreateLabel";
+            this.keyCreateLabel.Size = new System.Drawing.Size(464, 13);
+            this.keyCreateLabel.TabIndex = 38;
+            this.keyCreateLabel.Text = "A cipher key will be created. You will be prompted to sign it with your biometry " +
+    "via Windows Hello.";
+            // 
             // OptionsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -222,6 +260,8 @@
             this.persistentStoragePanel.PerformLayout();
             this.isNotElevatedPanel.ResumeLayout(false);
             this.isNotElevatedPanel.PerformLayout();
+            this.keyCreatePanel.ResumeLayout(false);
+            this.keyCreatePanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -241,5 +281,8 @@
         private System.Windows.Forms.Panel uacIcoPanel;
         private System.Windows.Forms.Label isNotElevatedLabel;
         private System.Windows.Forms.CheckBox isEnabledCheckBox;
+        private System.Windows.Forms.Panel keyCreatePanel;
+        private System.Windows.Forms.Panel keyCreateIcoPanel;
+        private System.Windows.Forms.Label keyCreateLabel;
     }
 }

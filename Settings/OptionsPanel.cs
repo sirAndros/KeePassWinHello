@@ -105,7 +105,8 @@ namespace KeePassWinHello
             InitializeComponent();
 
             _isAvailable = isAvailable;
-            uacIcoPanel.Paint += OnPaint_IconPanel;
+            uacIcoPanel.Paint += OnPaint_ElevatedIconPanel;
+            keyCreateIcoPanel.Paint += OnPaint_KeyCreateIconPanel;
         }
 
         protected override void OnLoad(EventArgs e)
@@ -130,7 +131,7 @@ namespace KeePassWinHello
                 validPeriodComboBox.Enabled = false;
                 winKeyStorageCheckBox.Enabled = false;
                 btnRevokeAll.Enabled = false;
-                isNotElevatedPanel.Visible = false;
+                keyCreatePanel.Visible = false;
 
                 if (!_isAvailable)
                 {
@@ -142,7 +143,7 @@ namespace KeePassWinHello
             {
                 bool isElevated = UAC.IsCurrentProcessElevated;
                 winKeyStorageCheckBox.Enabled = isElevated;
-                isNotElevatedPanel.Visible = !isElevated;
+                keyCreatePanel.Visible = !isElevated;
             }
 
             _initialized = true;
@@ -178,11 +179,15 @@ namespace KeePassWinHello
 
             bool persistentStorageAvailable = isEnabled && UAC.IsCurrentProcessElevated;
             winKeyStorageCheckBox.Enabled = persistentStorageAvailable;
-            isNotElevatedPanel.Visible = isEnabled && !persistentStorageAvailable;
+            keyCreatePanel.Visible = isEnabled && !persistentStorageAvailable;
         }
 
 
-        private void OnPaint_IconPanel(object sender, PaintEventArgs e)
+        private void OnPaint_KeyCreateIconPanel(object sender, PaintEventArgs e)
+        {
+            DrawIcon(e.Graphics, WinAPI.SHSTOCKICONID.SIID_INFO);
+        }
+        private void OnPaint_ElevatedIconPanel(object sender, PaintEventArgs e)
         {
             DrawIcon(e.Graphics, WinAPI.SHSTOCKICONID.SIID_SHIELD);
         }
