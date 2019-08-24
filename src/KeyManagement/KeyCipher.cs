@@ -14,13 +14,13 @@ namespace KeePassWinHello
         private readonly ICipherEngine _cipherEngine;
         private readonly IAuthProvider _cryptProvider;
 
-        public KeyCipher(string message, IntPtr windowHandle)
+        public KeyCipher(IntPtr keePassWindowHandle)
         {
             _randomSeedBits = 256;
             //_encryptionIV = CryptoRandom.Instance.GetRandomBytes(16);
             _encryptionIV = new byte[16];
             _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
-            _cryptProvider = AuthProviderFactory.GetInstance(message, windowHandle);
+            _cryptProvider = AuthProviderFactory.GetInstance(keePassWindowHandle);
         }
 
         public bool IsAvailable { get { return AuthProviderFactory.IsAvailable(); } }

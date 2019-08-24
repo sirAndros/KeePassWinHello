@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace KeePassWinHello
 {
-    class XorProvider : IAuthProvider, IWin32Window
+    class XorProvider : IAuthProvider
     {
         private const byte _entropy = 42;
 
@@ -13,10 +13,7 @@ namespace KeePassWinHello
             CurrentCacheType = AuthCacheType.Local;
         }
 
-        public string Message { get; set; }
-        public IntPtr Handle { get; set; }
-
-        public AuthCacheType CurrentCacheType { get; private set; }
+        public AuthCacheType CurrentCacheType { get; private set; } // TDB
 
         public void ClaimCurrentCacheType(AuthCacheType newType)
         {
@@ -30,7 +27,12 @@ namespace KeePassWinHello
 
         public byte[] PromptToDecrypt(byte[] data)
         {
-            var dlgRslt = MessageBox.Show(this, Message, "Test", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+            string message = "Default message";
+            var uiContext = AuthProviderUIContext.Current;
+            if (uiContext != null)
+                message = uiContext.Message;
+
+            var dlgRslt = MessageBox.Show(uiContext, message, "Test", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
             if (dlgRslt == DialogResult.OK)
             {
                 return Encrypt(data);

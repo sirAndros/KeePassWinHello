@@ -373,7 +373,7 @@ namespace KeePassWinHello
 
         private static void ApplyUIContext(SafeNCryptKeyHandle ngcKeyHandle)
         {
-            var uiContext = WinHelloUIContext.Current;
+            var uiContext = AuthProviderUIContext.Current;
             if (uiContext != null)
             {
                 IntPtr parentWindowHandle = uiContext.ParentWindowHandle;

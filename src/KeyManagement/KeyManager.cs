@@ -24,13 +24,15 @@ namespace KeePassWinHello
         private readonly KeyCipher _keyCipher;
         private readonly IKeyStorage _keyStorage;
         private volatile bool _isSecureDesktopSettingChanged = false;
+        private readonly IntPtr _keePassMainWindowHandle;
 
         public bool IsAvailable { get { return _keyCipher.IsAvailable; } }
         public int  KeysCount   { get { return _keyStorage.Count; } }
 
         public KeyManager(IntPtr windowHandle)
         {
-            _keyCipher = new KeyCipher(Settings.ConfirmationMessage, windowHandle);
+            _keePassMainWindowHandle = windowHandle;
+            _keyCipher = new KeyCipher(windowHandle);
             _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
         }
 
@@ -139,8 +141,11 @@ namespace KeePassWinHello
 
             try
             {
-                compositeKey = encryptedData.GetCompositeKey(_keyCipher);
-                return true;
+                using (AuthProviderUIContext.With(Settings.ConfirmationMessage, _keePassMainWindowHandle))
+                {
+                    compositeKey = encryptedData.GetCompositeKey(_keyCipher);
+                    return true;
+                }
             }
             catch (UnauthorizedAccessException)
             {

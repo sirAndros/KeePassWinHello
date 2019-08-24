@@ -1,24 +1,27 @@
 ﻿using System;
+using System.Windows.Forms;
 
 namespace KeePassWinHello
 {
-    internal sealed class WinHelloUIContext : IDisposable
+    internal sealed class AuthProviderUIContext : IDisposable, IWin32Window
     {
         [ThreadStatic]
-        public static WinHelloUIContext Current;
+        public static AuthProviderUIContext Current;
 
         public string Message { get; private set; }
         public IntPtr ParentWindowHandle { get; private set; }
 
-        private WinHelloUIContext(string message, IntPtr windowHandle)
+        IntPtr IWin32Window.Handle { get { return ParentWindowHandle; } }
+
+        private AuthProviderUIContext(string message, IntPtr windowHandle)
         {
             Message = message;
             ParentWindowHandle = windowHandle;
         }
 
-        public static WinHelloUIContext With(string message, IntPtr windowHandle)
+        public static AuthProviderUIContext With(string message, IntPtr windowHandle)
         {
-            var result = new WinHelloUIContext(message, windowHandle);
+            var result = new AuthProviderUIContext(message, windowHandle);
             Current = result;
             return result;
         }
