@@ -47,8 +47,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\AuthProviderUserCancelledException.cs" />
+    <Compile Include="Exceptions\AuthProviderInvalidKeyException.cs" />
+    <Compile Include="Exceptions\AuthProviderSystemErrorException.cs" />
+    <Compile Include="Exceptions\AuthProviderException.cs" />
     <Compile Include="AuthProviders\IAuthProvider.cs" />
     <Compile Include="AuthProviders\WinHelloProviderForegroundDecorator.cs" />
+    <Compile Include="Exceptions\KeePassWinHelloException.cs" />
     <Compile Include="KeyManagement\Storage\IKeyStorage.cs" />
     <Compile Include="KeyManagement\KeyCipher.cs" />
     <Compile Include="KeyManagement\KeyManager.cs" />
