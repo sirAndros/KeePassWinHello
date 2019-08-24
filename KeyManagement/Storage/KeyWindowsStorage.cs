@@ -246,7 +246,10 @@ ref IntPtr TokenHandle // handle to open access token
                     bool isValid = true;
                     try
                     {
-                        var createdDate = DateTime.FromFileTime((long)(((ulong)ncred.LastWritten.dwHighDateTime << 32) | (ulong)ncred.LastWritten.dwLowDateTime));
+                        long highDateTime = (long)((uint)ncred.LastWritten.dwHighDateTime) << 32;
+                        long lowDateTime = (uint)ncred.LastWritten.dwLowDateTime;
+
+                        var createdDate = DateTime.FromFileTime(highDateTime | lowDateTime);
                         if (DateTime.UtcNow - createdDate >= Settings.Instance.InvalidatingTime)
                             isValid = false;
                     }
