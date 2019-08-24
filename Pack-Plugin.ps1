@@ -2,13 +2,17 @@ param (
     [string] $ProjectDir = $null,
     [string] $TempDirName = 'KeePassWinHelloPlugin'
 )
-$keePassExe = 'C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe'
 
 if (!$PSScriptRoot) {
     $PSScriptRoot = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 }
 if (!$ProjectDir) {
     $ProjectDir = $PSScriptRoot
+}
+
+$keePassExe = "$ProjectDir\lib\KeePass.exe"
+if (!(Test-Path $keePassExe)) {
+    $keePassExe = 'C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe'
 }
 
 $dest = "$ProjectDir\$TempDirName"
