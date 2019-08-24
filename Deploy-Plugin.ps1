@@ -16,10 +16,13 @@ if (!$TargetDir) {
     $TargetDir = Join-Path $keePassDir 'Plugins'
 }
 
+$packageOutDir = 'releases'
+$binOutDir = 'src\bin\Debug'
+
 if ($ForDebug) {
-    Get-ChildItem $ProjectDir -Filter '*.plgx' | ForEach-Object { Join-Path $TargetDir $_.Name | Get-ChildItem -ErrorAction SilentlyContinue | Remove-Item }
-    Join-Path $ProjectDir 'bin\Debug' | Get-ChildItem -Filter '*.dll' | Copy-Item -Destination $TargetDir -Force
+    Join-Path $ProjectDir $packageOutDir | Get-ChildItem -Filter '*.plgx' | ForEach-Object { Join-Path $TargetDir $_.Name | Get-ChildItem -ErrorAction SilentlyContinue | Remove-Item }
+    Join-Path $ProjectDir $binOutDir | Get-ChildItem -Filter '*.dll' | Copy-Item -Destination $TargetDir -Force
 } else {
-    Join-Path $ProjectDir 'bin\Debug' | Get-ChildItem -Filter  '*.dll' | ForEach-Object { Join-Path $TargetDir $_.Name | Get-ChildItem -ErrorAction SilentlyContinue | Remove-Item }
-    Get-ChildItem $ProjectDir -Filter '*.plgx' | Copy-Item -Destination $TargetDir -Force
+    Join-Path $ProjectDir $binOutDir | Get-ChildItem -Filter  '*.dll' | ForEach-Object { Join-Path $TargetDir $_.Name | Get-ChildItem -ErrorAction SilentlyContinue | Remove-Item }
+    Join-Path $ProjectDir $packageOutDir | Get-ChildItem -Filter '*.plgx' | Copy-Item -Destination $TargetDir -Force
 }
