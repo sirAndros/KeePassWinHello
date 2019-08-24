@@ -73,4 +73,8 @@ $chocoVerificationFile = "$chocoDir\tools\VERIFICATION.txt"
     -replace "checksum\:\s*[\w\d]+", "checksum: $hash" `
     | Set-Content $chocoVerificationFile
 
-& choco pack "`"$chocoDir\keepass-plugin-winhello.nuspec`"" --version $Version --out `"$OutputDir`" ReleaseNotes=`"$ReleaseNotes`"
+if (Get-Command choco -ErrorAction SilentlyContinue) {
+    & choco pack "`"$chocoDir\keepass-plugin-winhello.nuspec`"" --version $Version --out `"$OutputDir`" ReleaseNotes=`"$ReleaseNotes`"
+} else {
+    Write-Warning "Can't create Chocolatey package. Install Chocolatey first!"
+}
