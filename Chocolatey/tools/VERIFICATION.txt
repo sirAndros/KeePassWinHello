@@ -1,0 +1,23 @@
+VERIFICATION
+Verification is intended to assist the Chocolatey moderators and community
+in verifying that this package's contents are trustworthy.
+ 
+The origin of the embedded plugin can be downloaded from releases
+on https://github.com/sirAndros/KeePassWinHello/releases/
+and than can be verified by doing the following:
+
+1. Fetch .plgx asset of the corresponding version from
+   https://github.com/sirAndros/KeePassWinHello/releases/
+
+2. Compute checksum using one of the following methods:
+   - Call powershell function 'Get-FileHash'
+   - Use chocolatey utility 'checksum'
+
+3. The checksum must match the following:
+
+   checksum: 113E044EABB746EB8D0EC7168D8D99318DEBC265271FFE46E0D9DFC6A572004E
+   checksum type: SHA256
+
+Likewise, the plugin installed from this package is identical and so must
+match the checksum either. You can just install the package and than verify
+.plgx file in KeePass Plugins folder.

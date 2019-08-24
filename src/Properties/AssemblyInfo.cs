@@ -3,11 +3,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("KeePassWinHello")]
-[assembly: AssemblyDescription("KeePass 2.x plugin which lets you unlock databases with Windows Hello.")]
+[assembly: AssemblyDescription("This plugin for KeePass 2 password manager is intended for fast authorization to a database after its first unlock using Windows Hello technology.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("AS & AO")]
 [assembly: AssemblyProduct("KeePass Plugin")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCopyright("© AS & AO")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -15,5 +15,4 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid("188C8835-26A4-4224-A5C9-4CE964A6A3DB")]
 
-[assembly: AssemblyVersion("2.2.0.0")]
-[assembly: AssemblyFileVersion("2.2.0.0")]
+[assembly: AssemblyVersion("2.2")]

@@ -92,10 +92,12 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include=".gitignore" />
-    <None Include="keepass.version" />
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="..\.gitignore">
+      <Link>.gitignore</Link>
+    </None>
+    <None Include="..\keepass.version">
+      <Link>keepass.version</Link>
+    </None>
     <None Include="Resources\windows-hello16x16.png" />
   </ItemGroup>
   <ItemGroup>
@@ -103,7 +105,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$(ProjectDir)Pack-Plugin.ps1"</PostBuildEvent>
+    <PostBuildEvent>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$(ProjectDir)..\Pack-Plugin.ps1"</PostBuildEvent>
   </PropertyGroup>
   <Target Name="DeployForDebug" Condition="'$(Configuration)' == 'Debug'" AfterTargets="PostBuildEvent">
     <Exec ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)Deploy-Plugin.ps1&quot; -Arg -ForDebug" WorkingDirectory="$(ProjectDir)" />

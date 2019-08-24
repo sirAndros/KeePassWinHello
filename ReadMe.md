@@ -1,16 +1,16 @@
 Quick unlock with Windows Hello for KeePass 2
 =============================================
 
-This plugin for [KeePass 2][KeePass] password manager is intended for fast authorisation to a database after its first unlock using [Windows Hello technology][WinHello].
+This plugin for [KeePass 2][KeePass] password manager is intended for fast authorization to a database after its first unlock using [Windows Hello technology][WinHello].
 
 [KeePass]: https://keepass.info/
 [WinHello]: https://support.microsoft.com/en-us/help/17215/windows-10-what-is-hello
-
 
 Usage
 -----
 
 With this plugin you may:
+
 1. Unlock your database with your masterkey/keyfile/other provider;
 
     <img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/KeePassPrompt.png?raw=true" width=500/>
@@ -37,8 +37,15 @@ Place [KeePassWinHelloPlugin.plgx][binLink] into `Plugins` folder in your KeePas
 
 [binLink]: https://github.com/sirAndros/KeePassWinHello/releases "Plugin Releases"
 
+Or you can use [Chocolatey](https://chocolatey.org/packages/keepass-plugin-winhello) to install it in a more automated manner:
+
+``` powershell
+choco install keepass-plugin-winhello
+```
+
 Setup
 -----
+
 This plugin requires KeePass to remain open to function as intended. Ensure that your KeePass lock settings do not close the program as shown below:
 
 <img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/KeePassLockOptions.png?raw=true" width=500/>

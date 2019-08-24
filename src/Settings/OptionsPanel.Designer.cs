@@ -50,6 +50,9 @@
             this.persistentStoragePanel.SuspendLayout();
             this.isNotElevatedPanel.SuspendLayout();
             this.keyCreatePanel.SuspendLayout();
+            this.storedKeysCountLabel = new System.Windows.Forms.Label();
+            this.storedKeysInfoLabel = new System.Windows.Forms.Label();
+            this.storedKeysInfoPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // winHelloDisabledPanel
@@ -230,6 +233,16 @@
             this.keyCreateIcoPanel.Size = new System.Drawing.Size(16, 16);
             this.keyCreateIcoPanel.TabIndex = 42;
             // 
+            // storedKeysInfoPanel
+            // 
+            this.storedKeysInfoPanel.Controls.Add(this.btnRevokeAll);
+            this.storedKeysInfoPanel.Controls.Add(this.storedKeysCountLabel);
+            this.storedKeysInfoPanel.Controls.Add(this.storedKeysInfoLabel);
+            this.storedKeysInfoPanel.Location = new System.Drawing.Point(3, 76);
+            this.storedKeysInfoPanel.Name = "storedKeysInfoPanel";
+            this.storedKeysInfoPanel.Size = new System.Drawing.Size(186, 25);
+            this.storedKeysInfoPanel.TabIndex = 13;
+            // 
             // keyCreateLabel
             // 
             this.keyCreateLabel.AutoSize = true;
@@ -246,6 +259,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.storedKeysInfoPanel);
             this.Controls.Add(this.invalidationPanel);
             this.Controls.Add(this.persistentStoragePanel);
             this.Controls.Add(this.isEnabledCheckBox);
@@ -284,5 +298,8 @@
         private System.Windows.Forms.Panel keyCreatePanel;
         private System.Windows.Forms.Panel keyCreateIcoPanel;
         private System.Windows.Forms.Label keyCreateLabel;
+        private System.Windows.Forms.Label storedKeysCountLabel;
+        private System.Windows.Forms.Label storedKeysInfoLabel;
+        private System.Windows.Forms.Panel storedKeysInfoPanel;
     }
 }
