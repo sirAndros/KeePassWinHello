@@ -23,9 +23,12 @@
             this.winHelloDisabledPanel = new System.Windows.Forms.Panel();
             this.winHelloDisabledLabel = new System.Windows.Forms.Label();
             this.invalidationPanel = new System.Windows.Forms.Panel();
+            this.storedKeysInfoPanel = new System.Windows.Forms.Panel();
+            this.storedKeysInfoLabel = new System.Windows.Forms.Label();
+            this.storedKeysCountLabel = new System.Windows.Forms.Label();
+            this.btnRevokeAll = new System.Windows.Forms.Button();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
             this.infoLabel = new System.Windows.Forms.Label();
-            this.btnRevokeAll = new System.Windows.Forms.Button();
             this.persistentStoragePanel = new System.Windows.Forms.Panel();
             this.keyCreatePanel = new System.Windows.Forms.Panel();
             this.keyCreateIcoPanel = new System.Windows.Forms.Panel();
@@ -34,15 +37,12 @@
             this.uacIcoPanel = new System.Windows.Forms.Panel();
             this.isNotElevatedLabel = new System.Windows.Forms.Label();
             this.isEnabledCheckBox = new System.Windows.Forms.CheckBox();
-            this.storedKeysInfoPanel = new System.Windows.Forms.Panel();
-            this.storedKeysCountLabel = new System.Windows.Forms.Label();
-            this.storedKeysInfoLabel = new System.Windows.Forms.Label();
             this.winHelloDisabledPanel.SuspendLayout();
             this.invalidationPanel.SuspendLayout();
+            this.storedKeysInfoPanel.SuspendLayout();
             this.persistentStoragePanel.SuspendLayout();
             this.keyCreatePanel.SuspendLayout();
             this.isNotElevatedPanel.SuspendLayout();
-            this.storedKeysInfoPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // winKeyStorageCheckBox
@@ -64,6 +64,7 @@
             this.winHelloDisabledPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(251)))), ((int)(((byte)(172)))));
             this.winHelloDisabledPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.winHelloDisabledPanel.Controls.Add(this.winHelloDisabledLabel);
+            this.winHelloDisabledPanel.Cursor = System.Windows.Forms.Cursors.No;
             this.winHelloDisabledPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.winHelloDisabledPanel.ForeColor = System.Drawing.SystemColors.ScrollBar;
             this.winHelloDisabledPanel.Location = new System.Drawing.Point(0, 274);
@@ -85,14 +86,60 @@
             // 
             // invalidationPanel
             // 
+            this.invalidationPanel.Controls.Add(this.storedKeysInfoPanel);
             this.invalidationPanel.Controls.Add(this.validPeriodComboBox);
             this.invalidationPanel.Controls.Add(this.infoLabel);
             this.invalidationPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.invalidationPanel.Location = new System.Drawing.Point(0, 97);
             this.invalidationPanel.Name = "invalidationPanel";
             this.invalidationPanel.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
-            this.invalidationPanel.Size = new System.Drawing.Size(550, 31);
+            this.invalidationPanel.Size = new System.Drawing.Size(550, 28);
             this.invalidationPanel.TabIndex = 52;
+            // 
+            // storedKeysInfoPanel
+            // 
+            this.storedKeysInfoPanel.AutoSize = true;
+            this.storedKeysInfoPanel.Controls.Add(this.storedKeysInfoLabel);
+            this.storedKeysInfoPanel.Controls.Add(this.storedKeysCountLabel);
+            this.storedKeysInfoPanel.Controls.Add(this.btnRevokeAll);
+            this.storedKeysInfoPanel.Dock = System.Windows.Forms.DockStyle.Right;
+            this.storedKeysInfoPanel.Location = new System.Drawing.Point(395, 5);
+            this.storedKeysInfoPanel.Name = "storedKeysInfoPanel";
+            this.storedKeysInfoPanel.Size = new System.Drawing.Size(155, 23);
+            this.storedKeysInfoPanel.TabIndex = 46;
+            // 
+            // storedKeysInfoLabel
+            // 
+            this.storedKeysInfoLabel.AutoSize = true;
+            this.storedKeysInfoLabel.Dock = System.Windows.Forms.DockStyle.Right;
+            this.storedKeysInfoLabel.Location = new System.Drawing.Point(0, 0);
+            this.storedKeysInfoLabel.Name = "storedKeysInfoLabel";
+            this.storedKeysInfoLabel.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
+            this.storedKeysInfoLabel.Size = new System.Drawing.Size(66, 18);
+            this.storedKeysInfoLabel.TabIndex = 48;
+            this.storedKeysInfoLabel.Text = "Stored keys:";
+            // 
+            // storedKeysCountLabel
+            // 
+            this.storedKeysCountLabel.AutoSize = true;
+            this.storedKeysCountLabel.Dock = System.Windows.Forms.DockStyle.Right;
+            this.storedKeysCountLabel.Location = new System.Drawing.Point(66, 0);
+            this.storedKeysCountLabel.Name = "storedKeysCountLabel";
+            this.storedKeysCountLabel.Padding = new System.Windows.Forms.Padding(0, 5, 5, 0);
+            this.storedKeysCountLabel.Size = new System.Drawing.Size(18, 18);
+            this.storedKeysCountLabel.TabIndex = 47;
+            this.storedKeysCountLabel.Text = "0";
+            // 
+            // btnRevokeAll
+            // 
+            this.btnRevokeAll.AutoSize = true;
+            this.btnRevokeAll.Dock = System.Windows.Forms.DockStyle.Right;
+            this.btnRevokeAll.Location = new System.Drawing.Point(84, 0);
+            this.btnRevokeAll.Name = "btnRevokeAll";
+            this.btnRevokeAll.Size = new System.Drawing.Size(71, 23);
+            this.btnRevokeAll.TabIndex = 46;
+            this.btnRevokeAll.Text = "Revoke all";
+            this.btnRevokeAll.UseVisualStyleBackColor = true;
             // 
             // validPeriodComboBox
             // 
@@ -129,19 +176,6 @@
             this.infoLabel.Size = new System.Drawing.Size(169, 17);
             this.infoLabel.TabIndex = 44;
             this.infoLabel.Text = "Saved keys get invalidated after:";
-            // 
-            // btnRevokeAll
-            // 
-            this.btnRevokeAll.AutoSize = true;
-            this.btnRevokeAll.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnRevokeAll.Location = new System.Drawing.Point(477, 4);
-            this.btnRevokeAll.Margin = new System.Windows.Forms.Padding(3, 10, 3, 4);
-            this.btnRevokeAll.Name = "btnRevokeAll";
-            this.btnRevokeAll.Size = new System.Drawing.Size(68, 23);
-            this.btnRevokeAll.TabIndex = 46;
-            this.btnRevokeAll.Text = "Revoke all";
-            this.btnRevokeAll.UseVisualStyleBackColor = true;
-            this.btnRevokeAll.Visible = false;
             // 
             // persistentStoragePanel
             // 
@@ -229,40 +263,15 @@
             this.isEnabledCheckBox.Name = "isEnabledCheckBox";
             this.isEnabledCheckBox.Padding = new System.Windows.Forms.Padding(5, 5, 0, 0);
             this.isEnabledCheckBox.Size = new System.Drawing.Size(550, 22);
-            this.isEnabledCheckBox.TabIndex = 54;
+            this.isEnabledCheckBox.TabIndex = 1;
             this.isEnabledCheckBox.Text = "Use quick unlock via Windows Hello authorization if it is available";
             this.isEnabledCheckBox.UseVisualStyleBackColor = true;
             this.isEnabledCheckBox.CheckedChanged += new System.EventHandler(this.isEnabledCheckBox_CheckedChanged);
-            // 
-            // storedKeysInfoPanel
-            // 
-            this.storedKeysInfoPanel.Controls.Add(this.btnRevokeAll);
-            this.storedKeysInfoPanel.Controls.Add(this.storedKeysCountLabel);
-            this.storedKeysInfoPanel.Controls.Add(this.storedKeysInfoLabel);
-            this.storedKeysInfoPanel.Location = new System.Drawing.Point(3, 76);
-            this.storedKeysInfoPanel.Name = "storedKeysInfoPanel";
-            this.storedKeysInfoPanel.Size = new System.Drawing.Size(186, 25);
-            this.storedKeysInfoPanel.TabIndex = 13;
-            // 
-            // storedKeysCountLabel
-            // 
-            this.storedKeysCountLabel.Location = new System.Drawing.Point(0, 0);
-            this.storedKeysCountLabel.Name = "storedKeysCountLabel";
-            this.storedKeysCountLabel.Size = new System.Drawing.Size(100, 23);
-            this.storedKeysCountLabel.TabIndex = 47;
-            // 
-            // storedKeysInfoLabel
-            // 
-            this.storedKeysInfoLabel.Location = new System.Drawing.Point(0, 0);
-            this.storedKeysInfoLabel.Name = "storedKeysInfoLabel";
-            this.storedKeysInfoLabel.Size = new System.Drawing.Size(100, 23);
-            this.storedKeysInfoLabel.TabIndex = 48;
             // 
             // OptionsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.storedKeysInfoPanel);
             this.Controls.Add(this.invalidationPanel);
             this.Controls.Add(this.persistentStoragePanel);
             this.Controls.Add(this.isEnabledCheckBox);
@@ -273,14 +282,14 @@
             this.winHelloDisabledPanel.PerformLayout();
             this.invalidationPanel.ResumeLayout(false);
             this.invalidationPanel.PerformLayout();
+            this.storedKeysInfoPanel.ResumeLayout(false);
+            this.storedKeysInfoPanel.PerformLayout();
             this.persistentStoragePanel.ResumeLayout(false);
             this.persistentStoragePanel.PerformLayout();
             this.keyCreatePanel.ResumeLayout(false);
             this.keyCreatePanel.PerformLayout();
             this.isNotElevatedPanel.ResumeLayout(false);
             this.isNotElevatedPanel.PerformLayout();
-            this.storedKeysInfoPanel.ResumeLayout(false);
-            this.storedKeysInfoPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -291,7 +300,6 @@
         private System.Windows.Forms.Panel winHelloDisabledPanel;
         private System.Windows.Forms.Label winHelloDisabledLabel;
         private System.Windows.Forms.Panel invalidationPanel;
-        private System.Windows.Forms.Button btnRevokeAll;
         private System.Windows.Forms.Label infoLabel;
         private System.Windows.Forms.ComboBox validPeriodComboBox;
         private System.Windows.Forms.Panel persistentStoragePanel;
@@ -303,8 +311,9 @@
         private System.Windows.Forms.Panel keyCreatePanel;
         private System.Windows.Forms.Panel keyCreateIcoPanel;
         private System.Windows.Forms.Label keyCreateLabel;
-        private System.Windows.Forms.Label storedKeysCountLabel;
-        private System.Windows.Forms.Label storedKeysInfoLabel;
         private System.Windows.Forms.Panel storedKeysInfoPanel;
+        private System.Windows.Forms.Label storedKeysInfoLabel;
+        private System.Windows.Forms.Label storedKeysCountLabel;
+        private System.Windows.Forms.Button btnRevokeAll;
     }
 }

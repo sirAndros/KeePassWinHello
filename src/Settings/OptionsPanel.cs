@@ -63,10 +63,6 @@ namespace KeePassWinHello
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
             BackColor = Color.Transparent;
 
-            validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
-            if (_keyManager != null)
-                storedKeysCountLabel.Text = _keyManager.KeysCount.ToString();
-
             LoadValuesFromSettings();
 
             bool isEnabled = Settings.Instance.Enabled;
@@ -80,12 +76,12 @@ namespace KeePassWinHello
             {
                 validPeriodComboBox.Enabled = false;
                 winKeyStorageCheckBox.Enabled = false;
-                btnRevokeAll.Enabled = false;
                 keyCreatePanel.Visible = false;
 
                 if (!isAvailable)
                 {
                     isEnabledCheckBox.Enabled = false;
+                    storedKeysInfoPanel.Visible = false;
                     winHelloDisabledPanel.Visible = true;
                 }
             }
@@ -104,6 +100,16 @@ namespace KeePassWinHello
             isEnabledCheckBox.Checked = Settings.Instance.Enabled;
             winKeyStorageCheckBox.Checked = Settings.Instance.WinStorageEnabled;
             validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
+            if (_keyManager != null)
+            {
+                storedKeysInfoPanel.Visible = true;
+                storedKeysCountLabel.Text = _keyManager.KeysCount.ToString();
+                btnRevokeAll.Enabled = _keyManager.KeysCount > 0;
+            }
+            else
+            {
+                storedKeysInfoPanel.Visible = false;
+            }
         }
 
         private void OnClosing(object sender, FormClosingEventArgs e)
@@ -140,8 +146,9 @@ namespace KeePassWinHello
             bool persistentStorageAvailable = isEnabled && UAC.IsCurrentProcessElevated;
             winKeyStorageCheckBox.Enabled = persistentStorageAvailable;
             keyCreatePanel.Visible = isEnabled && !persistentStorageAvailable;
-        }
 
+            btnRevokeAll.Enabled = _keyManager != null && _keyManager.KeysCount > 0;
+        }
 
         private void OnPaint_KeyCreateIconPanel(object sender, PaintEventArgs e)
         {
