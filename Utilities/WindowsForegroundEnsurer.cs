@@ -59,6 +59,9 @@ namespace KeePassWinHello.Utilities
 
         public static bool EnsureForeground(IntPtr currentWindowHandle, IntPtr targetWindowHandle)
         {
+            if (targetWindowHandle == IntPtr.Zero)
+                return false;
+
             if (IsWindowOnForeground(targetWindowHandle))
                 return true;
 

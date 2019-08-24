@@ -7,13 +7,15 @@ namespace KeePassWinHello
     class WinHelloProviderForegroundDecorator : IAuthProvider
     {
         private readonly WinHelloProvider _winHelloProvider;
+        private readonly IntPtr _keePassWindowHandle;
 
-        public WinHelloProviderForegroundDecorator(WinHelloProvider winHelloProvider)
+        public WinHelloProviderForegroundDecorator(WinHelloProvider winHelloProvider, IntPtr keePassWindowHandle)
         {
             if (winHelloProvider == null)
                 throw new ArgumentNullException("winHelloProvider");
 
             _winHelloProvider = winHelloProvider;
+            _keePassWindowHandle = keePassWindowHandle;
         }
 
         public AuthCacheType CurrentCacheType
@@ -44,7 +46,7 @@ namespace KeePassWinHello
                 try
                 {
                     var result = _winHelloProvider.PromptToDecrypt(data);
-                    Utilities.WindowsForegroundEnsurer.EnsureForeground(_winHelloProvider.ParentHandle);
+                    Utilities.WindowsForegroundEnsurer.EnsureForeground(_keePassWindowHandle);
                     return result;
                 }
                 catch

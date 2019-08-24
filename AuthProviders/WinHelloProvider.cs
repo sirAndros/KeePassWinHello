@@ -218,9 +218,6 @@ namespace KeePassWinHello
             }
         }
 
-        public string Message { get; set; }
-
-        public IntPtr ParentHandle { get; set; }
 
         public AuthCacheType CurrentCacheType
         {
@@ -286,7 +283,6 @@ namespace KeePassWinHello
             return true;
         }
 
-        // TODO: UI Context
         private /*static*/ SafeNCryptKeyHandle CreatePersistentKey(bool overwriteExisting/*, string message = null, IntPtr parentHandle = IntPtr.Zero*/)
         {
             SafeNCryptProviderHandle ngcProviderHandle;
@@ -311,14 +307,20 @@ namespace KeePassWinHello
                 byte[] cacheType = BitConverter.GetBytes(1);
                 NCryptSetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY, cacheType, cacheType.Length, CngPropertyOptions.None).CheckStatus();
 
-                if (ParentHandle != IntPtr.Zero)
+                var uiContext = WinHelloUIContext.Current;
+                if (uiContext != null)
                 {
-                    byte[] handle = BitConverter.GetBytes(IntPtr.Size == 8 ? ParentHandle.ToInt64() : ParentHandle.ToInt32());
-                    NCryptSetProperty(ngcKeyHandle, NCRYPT_WINDOW_HANDLE_PROPERTY, handle, handle.Length, CngPropertyOptions.None);
-                }
+                    IntPtr parentWindowHandle = uiContext.ParentWindowHandle;
+                    if (parentWindowHandle != IntPtr.Zero)
+                    {
+                        byte[] handle = BitConverter.GetBytes(IntPtr.Size == 8 ? parentWindowHandle.ToInt64() : parentWindowHandle.ToInt32());
+                        NCryptSetProperty(ngcKeyHandle, NCRYPT_WINDOW_HANDLE_PROPERTY, handle, handle.Length, CngPropertyOptions.None);
+                    }
 
-                if (!string.IsNullOrEmpty(Message))
-                    NCryptSetProperty(ngcKeyHandle, NCRYPT_USE_CONTEXT_PROPERTY, Message, (Message.Length + 1) * 2, CngPropertyOptions.None);
+                    string message = uiContext.Message;
+                    if (!string.IsNullOrEmpty(message))
+                        NCryptSetProperty(ngcKeyHandle, NCRYPT_USE_CONTEXT_PROPERTY, message, (message.Length + 1) * 2, CngPropertyOptions.None);
+                }
 
                 NCryptFinalizeKey(ngcKeyHandle, 0).CheckStatus();
             }
@@ -366,14 +368,20 @@ namespace KeePassWinHello
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
                         throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not meet integrity requirements.");
 
-                    if (ParentHandle != IntPtr.Zero)
+                    var uiContext = WinHelloUIContext.Current;
+                    if (uiContext != null)
                     {
-                        byte[] handle = BitConverter.GetBytes(IntPtr.Size == 8 ? ParentHandle.ToInt64() : ParentHandle.ToInt32());
-                        NCryptSetProperty(ngcKeyHandle, NCRYPT_WINDOW_HANDLE_PROPERTY, handle, handle.Length, CngPropertyOptions.None).CheckStatus();
-                    }
+                        IntPtr parentWindowHandle = uiContext.ParentWindowHandle;
+                        if (parentWindowHandle != IntPtr.Zero)
+                        {
+                            byte[] handle = BitConverter.GetBytes(IntPtr.Size == 8 ? parentWindowHandle.ToInt64() : parentWindowHandle.ToInt32());
+                            NCryptSetProperty(ngcKeyHandle, NCRYPT_WINDOW_HANDLE_PROPERTY, handle, handle.Length, CngPropertyOptions.None).CheckStatus();
+                        }
 
-                    if (!string.IsNullOrEmpty(Message))
-                        NCryptSetProperty(ngcKeyHandle, NCRYPT_USE_CONTEXT_PROPERTY, Message, (Message.Length + 1) * 2, CngPropertyOptions.None).CheckStatus();
+                        string message = uiContext.Message;
+                        if (!string.IsNullOrEmpty(message))
+                            NCryptSetProperty(ngcKeyHandle, NCRYPT_USE_CONTEXT_PROPERTY, message, (message.Length + 1) * 2, CngPropertyOptions.None).CheckStatus();
+                    }
 
                     byte[] pinRequired = BitConverter.GetBytes(1);
                     NCryptSetProperty(ngcKeyHandle, NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, pinRequired, pinRequired.Length, CngPropertyOptions.None).CheckStatus();
