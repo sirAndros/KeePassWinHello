@@ -28,7 +28,7 @@
             this.storedKeysCountLabel = new System.Windows.Forms.Label();
             this.btnRevokeAll = new System.Windows.Forms.Button();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
-            this.infoLabel = new System.Windows.Forms.Label();
+            this.validPeriodLabel = new System.Windows.Forms.Label();
             this.persistentStoragePanel = new System.Windows.Forms.Panel();
             this.keyCreatePanel = new System.Windows.Forms.Panel();
             this.keyCreateIcoPanel = new System.Windows.Forms.Panel();
@@ -88,7 +88,7 @@
             // 
             this.invalidationPanel.Controls.Add(this.storedKeysInfoPanel);
             this.invalidationPanel.Controls.Add(this.validPeriodComboBox);
-            this.invalidationPanel.Controls.Add(this.infoLabel);
+            this.invalidationPanel.Controls.Add(this.validPeriodLabel);
             this.invalidationPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.invalidationPanel.Location = new System.Drawing.Point(0, 97);
             this.invalidationPanel.Name = "invalidationPanel";
@@ -165,17 +165,17 @@
             this.validPeriodComboBox.Size = new System.Drawing.Size(136, 21);
             this.validPeriodComboBox.TabIndex = 45;
             // 
-            // infoLabel
+            // validPeriodLabel
             // 
-            this.infoLabel.AutoSize = true;
-            this.infoLabel.Dock = System.Windows.Forms.DockStyle.Left;
-            this.infoLabel.Location = new System.Drawing.Point(0, 5);
-            this.infoLabel.Margin = new System.Windows.Forms.Padding(8, 0, 3, 0);
-            this.infoLabel.Name = "infoLabel";
-            this.infoLabel.Padding = new System.Windows.Forms.Padding(5, 4, 2, 0);
-            this.infoLabel.Size = new System.Drawing.Size(169, 17);
-            this.infoLabel.TabIndex = 44;
-            this.infoLabel.Text = "Saved keys get invalidated after:";
+            this.validPeriodLabel.AutoSize = true;
+            this.validPeriodLabel.Dock = System.Windows.Forms.DockStyle.Left;
+            this.validPeriodLabel.Location = new System.Drawing.Point(0, 5);
+            this.validPeriodLabel.Margin = new System.Windows.Forms.Padding(8, 0, 3, 0);
+            this.validPeriodLabel.Name = "validPeriodLabel";
+            this.validPeriodLabel.Padding = new System.Windows.Forms.Padding(5, 4, 2, 0);
+            this.validPeriodLabel.Size = new System.Drawing.Size(169, 17);
+            this.validPeriodLabel.TabIndex = 44;
+            this.validPeriodLabel.Text = "Saved keys get invalidated after:";
             // 
             // persistentStoragePanel
             // 
@@ -300,7 +300,7 @@
         private System.Windows.Forms.Panel winHelloDisabledPanel;
         private System.Windows.Forms.Label winHelloDisabledLabel;
         private System.Windows.Forms.Panel invalidationPanel;
-        private System.Windows.Forms.Label infoLabel;
+        private System.Windows.Forms.Label validPeriodLabel;
         private System.Windows.Forms.ComboBox validPeriodComboBox;
         private System.Windows.Forms.Panel persistentStoragePanel;
         private System.Windows.Forms.CheckBox winKeyStorageCheckBox;
