@@ -4,7 +4,7 @@ namespace KeePassWinHello
 {
     public enum AuthCacheType // TDB
     {
-        Unknown,
+        //Unknown,
         Persistent,
         Local,
     }
@@ -13,7 +13,7 @@ namespace KeePassWinHello
     {
         byte[] Encrypt(byte[] data);
         byte[] PromptToDecrypt(byte[] data);
-        void ClaimCurrentCacheType(AuthCacheType newType); // TDB
+        void ClaimCurrentCacheType(AuthCacheType authCacheType); // TDB
         AuthCacheType CurrentCacheType { get; } // TDB
     }
 
@@ -28,11 +28,10 @@ namespace KeePassWinHello
                 Handle = windowHandle,
             };
 #else
-            var provider = new WinHelloProvider
-            {
-                Message = message,
-                ParentHandle = windowHandle,
-            };
+            // TODO:
+            var provider = WinHelloProvider.CreateInstance(AuthCacheType.Local);
+            provider.Message = message;
+            provider.ParentHandle = windowHandle;
 
             if (UAC.IsCurrentProcessElevated)
                 return new WinHelloProviderForegroundDecorator(provider);
