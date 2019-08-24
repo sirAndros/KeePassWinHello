@@ -10,8 +10,8 @@ using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
-	public partial class OptionsPanel : UserControl
-	{
+    public partial class OptionsPanel : UserControl
+    {
         private readonly IKeyManager _keyManager;
         private bool _initialized = false;
 
@@ -43,6 +43,8 @@ namespace KeePassWinHello
             if (ParentForm != null)
                 ParentForm.FormClosing += OnClosing;
 
+            ProcessStoredKeysVisibility(isEnabled);
+
             if (!isAvailable || !isEnabled)
             {
                 validPeriodComboBox.Enabled = false;
@@ -72,16 +74,6 @@ namespace KeePassWinHello
             isEnabledCheckBox.Checked = Settings.Instance.Enabled;
             winKeyStorageCheckBox.Checked = Settings.Instance.WinStorageEnabled;
             validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
-            if (_keyManager != null)
-            {
-                storedKeysInfoPanel.Visible = true;
-                storedKeysCountLabel.Text = _keyManager.KeysCount.ToString();
-                btnRevokeAll.Enabled = _keyManager.KeysCount > 0;
-            }
-            else
-            {
-                storedKeysInfoPanel.Visible = false;
-            }
         }
 
         private void OnClosing(object sender, FormClosingEventArgs e)
@@ -97,7 +89,7 @@ namespace KeePassWinHello
                         RevokeAllKeys();
                     }
                 }
-              
+
                 if (isEnabledCheckBox.Checked)
                 {
                     var newInvalidatingTime = TimeSpan.FromMilliseconds(IndexToPeriod(validPeriodComboBox.SelectedIndex));
@@ -119,10 +111,20 @@ namespace KeePassWinHello
             winKeyStorageCheckBox.Enabled = persistentStorageAvailable;
             keyCreatePanel.Visible = isEnabled && !persistentStorageAvailable;
 
-            bool savedKeysExists = _keyManager != null && _keyManager.KeysCount > 0;
+            ProcessStoredKeysVisibility(isEnabled);
+        }
+
+        private void ProcessStoredKeysVisibility(bool isEnabled)
+        {
+            bool isAvailable = _keyManager != null && _keyManager.IsAvailable;
+            int keysCount = isAvailable ? _keyManager.KeysCount : 0;
+            bool savedKeysExists = keysCount > 0;
+
+            storedKeysInfoPanel.Visible = isAvailable;
             btnRevokeAll.Enabled = savedKeysExists;
-            storedKeysInfoLabel.Enabled  = savedKeysExists || isEnabled;
+            storedKeysInfoLabel.Enabled = savedKeysExists || isEnabled;
             storedKeysCountLabel.Enabled = savedKeysExists || isEnabled;
+            storedKeysCountLabel.Text = keysCount.ToString();
         }
 
         private void BtnRevokeAll_Click(object sender, EventArgs e)
@@ -135,8 +137,8 @@ namespace KeePassWinHello
             if (_keyManager != null)
             {
                 _keyManager.RevokeAll();
-                storedKeysCountLabel.Text = _keyManager.KeysCount.ToString();
             }
+            ProcessStoredKeysVisibility(isEnabledCheckBox.Checked);
         }
 
 

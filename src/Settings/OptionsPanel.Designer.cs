@@ -140,6 +140,7 @@
             this.btnRevokeAll.TabIndex = 46;
             this.btnRevokeAll.Text = "Revoke all";
             this.btnRevokeAll.UseVisualStyleBackColor = true;
+            this.btnRevokeAll.Click += new System.EventHandler(this.BtnRevokeAll_Click);
             // 
             // validPeriodComboBox
             // 
