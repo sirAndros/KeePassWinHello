@@ -130,7 +130,7 @@ namespace KeePassWinHello
                 validPeriodComboBox.Enabled = false;
                 winKeyStorageCheckBox.Enabled = false;
                 btnRevokeAll.Enabled = false;
-                panelCollapser.Panel1Collapsed = true;
+                isNotElevatedPanel.Visible = false;
 
                 if (!_isAvailable)
                 {
@@ -142,7 +142,7 @@ namespace KeePassWinHello
             {
                 bool isElevated = UAC.IsCurrentProcessElevated;
                 winKeyStorageCheckBox.Enabled = isElevated;
-                panelCollapser.Panel1Collapsed = isElevated;
+                isNotElevatedPanel.Visible = !isElevated;
             }
 
             _initialized = true;
@@ -178,7 +178,7 @@ namespace KeePassWinHello
 
             bool persistentStorageAvailable = isEnabled && UAC.IsCurrentProcessElevated;
             winKeyStorageCheckBox.Enabled = persistentStorageAvailable;
-            panelCollapser.Panel1Collapsed = !isEnabled || persistentStorageAvailable;
+            isNotElevatedPanel.Visible = isEnabled && !persistentStorageAvailable;
         }
 
 
