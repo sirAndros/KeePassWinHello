@@ -34,18 +34,18 @@
             this.winKeyStorageCheckBox = new System.Windows.Forms.CheckBox();
             this.winHelloDisabledPanel = new System.Windows.Forms.Panel();
             this.winHelloDisabledLabel = new System.Windows.Forms.Label();
-            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.panelCollapser = new System.Windows.Forms.SplitContainer();
             this.isNotElevatedPanel = new System.Windows.Forms.Panel();
+            this.uacIcoPanel = new System.Windows.Forms.Panel();
             this.isNotElevatedLabel = new System.Windows.Forms.Label();
             this.btnRevokeAll = new System.Windows.Forms.Button();
             this.infoLabel = new System.Windows.Forms.Label();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
-            this.uacIcoPanel = new System.Windows.Forms.Panel();
             this.winHelloDisabledPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-            this.splitContainer1.Panel1.SuspendLayout();
-            this.splitContainer1.Panel2.SuspendLayout();
-            this.splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.panelCollapser)).BeginInit();
+            this.panelCollapser.Panel1.SuspendLayout();
+            this.panelCollapser.Panel2.SuspendLayout();
+            this.panelCollapser.SuspendLayout();
             this.isNotElevatedPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -97,24 +97,29 @@
             this.winHelloDisabledLabel.Text = "Windows Hello is disabled on your system. Please activate it in the system settin" +
     "gs";
             // 
-            // splitContainer1
+            // panelCollapser
             // 
-            this.splitContainer1.Location = new System.Drawing.Point(3, 59);
-            this.splitContainer1.Name = "splitContainer1";
-            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.panelCollapser.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.panelCollapser.IsSplitterFixed = true;
+            this.panelCollapser.Location = new System.Drawing.Point(3, 59);
+            this.panelCollapser.Name = "panelCollapser";
+            this.panelCollapser.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
-            // splitContainer1.Panel1
+            // panelCollapser.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.isNotElevatedPanel);
+            this.panelCollapser.Panel1.Controls.Add(this.isNotElevatedPanel);
+            this.panelCollapser.Panel1Collapsed = true;
+            this.panelCollapser.Panel1MinSize = 0;
             // 
-            // splitContainer1.Panel2
+            // panelCollapser.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.btnRevokeAll);
-            this.splitContainer1.Panel2.Controls.Add(this.infoLabel);
-            this.splitContainer1.Panel2.Controls.Add(this.validPeriodComboBox);
-            this.splitContainer1.Size = new System.Drawing.Size(553, 100);
-            this.splitContainer1.SplitterDistance = 25;
-            this.splitContainer1.TabIndex = 40;
+            this.panelCollapser.Panel2.Controls.Add(this.btnRevokeAll);
+            this.panelCollapser.Panel2.Controls.Add(this.infoLabel);
+            this.panelCollapser.Panel2.Controls.Add(this.validPeriodComboBox);
+            this.panelCollapser.Size = new System.Drawing.Size(553, 100);
+            this.panelCollapser.SplitterDistance = 25;
+            this.panelCollapser.TabIndex = 40;
+            this.panelCollapser.TabStop = false;
             // 
             // isNotElevatedPanel
             // 
@@ -127,6 +132,13 @@
             this.isNotElevatedPanel.Name = "isNotElevatedPanel";
             this.isNotElevatedPanel.Size = new System.Drawing.Size(550, 24);
             this.isNotElevatedPanel.TabIndex = 39;
+            // 
+            // uacIcoPanel
+            // 
+            this.uacIcoPanel.Location = new System.Drawing.Point(3, 3);
+            this.uacIcoPanel.Name = "uacIcoPanel";
+            this.uacIcoPanel.Size = new System.Drawing.Size(16, 16);
+            this.uacIcoPanel.TabIndex = 42;
             // 
             // isNotElevatedLabel
             // 
@@ -181,18 +193,11 @@
             this.validPeriodComboBox.Size = new System.Drawing.Size(136, 21);
             this.validPeriodComboBox.TabIndex = 38;
             // 
-            // uacIcoPanel
-            // 
-            this.uacIcoPanel.Location = new System.Drawing.Point(3, 3);
-            this.uacIcoPanel.Name = "uacIcoPanel";
-            this.uacIcoPanel.Size = new System.Drawing.Size(16, 16);
-            this.uacIcoPanel.TabIndex = 42;
-            // 
             // OptionsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.splitContainer1);
+            this.Controls.Add(this.panelCollapser);
             this.Controls.Add(this.winHelloDisabledPanel);
             this.Controls.Add(this.winKeyStorageCheckBox);
             this.Controls.Add(this.isEnabledCheckBox);
@@ -200,11 +205,11 @@
             this.Size = new System.Drawing.Size(556, 298);
             this.winHelloDisabledPanel.ResumeLayout(false);
             this.winHelloDisabledPanel.PerformLayout();
-            this.splitContainer1.Panel1.ResumeLayout(false);
-            this.splitContainer1.Panel2.ResumeLayout(false);
-            this.splitContainer1.Panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-            this.splitContainer1.ResumeLayout(false);
+            this.panelCollapser.Panel1.ResumeLayout(false);
+            this.panelCollapser.Panel2.ResumeLayout(false);
+            this.panelCollapser.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.panelCollapser)).EndInit();
+            this.panelCollapser.ResumeLayout(false);
             this.isNotElevatedPanel.ResumeLayout(false);
             this.isNotElevatedPanel.PerformLayout();
             this.ResumeLayout(false);
@@ -217,7 +222,7 @@
         private System.Windows.Forms.ToolTip winKeyStorageToolTip;
         private System.Windows.Forms.Panel winHelloDisabledPanel;
         private System.Windows.Forms.Label winHelloDisabledLabel;
-        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.SplitContainer panelCollapser;
         private System.Windows.Forms.CheckBox winKeyStorageCheckBox;
         private System.Windows.Forms.Panel isNotElevatedPanel;
         private System.Windows.Forms.Label isNotElevatedLabel;
