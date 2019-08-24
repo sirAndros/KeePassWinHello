@@ -1,6 +1,7 @@
 param (
     [string] $ProjectDir = $null,
-    [string] $TargetDir = $null
+    [string] $TargetDir = $null,
+    [switch] $ForDebug
 )
 
 if (!$PSScriptRoot) {
@@ -15,4 +16,10 @@ if (!$TargetDir) {
     $TargetDir = Join-Path $keePassDir 'Plugins'
 }
 
-Get-ChildItem $ProjectDir -Filter '*.plgx' | Copy-Item -Destination $TargetDir -Force
+if ($ForDebug) {
+    Get-ChildItem $ProjectDir -Filter '*.plgx' | ForEach-Object { Join-Path $TargetDir $_.Name | Get-ChildItem -ErrorAction SilentlyContinue | Remove-Item }
+    Join-Path $ProjectDir 'bin\Debug' | Get-ChildItem -Filter '*.dll' | Copy-Item -Destination $TargetDir -Force
+} else {
+    Join-Path $ProjectDir 'bin\Debug' | Get-ChildItem -Filter  '*.dll' | ForEach-Object { Join-Path $TargetDir $_.Name | Get-ChildItem -ErrorAction SilentlyContinue | Remove-Item }
+    Get-ChildItem $ProjectDir -Filter '*.plgx' | Copy-Item -Destination $TargetDir -Force
+}
