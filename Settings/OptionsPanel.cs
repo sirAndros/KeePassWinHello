@@ -105,33 +105,7 @@ namespace KeePassWinHello
             InitializeComponent();
 
             _isAvailable = isAvailable;
-            uacIcoPanel.Paint += OptionsPanel_Paint;
-        }
-
-        private void OptionsPanel_Paint(object sender, PaintEventArgs e)
-        {
-            var sii = new WinAPI.SHSTOCKICONINFO();
-            sii.cbSize = (UInt32)Marshal.SizeOf(typeof(WinAPI.SHSTOCKICONINFO));
-
-            Marshal.ThrowExceptionForHR(WinAPI.SHGetStockIconInfo(WinAPI.SHSTOCKICONID.SIID_SHIELD,
-                WinAPI.SHGSI.SHGSI_ICON | WinAPI.SHGSI.SHGSI_SMALLICON,
-                ref sii));
-
-            IntPtr hShieldIcon = sii.hIcon;
-
-            var graphics = e.Graphics;
-            var hdc = graphics.GetHdc();
-            try
-            {
-                var r = WinAPI.DrawIconEx(hdc, 0, 0, hShieldIcon, 0, 0, 0, IntPtr.Zero, 0x0003);
-                if (!r)
-                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-            }
-            finally
-            {
-                graphics.ReleaseHdc(hdc);
-                WinAPI.DestroyIcon(hShieldIcon);
-            }
+            uacIcoPanel.Paint += OnPaint_IconPanel;
         }
 
         protected override void OnLoad(EventArgs e)
@@ -168,7 +142,6 @@ namespace KeePassWinHello
                 bool isElevated = UAC.IsCurrentProcessElevated;
                 winKeyStorageCheckBox.Enabled = isElevated;
                 splitContainer1.Panel1Collapsed = isElevated;
-                DrawUacShild();
             }
 
             _initialized = true;
@@ -204,104 +177,52 @@ namespace KeePassWinHello
             winKeyStorageCheckBox.Enabled = isEnabled && UAC.IsCurrentProcessElevated;
         }
 
-        private void DrawUacShild()
+
+        private void OnPaint_IconPanel(object sender, PaintEventArgs e)
         {
-            if (!isNotElevatedPanel.Visible)
-                return;
-
-            const int IDI_SHIELD = 32518;
-            const int IMAGE_ICON = 1;
-            const int SM_CXSMICON = 49;
-            const int SM_CYSMICON = 50;
-
-            int cx = 48; //WinAPI.GetSystemMetrics(SM_CXSMICON);
-            int cy = 48; //WinAPI.GetSystemMetrics(SM_CYSMICON);
-            IntPtr hShieldIcon;
-            int result = WinAPI.LoadIconWithScaleDown(IntPtr.Zero, IDI_SHIELD, cx, cy, out hShieldIcon);
-
-            //hShieldIcon = WinAPI.LoadImageW(IntPtr.Zero, IDI_SHIELD, IMAGE_ICON, cx, cy, 0x00008000); //0x00000040 | 
-            //hShieldIcon.CheckAndPass();
-            //if (result >= 0)
-            //{
-            //uacIco.Image = Bitmap.FromHicon(sii.hIcon); //ResizeImage(Bitmap.FromHicon(hShieldIcon), uacIco.Width, uacIco.Height);
-                //var img = Bitmap.FromHicon(hShieldIcon);
-                //uacIco.Width = img.Width;
-                //uacIco.Height = img.Height;
-                //uacIco.Image = img;
-                //}
-                //uacIco.Width = cx;
-                //uacIco.Height = cy;
-                //var destImage = new Bitmap(cx, cy);
-                //using (var graphics = Graphics.FromImage(destImage))
-                //{
-                //    var hdc = graphics.GetHdc();
-                //    try
-                //    {
-                //        var r = WinAPI.DrawIcon(hdc, 0, 0, hShieldIcon);
-                //        if (!r)
-                //            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-                //    }
-                //    finally
-                //    {
-                //        graphics.ReleaseHdc(hdc);
-                //    }
-                //}
-                //uacIco.Image = destImage;
+            DrawIcon(e.Graphics, WinAPI.SHSTOCKICONID.SIID_SHIELD);
         }
 
-        public static Bitmap ResizeImage(Image image, int width, int height)
+        private static void DrawIcon(Graphics graphics, WinAPI.SHSTOCKICONID iconId)
         {
-            var destRect = new Rectangle(0, 0, width, height);
-            var destImage = new Bitmap(width, height);
+            var sii = new WinAPI.SHSTOCKICONINFO();
+            sii.cbSize = (UInt32)Marshal.SizeOf(typeof(WinAPI.SHSTOCKICONINFO));
 
-            //destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+            Marshal.ThrowExceptionForHR(WinAPI.SHGetStockIconInfo(iconId,
+                WinAPI.SHGSI.SHGSI_ICON | WinAPI.SHGSI.SHGSI_SMALLICON,
+                ref sii));
 
-            using (var graphics = Graphics.FromImage(destImage))
+            IntPtr hIcon = sii.hIcon;
+
+            var hdc = graphics.GetHdc();
+            try
             {
-                graphics.CompositingMode = CompositingMode.SourceCopy;
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                using (var wrapMode = new ImageAttributes())
-                {
-                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
-                }
+                var r = WinAPI.DrawIconEx(hdc, 0, 0, hIcon, 0, 0, 0, IntPtr.Zero, 0x0003);
+                if (!r)
+                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
             }
-
-            return destImage;
+            finally
+            {
+                graphics.ReleaseHdc(hdc);
+                WinAPI.DestroyIcon(hIcon);
+            }
         }
-
 
 
         private static class WinAPI
         {
-            [DllImport("comctl32.dll", SetLastError = true)]
-            public static extern int LoadIconWithScaleDown(IntPtr hinst, int pszName, int cx, int cy, out IntPtr phico);
-
-            [DllImport("user32.dll", SetLastError = true)]
-            public static extern IntPtr LoadImageW(IntPtr hinst, int name, uint type, int cx, int cy, uint fuLoad);
-
-            [DllImport("user32.dll", SetLastError = true)]
-            public static extern int GetSystemMetrics(int nIndex);
-
-            [DllImport("user32.dll", SetLastError = true)]
-            public static extern bool DrawIcon(IntPtr hDC, int x, int y, IntPtr hIcon);
-
-            [DllImport("user32.dll", SetLastError = true)]
+            [DllImport("User32.dll", SetLastError = true)]
             public static extern bool DrawIconEx(IntPtr hdc,
-  int xLeft,
-  int yTop,
-  IntPtr hIcon,
-  int cxWidth,
-  int cyWidth,
-  uint istepIfAniCur,
-  IntPtr hbrFlickerFreeDraw,
-  uint diFlags);
+                                                  int xLeft,
+                                                  int yTop,
+                                                  IntPtr hIcon,
+                                                  int cxWidth,
+                                                  int cyWidth,
+                                                  uint istepIfAniCur,
+                                                  IntPtr hbrFlickerFreeDraw,
+                                                  uint diFlags);
 
-            [DllImport("user32.dll", SetLastError = true)]
+            [DllImport("User32.dll", SetLastError = true)]
             public static extern bool DestroyIcon(IntPtr hIcon);
 
 
