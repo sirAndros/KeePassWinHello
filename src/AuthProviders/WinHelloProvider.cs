@@ -205,12 +205,11 @@ namespace KeePassWinHello
                         using (ngcKeyHandle)
                         {
                             if (!VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                                throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not meet integrity requirements.");
+                                throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not met integrity requirements.");
                         }
                     }
                     else
                     {
-                        // TODO: use UI Context
                         using (ngcKeyHandle = CreatePersistentKey(false)) { }
                     }
                 }
@@ -283,7 +282,7 @@ namespace KeePassWinHello
             return true;
         }
 
-        private /*static*/ SafeNCryptKeyHandle CreatePersistentKey(bool overwriteExisting/*, string message = null, IntPtr parentHandle = IntPtr.Zero*/)
+        private static SafeNCryptKeyHandle CreatePersistentKey(bool overwriteExisting)
         {
             SafeNCryptProviderHandle ngcProviderHandle;
             NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus();
@@ -327,7 +326,7 @@ namespace KeePassWinHello
                 using (ngcKeyHandle)
                 {
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                        throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not meet integrity requirements.");
+                        throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not met integrity requirements.");
 
                     int pcbResult;
                     NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus();
@@ -353,7 +352,7 @@ namespace KeePassWinHello
                 using (ngcKeyHandle)
                 {
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                        throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not meet integrity requirements.");
+                        throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not met integrity requirements.");
 
                     ApplyUIContext(ngcKeyHandle);
 

@@ -16,7 +16,7 @@ namespace KeePassWinHello
         public string Message { get; set; }
         public IntPtr Handle { get; set; }
 
-        public AuthCacheType CurrentCacheType { get; private set; } // TDB
+        public AuthCacheType CurrentCacheType { get; private set; }
 
         public void ClaimCurrentCacheType(AuthCacheType newType)
         {
