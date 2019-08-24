@@ -101,6 +101,14 @@ namespace KeePassWinHello
 
         public IntPtr ParentHandle { get; set; }
 
+        public AuthCacheType CurrentCacheType
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public byte[] Encrypt(byte[] data)
         {
             if (!IsAvailable())
@@ -168,6 +176,11 @@ namespace KeePassWinHello
         public static string GetKeyName()
         {
             return m_CurrentPassportKeyName.Value;
+        }
+
+        public void ClaimCurrentCacheType(AuthCacheType newType)
+        {
+            throw new NotImplementedException();
         }
     }
 }

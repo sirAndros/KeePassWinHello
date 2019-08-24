@@ -8,8 +8,20 @@ namespace KeePassWinHello
     {
         private const byte _entropy = 42;
 
+        public XorProvider()
+        {
+            CurrentCacheType = AuthCacheType.Local;
+        }
+
         public string Message { get; set; }
         public IntPtr Handle { get; set; }
+
+        public AuthCacheType CurrentCacheType { get; private set; } // TDB
+
+        public void ClaimCurrentCacheType(AuthCacheType newType)
+        {
+            CurrentCacheType = newType;
+        }
 
         public byte[] Encrypt(byte[] data)
         {

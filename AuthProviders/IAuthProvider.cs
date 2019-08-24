@@ -2,10 +2,19 @@
 
 namespace KeePassWinHello
 {
+    public enum AuthCacheType // TDB
+    {
+        Unknown,
+        Persistent,
+        Local,
+    }
+
     public interface IAuthProvider
     {
         byte[] Encrypt(byte[] data);
         byte[] PromptToDecrypt(byte[] data);
+        void ClaimCurrentCacheType(AuthCacheType newType); // TDB
+        AuthCacheType CurrentCacheType { get; } // TDB
     }
 
     static class AuthProviderFactory

@@ -25,6 +25,8 @@ namespace KeePassWinHello
 
         public bool IsAvailable { get { return AuthProviderFactory.IsAvailable(); } }
 
+        public IAuthProvider AuthProvider { get { return _cryptProvider; } }
+
         public ProtectedBinary Protect(ProtectedBinary key)
         {
             byte[] data = key.ReadData();

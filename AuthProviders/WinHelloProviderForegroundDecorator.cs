@@ -16,6 +16,19 @@ namespace KeePassWinHello
             _winHelloProvider = winHelloProvider;
         }
 
+        public AuthCacheType CurrentCacheType
+        {
+            get
+            {
+                return _winHelloProvider.CurrentCacheType;
+            }
+        }
+
+        public void ClaimCurrentCacheType(AuthCacheType newType)
+        {
+            _winHelloProvider.ClaimCurrentCacheType(newType);
+        }
+
         public byte[] Encrypt(byte[] data)
         {
             return _winHelloProvider.Encrypt(data);

@@ -19,8 +19,8 @@ namespace KeePassWinHello
 
         public KeyManager(IntPtr windowHandle)
         {
-            _keyStorage = KeyStorageFactory.Create();
             _keyCipher = new KeyCipher(Settings.ConfirmationMessage, windowHandle);
+            _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
         }
 
         public void OnKeyPrompt(KeyPromptForm keyPromptForm, MainForm mainWindow)

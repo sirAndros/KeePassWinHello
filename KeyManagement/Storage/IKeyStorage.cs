@@ -13,9 +13,9 @@ namespace KeePassWinHello
 
     static class KeyStorageFactory
     {
-        public static IKeyStorage Create()
+        public static IKeyStorage Create(IAuthProvider authProvider)
         {
-            if (UAC.IsCurrentProcessElevated && Settings.Instance.WinStorageEnabled)
+            if (Settings.Instance.WinStorageEnabled && authProvider.CurrentCacheType == AuthCacheType.Persistent)
                 return new KeyWindowsStorage();
 
             return new KeyMemoryStorage();
