@@ -24,35 +24,6 @@ namespace KeePassWinHello
             keyCreateIcoPanel.Paint += OnPaint_KeyCreateIconPanel;
         }
 
-        internal static void AddTab(TabControl m_tabMain, ImageList imageList, IKeyManager keyManager)
-        {
-            Debug.Assert(m_tabMain != null);
-            if (m_tabMain == null)
-                return;
-
-            if (imageList == null)
-            {
-                if (m_tabMain.ImageList == null)
-                    m_tabMain.ImageList = new ImageList();
-                imageList = m_tabMain.ImageList;
-            }
-
-            var imageIndex = imageList.Images.Add(Properties.Resources.windows_hello16x16, Color.Transparent);
-            var optionsPanel = new OptionsPanel(keyManager);
-
-            var newTab = new TabPage(Settings.OptionsTabName)
-            {
-                UseVisualStyleBackColor = true,
-                ImageIndex = imageIndex
-            };
-
-            newTab.Controls.Add(optionsPanel);
-            optionsPanel.Dock = DockStyle.Fill;
-
-            m_tabMain.TabPages.Add(newTab);
-            m_tabMain.Multiline = false;
-        }
-
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);

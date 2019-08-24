@@ -74,6 +74,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Settings\OptionsPanelCreation.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Settings\Settings.cs" />
     <Compile Include="AuthProviders\WinHelloProvider.cs" />
     <Compile Include="KeePassWinHelloExt.cs" />

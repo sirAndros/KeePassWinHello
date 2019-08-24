@@ -77,11 +77,6 @@ namespace KeePassWinHello
             }
         }
 
-        public void OnOptionsLoad(OptionsForm optionsForm)
-        {
-            OptionsPanel.AddTab(GetTabControl(optionsForm), GetTabsImageList(optionsForm), this);
-        }
-
         public void OnDBClosing(object sender, FileClosingEventArgs e)
         {
             if (e == null)
@@ -209,19 +204,6 @@ namespace KeePassWinHello
             if (fieldInfo == null)
                 return null;
             return fieldInfo.GetValue(keyPromptForm) as IOConnectionInfo;
-        }
-
-        private static TabControl GetTabControl(OptionsForm optionsForm)
-        {
-            return optionsForm.Controls.Find("m_tabMain", true).FirstOrDefault() as TabControl;
-        }
-
-        private static ImageList GetTabsImageList(OptionsForm optionsForm)
-        {
-            var m_ilIconsField = optionsForm.GetType().GetField("m_ilIcons", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (m_ilIconsField == null)
-                return null;
-            return m_ilIconsField.GetValue(optionsForm) as ImageList;
         }
     }
 }

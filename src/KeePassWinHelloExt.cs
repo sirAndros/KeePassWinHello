@@ -60,7 +60,7 @@ namespace KeePassWinHello
             var optionsForm = e.Form as OptionsForm;
             if (optionsForm != null)
             {
-                _keyManager.OnOptionsLoad(optionsForm);
+                OptionsPanel.OnOptionsLoad(optionsForm, _keyManager);
                 return;
             }
         }
