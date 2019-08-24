@@ -119,7 +119,7 @@ ref IntPtr TokenHandle // handle to open access token
             else
             {
                 string s = String.Format("OpenProcess Failed {0}, privilege not held", Marshal.GetLastWin32Error());
-                throw new Exception(s);
+                throw new Exception(s); //TODO
             }
 
             return dupeTokenHandle;
@@ -128,6 +128,13 @@ ref IntPtr TokenHandle // handle to open access token
         private const int _maxBlobSize = 512 * 5;
         private const string _credPrefix = "KeePassWinHello_";
         private readonly IntPtr _systemToken;
+
+        public int Count { get { throw new NotImplementedException(); } }//TODO
+
+        public void Clear()
+        {
+            throw new NotImplementedException();
+        }
 
         public KeyWindowsStorage()
         {

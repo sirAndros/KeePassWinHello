@@ -2,15 +2,8 @@
 {
 	partial class OptionsPanel
 	{
-		/// <summary> 
-		/// Erforderliche Designervariable.
-		/// </summary>
 		private System.ComponentModel.IContainer components = null;
 
-		/// <summary> 
-		/// Verwendete Ressourcen bereinigen.
-		/// </summary>
-		/// <param name="disposing">True, wenn verwaltete Ressourcen gelöscht werden sollen; andernfalls False.</param>
 		protected override void Dispose(bool disposing)
 		{
 			if (disposing && (components != null))
@@ -20,40 +13,51 @@
 			base.Dispose(disposing);
 		}
 
-		#region Vom Komponenten-Designer generierter Code
+		#region Designer Code
 
-		/// <summary> 
-		/// Erforderliche Methode für die Designerunterstützung. 
-		/// Der Inhalt der Methode darf nicht mit dem Code-Editor geändert werden.
-		/// </summary>
 		private void InitializeComponent()
 		{
             this.components = new System.ComponentModel.Container();
             this.winKeyStorageToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.winKeyStorageCheckBox = new System.Windows.Forms.CheckBox();
             this.winHelloDisabledPanel = new System.Windows.Forms.Panel();
             this.winHelloDisabledLabel = new System.Windows.Forms.Label();
             this.invalidationPanel = new System.Windows.Forms.Panel();
-            this.btnRevokeAll = new System.Windows.Forms.Button();
-            this.infoLabel = new System.Windows.Forms.Label();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
+            this.infoLabel = new System.Windows.Forms.Label();
+            this.btnRevokeAll = new System.Windows.Forms.Button();
             this.persistentStoragePanel = new System.Windows.Forms.Panel();
-            this.winKeyStorageCheckBox = new System.Windows.Forms.CheckBox();
-            this.isEnabledCheckBox = new System.Windows.Forms.CheckBox();
-            this.isNotElevatedPanel = new System.Windows.Forms.Panel();
-            this.uacIcoPanel = new System.Windows.Forms.Panel();
-            this.isNotElevatedLabel = new System.Windows.Forms.Label();
             this.keyCreatePanel = new System.Windows.Forms.Panel();
             this.keyCreateIcoPanel = new System.Windows.Forms.Panel();
             this.keyCreateLabel = new System.Windows.Forms.Label();
+            this.isNotElevatedPanel = new System.Windows.Forms.Panel();
+            this.uacIcoPanel = new System.Windows.Forms.Panel();
+            this.isNotElevatedLabel = new System.Windows.Forms.Label();
+            this.isEnabledCheckBox = new System.Windows.Forms.CheckBox();
+            this.storedKeysInfoPanel = new System.Windows.Forms.Panel();
+            this.storedKeysCountLabel = new System.Windows.Forms.Label();
+            this.storedKeysInfoLabel = new System.Windows.Forms.Label();
             this.winHelloDisabledPanel.SuspendLayout();
             this.invalidationPanel.SuspendLayout();
             this.persistentStoragePanel.SuspendLayout();
-            this.isNotElevatedPanel.SuspendLayout();
             this.keyCreatePanel.SuspendLayout();
-            this.storedKeysCountLabel = new System.Windows.Forms.Label();
-            this.storedKeysInfoLabel = new System.Windows.Forms.Label();
+            this.isNotElevatedPanel.SuspendLayout();
             this.storedKeysInfoPanel.SuspendLayout();
             this.SuspendLayout();
+            // 
+            // winKeyStorageCheckBox
+            // 
+            this.winKeyStorageCheckBox.AutoSize = true;
+            this.winKeyStorageCheckBox.Dock = System.Windows.Forms.DockStyle.Top;
+            this.winKeyStorageCheckBox.Location = new System.Drawing.Point(0, 0);
+            this.winKeyStorageCheckBox.Name = "winKeyStorageCheckBox";
+            this.winKeyStorageCheckBox.Padding = new System.Windows.Forms.Padding(5, 5, 0, 5);
+            this.winKeyStorageCheckBox.Size = new System.Drawing.Size(550, 27);
+            this.winKeyStorageCheckBox.TabIndex = 11;
+            this.winKeyStorageCheckBox.Text = "Store keys in the Windows Credential Manager";
+            this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for store databases access keys while KeePass is n" +
+        "ot running.\r\nRequires for KeePass process to be running as Administrator.");
+            this.winKeyStorageCheckBox.UseVisualStyleBackColor = true;
             // 
             // winHelloDisabledPanel
             // 
@@ -81,7 +85,6 @@
             // 
             // invalidationPanel
             // 
-            this.invalidationPanel.Controls.Add(this.btnRevokeAll);
             this.invalidationPanel.Controls.Add(this.validPeriodComboBox);
             this.invalidationPanel.Controls.Add(this.infoLabel);
             this.invalidationPanel.Dock = System.Windows.Forms.DockStyle.Top;
@@ -90,31 +93,6 @@
             this.invalidationPanel.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
             this.invalidationPanel.Size = new System.Drawing.Size(550, 31);
             this.invalidationPanel.TabIndex = 52;
-            // 
-            // btnRevokeAll
-            // 
-            this.btnRevokeAll.AutoSize = true;
-            this.btnRevokeAll.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnRevokeAll.Location = new System.Drawing.Point(477, 4);
-            this.btnRevokeAll.Margin = new System.Windows.Forms.Padding(3, 10, 3, 4);
-            this.btnRevokeAll.Name = "btnRevokeAll";
-            this.btnRevokeAll.Size = new System.Drawing.Size(68, 23);
-            this.btnRevokeAll.TabIndex = 46;
-            this.btnRevokeAll.Text = "Revoke all";
-            this.btnRevokeAll.UseVisualStyleBackColor = true;
-            this.btnRevokeAll.Visible = false;
-            // 
-            // infoLabel
-            // 
-            this.infoLabel.AutoSize = true;
-            this.infoLabel.Dock = System.Windows.Forms.DockStyle.Left;
-            this.infoLabel.Location = new System.Drawing.Point(0, 5);
-            this.infoLabel.Margin = new System.Windows.Forms.Padding(8, 0, 3, 0);
-            this.infoLabel.Name = "infoLabel";
-            this.infoLabel.Padding = new System.Windows.Forms.Padding(5, 4, 2, 0);
-            this.infoLabel.Size = new System.Drawing.Size(169, 17);
-            this.infoLabel.TabIndex = 44;
-            this.infoLabel.Text = "Saved keys get invalidated after:";
             // 
             // validPeriodComboBox
             // 
@@ -140,6 +118,31 @@
             this.validPeriodComboBox.Size = new System.Drawing.Size(136, 21);
             this.validPeriodComboBox.TabIndex = 45;
             // 
+            // infoLabel
+            // 
+            this.infoLabel.AutoSize = true;
+            this.infoLabel.Dock = System.Windows.Forms.DockStyle.Left;
+            this.infoLabel.Location = new System.Drawing.Point(0, 5);
+            this.infoLabel.Margin = new System.Windows.Forms.Padding(8, 0, 3, 0);
+            this.infoLabel.Name = "infoLabel";
+            this.infoLabel.Padding = new System.Windows.Forms.Padding(5, 4, 2, 0);
+            this.infoLabel.Size = new System.Drawing.Size(169, 17);
+            this.infoLabel.TabIndex = 44;
+            this.infoLabel.Text = "Saved keys get invalidated after:";
+            // 
+            // btnRevokeAll
+            // 
+            this.btnRevokeAll.AutoSize = true;
+            this.btnRevokeAll.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnRevokeAll.Location = new System.Drawing.Point(477, 4);
+            this.btnRevokeAll.Margin = new System.Windows.Forms.Padding(3, 10, 3, 4);
+            this.btnRevokeAll.Name = "btnRevokeAll";
+            this.btnRevokeAll.Size = new System.Drawing.Size(68, 23);
+            this.btnRevokeAll.TabIndex = 46;
+            this.btnRevokeAll.Text = "Revoke all";
+            this.btnRevokeAll.UseVisualStyleBackColor = true;
+            this.btnRevokeAll.Visible = false;
+            // 
             // persistentStoragePanel
             // 
             this.persistentStoragePanel.AutoSize = true;
@@ -152,34 +155,37 @@
             this.persistentStoragePanel.Size = new System.Drawing.Size(550, 75);
             this.persistentStoragePanel.TabIndex = 50;
             // 
-            // winKeyStorageCheckBox
+            // keyCreatePanel
             // 
-            this.winKeyStorageCheckBox.AutoSize = true;
-            this.winKeyStorageCheckBox.Dock = System.Windows.Forms.DockStyle.Top;
-            this.winKeyStorageCheckBox.Location = new System.Drawing.Point(0, 0);
-            this.winKeyStorageCheckBox.Name = "winKeyStorageCheckBox";
-            this.winKeyStorageCheckBox.Padding = new System.Windows.Forms.Padding(5, 5, 0, 5);
-            this.winKeyStorageCheckBox.Size = new System.Drawing.Size(550, 27);
-            this.winKeyStorageCheckBox.TabIndex = 11;
-            this.winKeyStorageCheckBox.Text = "Store keys in the Windows Credential Manager";
-            this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for store databases access keys while KeePass is n" +
-        "ot running.\r\nRequires for KeePass process to be running as Administrator.");
-            this.winKeyStorageCheckBox.UseVisualStyleBackColor = true;
+            this.keyCreatePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(217)))), ((int)(((byte)(254)))));
+            this.keyCreatePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.keyCreatePanel.Controls.Add(this.keyCreateIcoPanel);
+            this.keyCreatePanel.Controls.Add(this.keyCreateLabel);
+            this.keyCreatePanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.keyCreatePanel.ForeColor = System.Drawing.SystemColors.ScrollBar;
+            this.keyCreatePanel.Location = new System.Drawing.Point(0, 51);
+            this.keyCreatePanel.Name = "keyCreatePanel";
+            this.keyCreatePanel.Size = new System.Drawing.Size(550, 24);
+            this.keyCreatePanel.TabIndex = 55;
             // 
-            // isEnabledCheckBox
+            // keyCreateIcoPanel
             // 
-            this.isEnabledCheckBox.AutoSize = true;
-            this.isEnabledCheckBox.Checked = true;
-            this.isEnabledCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.isEnabledCheckBox.Dock = System.Windows.Forms.DockStyle.Top;
-            this.isEnabledCheckBox.Location = new System.Drawing.Point(0, 0);
-            this.isEnabledCheckBox.Name = "isEnabledCheckBox";
-            this.isEnabledCheckBox.Padding = new System.Windows.Forms.Padding(5, 5, 0, 0);
-            this.isEnabledCheckBox.Size = new System.Drawing.Size(550, 22);
-            this.isEnabledCheckBox.TabIndex = 54;
-            this.isEnabledCheckBox.Text = "Use quick unlock via Windows Hello authorization if it is available";
-            this.isEnabledCheckBox.UseVisualStyleBackColor = true;
-            this.isEnabledCheckBox.CheckedChanged += new System.EventHandler(this.isEnabledCheckBox_CheckedChanged);
+            this.keyCreateIcoPanel.Location = new System.Drawing.Point(3, 3);
+            this.keyCreateIcoPanel.Name = "keyCreateIcoPanel";
+            this.keyCreateIcoPanel.Size = new System.Drawing.Size(16, 16);
+            this.keyCreateIcoPanel.TabIndex = 42;
+            // 
+            // keyCreateLabel
+            // 
+            this.keyCreateLabel.AutoSize = true;
+            this.keyCreateLabel.BackColor = System.Drawing.Color.Transparent;
+            this.keyCreateLabel.ForeColor = System.Drawing.SystemColors.InfoText;
+            this.keyCreateLabel.Location = new System.Drawing.Point(19, 5);
+            this.keyCreateLabel.Name = "keyCreateLabel";
+            this.keyCreateLabel.Size = new System.Drawing.Size(464, 13);
+            this.keyCreateLabel.TabIndex = 38;
+            this.keyCreateLabel.Text = "A cipher key will be created. You will be prompted to sign it with your biometry " +
+    "via Windows Hello.";
             // 
             // isNotElevatedPanel
             // 
@@ -213,25 +219,20 @@
             this.isNotElevatedLabel.TabIndex = 38;
             this.isNotElevatedLabel.Text = "Requires for KeePass process to be running as Administrator.";
             // 
-            // keyCreatePanel
+            // isEnabledCheckBox
             // 
-            this.keyCreatePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(217)))), ((int)(((byte)(254)))));
-            this.keyCreatePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.keyCreatePanel.Controls.Add(this.keyCreateIcoPanel);
-            this.keyCreatePanel.Controls.Add(this.keyCreateLabel);
-            this.keyCreatePanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.keyCreatePanel.ForeColor = System.Drawing.SystemColors.ScrollBar;
-            this.keyCreatePanel.Location = new System.Drawing.Point(0, 51);
-            this.keyCreatePanel.Name = "keyCreatePanel";
-            this.keyCreatePanel.Size = new System.Drawing.Size(550, 24);
-            this.keyCreatePanel.TabIndex = 55;
-            // 
-            // keyCreateIcoPanel
-            // 
-            this.keyCreateIcoPanel.Location = new System.Drawing.Point(3, 3);
-            this.keyCreateIcoPanel.Name = "keyCreateIcoPanel";
-            this.keyCreateIcoPanel.Size = new System.Drawing.Size(16, 16);
-            this.keyCreateIcoPanel.TabIndex = 42;
+            this.isEnabledCheckBox.AutoSize = true;
+            this.isEnabledCheckBox.Checked = true;
+            this.isEnabledCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.isEnabledCheckBox.Dock = System.Windows.Forms.DockStyle.Top;
+            this.isEnabledCheckBox.Location = new System.Drawing.Point(0, 0);
+            this.isEnabledCheckBox.Name = "isEnabledCheckBox";
+            this.isEnabledCheckBox.Padding = new System.Windows.Forms.Padding(5, 5, 0, 0);
+            this.isEnabledCheckBox.Size = new System.Drawing.Size(550, 22);
+            this.isEnabledCheckBox.TabIndex = 54;
+            this.isEnabledCheckBox.Text = "Use quick unlock via Windows Hello authorization if it is available";
+            this.isEnabledCheckBox.UseVisualStyleBackColor = true;
+            this.isEnabledCheckBox.CheckedChanged += new System.EventHandler(this.isEnabledCheckBox_CheckedChanged);
             // 
             // storedKeysInfoPanel
             // 
@@ -243,17 +244,19 @@
             this.storedKeysInfoPanel.Size = new System.Drawing.Size(186, 25);
             this.storedKeysInfoPanel.TabIndex = 13;
             // 
-            // keyCreateLabel
+            // storedKeysCountLabel
             // 
-            this.keyCreateLabel.AutoSize = true;
-            this.keyCreateLabel.BackColor = System.Drawing.Color.Transparent;
-            this.keyCreateLabel.ForeColor = System.Drawing.SystemColors.InfoText;
-            this.keyCreateLabel.Location = new System.Drawing.Point(19, 5);
-            this.keyCreateLabel.Name = "keyCreateLabel";
-            this.keyCreateLabel.Size = new System.Drawing.Size(464, 13);
-            this.keyCreateLabel.TabIndex = 38;
-            this.keyCreateLabel.Text = "A cipher key will be created. You will be prompted to sign it with your biometry " +
-    "via Windows Hello.";
+            this.storedKeysCountLabel.Location = new System.Drawing.Point(0, 0);
+            this.storedKeysCountLabel.Name = "storedKeysCountLabel";
+            this.storedKeysCountLabel.Size = new System.Drawing.Size(100, 23);
+            this.storedKeysCountLabel.TabIndex = 47;
+            // 
+            // storedKeysInfoLabel
+            // 
+            this.storedKeysInfoLabel.Location = new System.Drawing.Point(0, 0);
+            this.storedKeysInfoLabel.Name = "storedKeysInfoLabel";
+            this.storedKeysInfoLabel.Size = new System.Drawing.Size(100, 23);
+            this.storedKeysInfoLabel.TabIndex = 48;
             // 
             // OptionsPanel
             // 
@@ -272,10 +275,12 @@
             this.invalidationPanel.PerformLayout();
             this.persistentStoragePanel.ResumeLayout(false);
             this.persistentStoragePanel.PerformLayout();
-            this.isNotElevatedPanel.ResumeLayout(false);
-            this.isNotElevatedPanel.PerformLayout();
             this.keyCreatePanel.ResumeLayout(false);
             this.keyCreatePanel.PerformLayout();
+            this.isNotElevatedPanel.ResumeLayout(false);
+            this.isNotElevatedPanel.PerformLayout();
+            this.storedKeysInfoPanel.ResumeLayout(false);
+            this.storedKeysInfoPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -108,6 +108,6 @@
     <PostBuildEvent>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$(ProjectDir)..\Pack-Plugin.ps1"</PostBuildEvent>
   </PropertyGroup>
   <Target Name="DeployForDebug" Condition="'$(Configuration)' == 'Debug'" AfterTargets="PostBuildEvent">
-    <Exec ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)Deploy-Plugin.ps1&quot; -Arg -ForDebug" WorkingDirectory="$(ProjectDir)" />
+    <Exec ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Deploy-Plugin.ps1&quot; -Arg &quot;-ForDebug&quot;" WorkingDirectory="$(ProjectDir)" />
   </Target>
 </Project>

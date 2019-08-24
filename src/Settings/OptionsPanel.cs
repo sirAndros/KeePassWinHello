@@ -20,6 +20,8 @@ namespace KeePassWinHello
             InitializeComponent();
 
             _keyManager = keyManager;
+            uacIcoPanel.Paint += OnPaint_ElevatedIconPanel;
+            keyCreateIcoPanel.Paint += OnPaint_KeyCreateIconPanel;
         }
 
         internal static void AddTab(TabControl m_tabMain, ImageList imageList, IKeyManager keyManager)
@@ -49,15 +51,6 @@ namespace KeePassWinHello
 
             m_tabMain.TabPages.Add(newTab);
             m_tabMain.Multiline = false;
-        }
-
-        OptionsPanel(bool isAvailable)
-        {
-            InitializeComponent();
-
-            _isAvailable = isAvailable;
-            uacIcoPanel.Paint += OnPaint_ElevatedIconPanel;
-            keyCreateIcoPanel.Paint += OnPaint_KeyCreateIconPanel;
         }
 
         protected override void OnLoad(EventArgs e)
