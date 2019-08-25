@@ -58,6 +58,7 @@
             this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for store databases access keys while KeePass is n" +
         "ot running.\r\nRequires for KeePass process to be running as Administrator.");
             this.winKeyStorageCheckBox.UseVisualStyleBackColor = true;
+            this.winKeyStorageCheckBox.CheckedChanged += new System.EventHandler(this.WinKeyStorageCheckBox_CheckedChanged);
             // 
             // winHelloDisabledPanel
             // 
@@ -202,6 +203,7 @@
             this.keyCreatePanel.Name = "keyCreatePanel";
             this.keyCreatePanel.Size = new System.Drawing.Size(550, 24);
             this.keyCreatePanel.TabIndex = 55;
+            this.keyCreatePanel.Visible = false;
             // 
             // keyCreateIcoPanel
             // 

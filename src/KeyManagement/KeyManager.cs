@@ -17,6 +17,7 @@ namespace KeePassWinHello
         int KeysCount { get; }
 
         void RevokeAll();
+        void ClaimCurrentCacheType(AuthCacheType authCacheType);
     }
 
     class KeyManager : IKeyManager
@@ -106,6 +107,11 @@ namespace KeePassWinHello
             _keyStorage.Clear();
         }
 
+        public void ClaimCurrentCacheType(AuthCacheType authCacheType)
+        {
+            _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
+        }
+
         private static void CloseFormWithResult(KeyPromptForm keyPromptForm, DialogResult result)
         {
             // Remove flushing
@@ -141,7 +147,7 @@ namespace KeePassWinHello
 
             try
             {
-                using (AuthProviderUIContext.With(Settings.ConfirmationMessage, _keePassMainWindowHandle))
+                using (AuthProviderUIContext.With(Settings.DecryptConfirmationMessage, _keePassMainWindowHandle))
                 {
                     compositeKey = encryptedData.GetCompositeKey(_keyCipher);
                     return true;
