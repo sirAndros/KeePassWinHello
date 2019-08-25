@@ -8,7 +8,7 @@ namespace KeePassWinHello.Utilities
 {
     internal static class ErrorHandler
     {
-        public static DialogResult ShowError(Exception ex)
+        public static DialogResult ShowError(Exception ex, string description = null)
         {
             string message = ex.Message;
             var messageType = MessageBoxIcon.Warning;
@@ -24,6 +24,9 @@ namespace KeePassWinHello.Utilities
                 message = sb.ToString();
                 messageType = MessageBoxIcon.Error;
             }
+
+            if (!String.IsNullOrEmpty(description))
+                message = description + Environment.NewLine + message;
 
             return MessageBox.Show(AuthProviderUIContext.Current, message, Settings.ProductName, MessageBoxButtons.OK, messageType);
         }

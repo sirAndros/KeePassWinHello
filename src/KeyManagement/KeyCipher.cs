@@ -4,6 +4,7 @@ using KeePassLib.Cryptography;
 using KeePassLib.Cryptography.Cipher;
 using KeePassLib.Security;
 using KeePassLib.Utility;
+using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
@@ -20,7 +21,26 @@ namespace KeePassWinHello
             //_encryptionIV = CryptoRandom.Instance.GetRandomBytes(16);
             _encryptionIV = new byte[16];
             _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
-            _cryptProvider = AuthProviderFactory.GetInstance(keePassWindowHandle);
+            _cryptProvider = GetAuthProvider(keePassWindowHandle);
+        }
+
+        private static IAuthProvider GetAuthProvider(IntPtr keePassWindowHandle)
+        {
+            var authCacheType = Settings.Instance.GetAuthCacheType();
+            try
+            {
+                return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
+            }
+            catch (AuthProviderInvalidKeyException ex)
+            {
+                if (authCacheType == AuthCacheType.Local)
+                    throw;
+
+                Settings.Instance.WinStorageEnabled = false;
+                authCacheType = Settings.Instance.GetAuthCacheType();
+                ErrorHandler.ShowError(ex, "[TBD] Key changed to local");
+                return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
+            }
         }
 
         public IAuthProvider AuthProvider { get { return _cryptProvider; } }

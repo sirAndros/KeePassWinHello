@@ -8,9 +8,9 @@ namespace KeePassWinHello
     {
         private const byte _entropy = 42;
 
-        public XorProvider()
+        public XorProvider(AuthCacheType authCacheType)
         {
-            CurrentCacheType = AuthCacheType.Local;
+            CurrentCacheType = authCacheType;
         }
 
         public AuthCacheType CurrentCacheType { get; private set; } // TDB

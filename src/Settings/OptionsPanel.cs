@@ -113,7 +113,7 @@ namespace KeePassWinHello
                     settings.WinStorageEnabled = winKeyStorageCheckBox.Checked;
                     if (_keyManager != null)
                     {
-                        var authCacheType = winKeyStorageCheckBox.Checked ? AuthCacheType.Persistent : AuthCacheType.Local;
+                        var authCacheType = settings.GetAuthCacheType();
                         using (AuthProviderUIContext.With(Settings.KeyCreationConfirmationMessage, this.Handle))
                         {
                             try
