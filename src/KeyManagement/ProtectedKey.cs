@@ -37,15 +37,14 @@ namespace KeePassWinHello
             }
         }
 
-        private const uint VERSION = 1;
+        private const byte VERSION = 1;
         private readonly ProtectedBinary _protectedPassword;
         private readonly List<KcpData> _keys;
 
         protected ProtectedKey(SerializationInfo info, StreamingContext context)
         {
-            uint ver;
-            var version = (string)info.GetValue("v", typeof(string));
-            if (string.IsNullOrEmpty(version) || !uint.TryParse(version, out ver) || ver != VERSION)
+            var version = info.GetByte("v");
+            if (version != VERSION)
                 throw new Exception("Incompatible version");
 
             var p = (byte[])info.GetValue("p", typeof(byte[]));
