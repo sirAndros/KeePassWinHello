@@ -45,7 +45,7 @@ namespace KeePassWinHello
         {
             var version = info.GetByte("v");
             if (version != VERSION)
-                throw new FormatException("Incompatible version of ProtectedKey");
+                throw new FormatException("Incompatible version of ProtectedKey.");
 
             var p = (byte[])info.GetValue("p", typeof(byte[]));
             _protectedPassword = new ProtectedBinary(false, p);

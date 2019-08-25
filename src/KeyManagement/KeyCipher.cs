@@ -18,7 +18,6 @@ namespace KeePassWinHello
         public KeyCipher(IntPtr keePassWindowHandle)
         {
             _randomSeedBits = 256;
-            //_encryptionIV = CryptoRandom.Instance.GetRandomBytes(16);
             _encryptionIV = new byte[16];
             _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
             _cryptProvider = GetAuthProvider(keePassWindowHandle);
@@ -38,7 +37,7 @@ namespace KeePassWinHello
 
                 Settings.Instance.WinStorageEnabled = false;
                 authCacheType = Settings.Instance.GetAuthCacheType();
-                ErrorHandler.ShowError(ex, "[TBD] Key changed to local");
+                ErrorHandler.ShowError(ex, "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
                 return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
             }
         }

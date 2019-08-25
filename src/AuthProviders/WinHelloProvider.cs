@@ -117,7 +117,7 @@ namespace KeePassWinHello
         private const string Domain = Settings.ProductName;
         private const string SubDomain = "";
         private const string PersistentName = Settings.ProductName;
-        private const string InvalidatedKeyMessage = "[TDB]Persistent key has not met integrity requirements.";
+        private const string InvalidatedKeyMessage = "Persistent key has not met integrity requirements. It might be caused by a spoofing attack. Try to recreate the key.";
         private string _currentKeyName;
 
         private static string RetreiveLocalKeyName()
@@ -150,7 +150,7 @@ namespace KeePassWinHello
 
                 SafeNCryptKeyHandle ngcKeyHandle;
                 if (!TryOpenPersistentKey(out ngcKeyHandle))
-                    throw new AuthProviderInvalidKeyException("[TDB]Persistent key does not exist.");
+                    throw new AuthProviderInvalidKeyException("Persistent key does not exist.");
 
                 using (ngcKeyHandle)
                 {
@@ -169,7 +169,7 @@ namespace KeePassWinHello
         public static WinHelloProvider CreateInstance(AuthCacheType authCacheType)
         {
             if (!IsAvailable())
-                throw new AuthProviderIsUnavailableException("Windows Hello is not available");
+                throw new AuthProviderIsUnavailableException("Windows Hello is not available.");
 
             lock (_mutex)
             {
@@ -179,7 +179,7 @@ namespace KeePassWinHello
                     if (winHelloProvider.CurrentCacheType == authCacheType)
                         return winHelloProvider;
                     else
-                        throw new AuthProviderException("[TDB]Incompatible cache type with existing instance.");
+                        throw new AuthProviderException("Incompatible cache type with existing instance.");
                 }
 
                 winHelloProvider = new WinHelloProvider(authCacheType);

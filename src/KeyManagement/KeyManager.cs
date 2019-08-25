@@ -118,7 +118,7 @@ namespace KeePassWinHello
                 if (authCacheType == AuthCacheType.Persistent)
                     Settings.Instance.WinStorageEnabled = false;
 
-                MessageBox.Show(AuthProviderUIContext.Current, "[TBD] Canceled", Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(AuthProviderUIContext.Current, "Creating persistent key for Credential Manager has been canceled", Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 

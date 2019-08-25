@@ -17,8 +17,7 @@ namespace KeePassWinHello.Utilities
             if (ourException == null || !ourException.IsPresentable)
             {
                 var sb = new StringBuilder();
-                sb.AppendLine("[TBD] Something went wrong. Write an issue.");
-                sb.AppendLine("Technical info:");
+                sb.AppendLine("Something went wrong. Please report the issue in our Github repository with the following technical info.");
                 sb.Append(ex);
 
                 message = sb.ToString();

@@ -12,7 +12,7 @@ namespace KeePassWinHello
         public EnviromentErrorException(string message) : base(message) { }
         public EnviromentErrorException(string message, Exception inner) : base(message, inner) { }
 
-        public EnviromentErrorException(string debugInfo, int errorCode) : this(debugInfo + "!!! " + errorCode.ToString("X"))
+        public EnviromentErrorException(string debugInfo, int errorCode) : this(debugInfo + "\nError code: " + errorCode.ToString("X"))
         {
             // TODO: Implement ExternalException logic
         }

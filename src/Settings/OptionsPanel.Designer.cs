@@ -55,8 +55,8 @@
             this.winKeyStorageCheckBox.Size = new System.Drawing.Size(550, 27);
             this.winKeyStorageCheckBox.TabIndex = 11;
             this.winKeyStorageCheckBox.Text = "Store keys in the Windows Credential Manager";
-            this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for store databases access keys while KeePass is n" +
-        "ot running.\r\nRequires for KeePass process to be running as Administrator.");
+            this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for storing databases access keys while KeePass is n" +
+        "ot running.\r\nRequires for KeePass to create persistent Windows Hello key.");
             this.winKeyStorageCheckBox.UseVisualStyleBackColor = true;
             this.winKeyStorageCheckBox.CheckedChanged += new System.EventHandler(this.WinKeyStorageCheckBox_CheckedChanged);
             // 
@@ -221,7 +221,7 @@
             this.keyCreateLabel.Name = "keyCreateLabel";
             this.keyCreateLabel.Size = new System.Drawing.Size(464, 13);
             this.keyCreateLabel.TabIndex = 38;
-            this.keyCreateLabel.Text = "A cipher key will be created. You will be prompted to sign it with your biometry " +
+            this.keyCreateLabel.Text = "A persistent key will be created. You will be prompted to sign it with your biometry " +
     "via Windows Hello.";
             // 
             // isNotElevatedPanel
