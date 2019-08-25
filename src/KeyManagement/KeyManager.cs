@@ -167,7 +167,6 @@ namespace KeePassWinHello
                 _keyStorage.Remove(dbPath);
                 throw;
             }
-            return false;
         }
 
         private static void SetCompositeKey(KeyPromptForm keyPromptForm, CompositeKey compositeKey)

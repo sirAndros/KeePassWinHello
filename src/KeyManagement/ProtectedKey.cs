@@ -191,13 +191,6 @@ namespace KeePassWinHello
         public override Type BindToType(string assemblyName, string typeName)
         {
             return Assembly.GetExecutingAssembly().GetType(typeName);
-
-            if (typeName.EndsWith("KcpData"))
-                return typeof(ProtectedKey.KcpData);
-            else if (typeName.EndsWith("KcpType"))
-                return typeof(ProtectedKey.KcpType);
-
-            return typeof(ProtectedKey);
         }
     }
 }
