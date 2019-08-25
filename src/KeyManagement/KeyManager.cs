@@ -109,6 +109,7 @@ namespace KeePassWinHello
             try
             {
                 _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
+                _keyStorage.Clear();
                 _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
                 // todo migrate
             }
