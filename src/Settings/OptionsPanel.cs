@@ -46,12 +46,11 @@ namespace KeePassWinHello
             bool isAvailable = _keyManager != null;
 
             LoadValuesFromSettings();
-            ProcessControlsVisibility(isEnabled);
+            ProcessControlsVisibility(isEnabled && isAvailable);
 
             if (!isAvailable)
             {
                 isEnabledCheckBox.Enabled = false;
-                isEnabledCheckBox.Cursor = Cursors.No;
                 winHelloDisabledPanel.Visible = true;
             }
         }
