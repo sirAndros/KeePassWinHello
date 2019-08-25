@@ -218,7 +218,7 @@ namespace KeePassWinHello
             catch
             {
                 CredDelete(GetTarget(dbPath), CRED_TYPE_GENERIC, 0);
-                return false;
+                throw;
             }
             finally
             {
