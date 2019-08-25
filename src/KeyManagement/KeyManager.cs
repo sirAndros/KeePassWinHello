@@ -17,6 +17,7 @@ namespace KeePassWinHello
         int KeysCount { get; }
 
         void RevokeAll();
+        void ClaimCurrentCacheType(AuthCacheType authCacheType);
     }
 
     class KeyManager : IKeyManager
@@ -104,6 +105,11 @@ namespace KeePassWinHello
         public void RevokeAll()
         {
             _keyStorage.Clear();
+        }
+
+        public void ClaimCurrentCacheType(AuthCacheType authCacheType)
+        {
+            _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
         }
 
         private static void CloseFormWithResult(KeyPromptForm keyPromptForm, DialogResult result)

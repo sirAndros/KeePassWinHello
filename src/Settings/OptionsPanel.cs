@@ -2,18 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
     public partial class OptionsPanel : UserControl
     {
         private readonly IKeyManager _keyManager;
-        private bool _initialized = false;
+        private bool _initialized;
 
         private OptionsPanel(IKeyManager keyManager)
         {
@@ -34,39 +31,29 @@ namespace KeePassWinHello
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
             BackColor = Color.Transparent;
 
-            LoadValuesFromSettings();
-
-            bool isEnabled = Settings.Instance.Enabled;
-            bool isAvailable = _keyManager != null && _keyManager.IsAvailable;
-
             Debug.Assert(ParentForm != null);
             if (ParentForm != null)
                 ParentForm.FormClosing += OnClosing;
 
-            ProcessStoredKeysVisibility(isEnabled);
-
-            if (!isAvailable || !isEnabled)
-            {
-                validPeriodComboBox.Enabled = false;
-                winKeyStorageCheckBox.Enabled = false;
-                keyCreatePanel.Visible = false;
-
-                if (!isAvailable)
-                {
-                    isEnabledCheckBox.Enabled = false;
-                    isEnabledCheckBox.Cursor = Cursors.No;
-                    storedKeysInfoPanel.Visible = false;
-                    winHelloDisabledPanel.Visible = true;
-                }
-            }
-            else
-            {
-                bool isElevated = UAC.IsCurrentProcessElevated;
-                winKeyStorageCheckBox.Enabled = isElevated;
-                keyCreatePanel.Visible = !isElevated;
-            }
+            InitializeControls();
 
             _initialized = true;
+        }
+
+        private void InitializeControls()
+        {
+            bool isEnabled = Settings.Instance.Enabled;
+            bool isAvailable = _keyManager != null && _keyManager.IsAvailable;
+
+            LoadValuesFromSettings();
+            ProcessControlsVisibility(isEnabled);
+
+            if (!isAvailable)
+            {
+                isEnabledCheckBox.Enabled = false;
+                isEnabledCheckBox.Cursor = Cursors.No;
+                winHelloDisabledPanel.Visible = true;
+            }
         }
 
         private void LoadValuesFromSettings()
@@ -81,35 +68,67 @@ namespace KeePassWinHello
             if (ParentForm.DialogResult == DialogResult.OK)
             {
                 Settings settings = Settings.Instance;
-                if (settings.Enabled != isEnabledCheckBox.Checked)
-                {
-                    settings.Enabled = isEnabledCheckBox.Checked;
-                    if (!isEnabledCheckBox.Checked)
-                    {
-                        RevokeAllKeys();
-                    }
-                }
-
-                if (isEnabledCheckBox.Checked)
-                {
-                    var newInvalidatingTime = TimeSpan.FromMilliseconds(IndexToPeriod(validPeriodComboBox.SelectedIndex));
-                    if (settings.InvalidatingTime != newInvalidatingTime)
-                    {
-                        settings.InvalidatingTime = newInvalidatingTime;
-                    }
-                }
+                SaveSettings(settings);
             }
+            ParentForm.FormClosing -= OnClosing;
         }
 
         private void isEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             bool isEnabled = isEnabledCheckBox.Checked;
+            ProcessControlsVisibility(isEnabled);
+        }
+
+        private void WinKeyStorageCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            keyCreatePanel.Visible = winKeyStorageCheckBox.Checked && !Settings.Instance.WinStorageEnabled;
+        }
+
+        private void BtnRevokeAll_Click(object sender, EventArgs e)
+        {
+            RevokeAllKeys();
+        }
+
+        private void SaveSettings(Settings settings)
+        {
+            if (settings.Enabled != isEnabledCheckBox.Checked)
+            {
+                settings.Enabled = isEnabledCheckBox.Checked;
+                if (!isEnabledCheckBox.Checked)
+                {
+                    RevokeAllKeys();
+                }
+            }
+
+            if (isEnabledCheckBox.Checked)
+            {
+                var newInvalidatingTime = TimeSpan.FromMilliseconds(IndexToPeriod(validPeriodComboBox.SelectedIndex));
+                if (settings.InvalidatingTime != newInvalidatingTime)
+                {
+                    settings.InvalidatingTime = newInvalidatingTime;
+                }
+
+                if (settings.WinStorageEnabled != winKeyStorageCheckBox.Checked)
+                {
+                    settings.WinStorageEnabled = winKeyStorageCheckBox.Checked;
+                    if (_keyManager != null)
+                    {
+                        var authCacheType = winKeyStorageCheckBox.Checked ? AuthCacheType.Persistent : AuthCacheType.Local;
+                        _keyManager.ClaimCurrentCacheType(authCacheType);
+                    }
+                }
+            }
+        }
+
+        private void ProcessControlsVisibility(bool isEnabled)
+        {
             validPeriodLabel.Enabled = isEnabled;
             validPeriodComboBox.Enabled = isEnabled;
+            winKeyStorageCheckBox.Enabled = isEnabled;
 
-            bool persistentStorageAvailable = isEnabled && UAC.IsCurrentProcessElevated;
-            winKeyStorageCheckBox.Enabled = persistentStorageAvailable;
-            keyCreatePanel.Visible = isEnabled && !persistentStorageAvailable;
+            keyCreatePanel.Visible = isEnabled
+                                 && winKeyStorageCheckBox.Checked
+                                 && !Settings.Instance.WinStorageEnabled;
 
             ProcessStoredKeysVisibility(isEnabled);
         }
@@ -125,11 +144,6 @@ namespace KeePassWinHello
             storedKeysInfoLabel.Enabled = savedKeysExists || isEnabled;
             storedKeysCountLabel.Enabled = savedKeysExists || isEnabled;
             storedKeysCountLabel.Text = keysCount.ToString();
-        }
-
-        private void BtnRevokeAll_Click(object sender, EventArgs e)
-        {
-            RevokeAllKeys();
         }
 
         private void RevokeAllKeys()

@@ -18,6 +18,22 @@ namespace KeePassWinHello
         public void ClaimCurrentCacheType(AuthCacheType newType)
         {
             CurrentCacheType = newType;
+
+            if (newType == AuthCacheType.Persistent)
+            {
+                string message = "Default message for persistent auth type";
+                var uiContext = AuthProviderUIContext.Current;
+                if (uiContext != null)
+                    message = uiContext.Message;
+
+                var dlgRslt = MessageBox.Show(uiContext, message, "Test cache type change", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+                if (dlgRslt != DialogResult.OK)
+                    throw new AuthProviderUserCancelledException();
+            }
+            else
+            {
+                MessageBox.Show(AuthProviderUIContext.Current, "Switched to local.", "Keys removed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         public byte[] Encrypt(byte[] data)
@@ -27,12 +43,12 @@ namespace KeePassWinHello
 
         public byte[] PromptToDecrypt(byte[] data)
         {
-            string message = "Default message";
+            string message = "Default message for encrypt";
             var uiContext = AuthProviderUIContext.Current;
             if (uiContext != null)
                 message = uiContext.Message;
 
-            var dlgRslt = MessageBox.Show(uiContext, message, "Test", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+            var dlgRslt = MessageBox.Show(uiContext, message, "Test Encrypt", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
             if (dlgRslt == DialogResult.OK)
             {
                 return Encrypt(data);
