@@ -105,6 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\KPWH.ico" />
+    <Content Include="Resources\KPWH_16x16.png" />
     <Content Include="Resources\KPWH_32x32.png" />
     <Content Include="Resources\KPWH_512x512.png" />
   </ItemGroup>
