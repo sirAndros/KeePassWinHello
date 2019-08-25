@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace KeePassWinHello
 {
@@ -10,8 +11,17 @@ namespace KeePassWinHello
         public KeePassWinHelloException() { }
         public KeePassWinHelloException(string message) : base(message) { }
         public KeePassWinHelloException(string message, Exception inner) : base(message, inner) { }
-        protected KeePassWinHelloException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+
+        protected KeePassWinHelloException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+            IsPresentable = info.GetBoolean("IsPresentable");
+        }
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("IsPresentable", IsPresentable);
+        }
     }
 }

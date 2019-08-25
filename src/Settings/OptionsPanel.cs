@@ -173,18 +173,16 @@ namespace KeePassWinHello
             var sii = new WinAPI.SHSTOCKICONINFO();
             sii.cbSize = (UInt32)Marshal.SizeOf(typeof(WinAPI.SHSTOCKICONINFO));
 
-            Marshal.ThrowExceptionForHR(WinAPI.SHGetStockIconInfo(iconId,
-                WinAPI.SHGSI.SHGSI_ICON | WinAPI.SHGSI.SHGSI_SMALLICON,
-                ref sii));
+            WinAPI.SHGetStockIconInfo(iconId, WinAPI.SHGSI.SHGSI_ICON | WinAPI.SHGSI.SHGSI_SMALLICON, ref sii)
+                .ThrowOnError();
 
             IntPtr hIcon = sii.hIcon;
 
             var hdc = graphics.GetHdc();
             try
             {
-                var r = WinAPI.DrawIconEx(hdc, 0, 0, hIcon, 0, 0, 0, IntPtr.Zero, 0x0003);
-                if (!r)
-                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+                WinAPI.DrawIconEx(hdc, 0, 0, hIcon, 0, 0, 0, IntPtr.Zero, 0x0003)
+                    .ThrowOnError("DrawIconEx");
             }
             finally
             {
@@ -197,7 +195,7 @@ namespace KeePassWinHello
         private static class WinAPI
         {
             [DllImport("User32.dll", SetLastError = true)]
-            public static extern bool DrawIconEx(IntPtr hdc,
+            public static extern BOOL DrawIconEx(IntPtr hdc,
                                                   int xLeft,
                                                   int yTop,
                                                   IntPtr hIcon,
@@ -208,11 +206,11 @@ namespace KeePassWinHello
                                                   uint diFlags);
 
             [DllImport("User32.dll", SetLastError = true)]
-            public static extern bool DestroyIcon(IntPtr hIcon);
+            public static extern BOOL DestroyIcon(IntPtr hIcon);
 
 
             [DllImport("Shell32.dll", SetLastError = false)]
-            public static extern Int32 SHGetStockIconInfo(SHSTOCKICONID siid, SHGSI uFlags, ref SHSTOCKICONINFO psii);
+            public static extern HRESULT SHGetStockIconInfo(SHSTOCKICONID siid, SHGSI uFlags, ref SHSTOCKICONINFO psii);
 
             [StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
             public struct SHSTOCKICONINFO

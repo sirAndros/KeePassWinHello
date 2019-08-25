@@ -116,6 +116,7 @@ namespace KeePassWinHello
         private const string Domain = "KeePassWinHello"; // Assembly.ProductName or smth
         private const string SubDomain = "";
         private const string PersistentName = "KeePassWinHello";
+        private const string InvalidatedKeyMessage = "[TDB]Persistent key has not met integrity requirements.";
         private string _currentKeyName;
 
         private static string RetreiveLocalKeyName()
@@ -153,7 +154,7 @@ namespace KeePassWinHello
                 using (ngcKeyHandle)
                 {
                     if (!VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                        throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not meet integrity requirements.");
+                        throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
                 }
 
                 _currentKeyName = RetreivePersistentKeyName();
@@ -163,7 +164,7 @@ namespace KeePassWinHello
         public static WinHelloProvider CreateInstance(AuthCacheType authCacheType)
         {
             if (!IsAvailable())
-                throw new NotSupportedException("Windows Hello is not available");
+                throw new AuthProviderIsUnavailableException("Windows Hello is not available");
 
             lock (_mutex)
             {
@@ -204,7 +205,7 @@ namespace KeePassWinHello
                         using (ngcKeyHandle)
                         {
                             if (!VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                                throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not met integrity requirements.");
+                                throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
                         }
                     }
                     else
@@ -325,7 +326,7 @@ namespace KeePassWinHello
                 using (ngcKeyHandle)
                 {
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                        throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not met integrity requirements.");
+                        throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
 
                     int pcbResult;
                     NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus();
@@ -351,7 +352,7 @@ namespace KeePassWinHello
                 using (ngcKeyHandle)
                 {
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                        throw new AuthProviderInvalidKeyException("[TDB]Persistent key has not met integrity requirements.");
+                        throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
 
                     ApplyUIContext(ngcKeyHandle);
 

@@ -45,7 +45,7 @@ namespace KeePassWinHello
         {
             var version = info.GetByte("v");
             if (version != VERSION)
-                throw new Exception("Incompatible version");
+                throw new FormatException("Incompatible version of ProtectedKey");
 
             var p = (byte[])info.GetValue("p", typeof(byte[]));
             _protectedPassword = new ProtectedBinary(false, p);
@@ -67,17 +67,15 @@ namespace KeePassWinHello
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("v", VERSION);
-            //info.AddValue("pl", _protectedPassword.Length, typeof(uint));
             info.AddValue("p", _protectedPassword.ReadData(), typeof(byte[]));
 
-            info.AddValue("kl", _keys.Count, typeof(int));
+            info.AddValue("kl", _keys.Count);
             for (int i = 0; i != _keys.Count; ++i)
             {
                 var key = _keys[i];
                 var pfx = string.Format("k{0}", i);
                 info.AddValue(pfx + "t", key.KcpType, typeof(KcpType));
                 info.AddValue(pfx + "n", key.CustomName, typeof(string));
-                //info.AddValue(pfx + "dl", key.EncryptedData.Length, typeof(uint));
                 info.AddValue(pfx + "d", key.EncryptedData != null ? key.EncryptedData.ReadData() : null, typeof(byte[]));
             }
         }

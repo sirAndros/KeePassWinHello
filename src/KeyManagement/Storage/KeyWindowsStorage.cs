@@ -35,19 +35,19 @@ namespace KeePassWinHello
         }
 
         [DllImport("advapi32.dll", EntryPoint = "CredDeleteW", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern bool CredDelete(string target, uint type, int reservedFlag);
+        private static extern BOOL CredDelete(string target, uint type, int reservedFlag);
 
         [DllImport("advapi32.dll", EntryPoint = "CredEnumerateW", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern bool CredEnumerate(string target, uint flags, out uint count, out IntPtr credentialsPtr);
+        private static extern BOOL CredEnumerate(string target, uint flags, out uint count, out IntPtr credentialsPtr);
 
         [DllImport("advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern bool CredRead(string target, uint type, int reservedFlag, out IntPtr CredentialPtr);
+        private static extern BOOL CredRead(string target, uint type, int reservedFlag, out IntPtr CredentialPtr);
 
         [DllImport("advapi32.dll", EntryPoint = "CredWriteW", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern bool CredWrite([In] ref CREDENTIAL userCredential, uint flags);
+        private static extern BOOL CredWrite([In] ref CREDENTIAL userCredential, uint flags);
 
         [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern bool CredFree([In] IntPtr cred);
+        private static extern BOOL CredFree([In] IntPtr cred);
         #endregion
 
         private const int _maxBlobSize = 512 * 5;
@@ -98,8 +98,7 @@ namespace KeePassWinHello
                     Marshal.Copy(data, 0, ncred.CredentialBlob, data.Length);
                     ncred.CredentialBlobSize = (uint)data.Length;
 
-                    if (!CredWrite(ref ncred, 0))
-                        throw new Win32Exception(Marshal.GetLastWin32Error());
+                    CredWrite(ref ncred, 0).ThrowOnError("CredWrite");
                 }
                 finally
                 {
@@ -119,7 +118,7 @@ namespace KeePassWinHello
             IntPtr ncredPtr = IntPtr.Zero;
             try
             {
-                bool hasKey = CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr);
+                bool hasKey = CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr).Result;
                 return hasKey && !IsExpired((CREDENTIAL)Marshal.PtrToStructure(ncredPtr, typeof(CREDENTIAL)));
             }
             finally
@@ -166,13 +165,10 @@ namespace KeePassWinHello
             IntPtr ncredsPtr;
             uint count;
 
-            if (!CredEnumerate(GetTarget("*"), 0, out count, out ncredsPtr))
+            if (!CredEnumerate(GetTarget("*"), 0, out count, out ncredsPtr)
+                .ThrowOnError("CredEnumerate", ERROR_NOT_FOUND))
             {
-                var lastError = Marshal.GetLastWin32Error();
-                if (lastError == ERROR_NOT_FOUND)
-                    return;
-
-                throw new Win32Exception(lastError);
+                return;
             }
 
             try
@@ -193,8 +189,7 @@ namespace KeePassWinHello
 
         public void Remove(string dbPath)
         {
-            if (!CredDelete(GetTarget(dbPath), CRED_TYPE_GENERIC, 0))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
+            CredDelete(GetTarget(dbPath), CRED_TYPE_GENERIC, 0).ThrowOnError("CredDelete");
         }
 
         public bool TryGetValue(string dbPath, out ProtectedKey protectedKey)
@@ -202,7 +197,7 @@ namespace KeePassWinHello
             protectedKey = null;
             IntPtr ncredPtr;
 
-            if (!CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr))
+            if (!CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr).Result)
             {
                 Debug.Assert(Marshal.GetLastWin32Error() == ERROR_NOT_FOUND);
                 return false;

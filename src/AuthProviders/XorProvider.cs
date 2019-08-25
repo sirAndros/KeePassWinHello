@@ -48,14 +48,14 @@ namespace KeePassWinHello
             if (uiContext != null)
                 message = uiContext.Message;
 
-            var dlgRslt = MessageBox.Show(uiContext, message, "Test Encrypt", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+            var dlgRslt = MessageBox.Show(uiContext, message, "Windows Security", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
             if (dlgRslt == DialogResult.OK)
             {
                 return Encrypt(data);
             }
             else
             {
-                throw new UnauthorizedAccessException("Canceled");
+                throw new AuthProviderUserCancelledException();
             }
         }
     }
