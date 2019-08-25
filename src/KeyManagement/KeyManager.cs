@@ -91,7 +91,7 @@ namespace KeePassWinHello
                 return;
 
             string dbPath = e.Database.IOConnectionInfo.Path;
-            if (!IsDBLocking(e))
+            if (!IsDBLocking(e) && Settings.Instance.GetAuthCacheType() == AuthCacheType.Local)
             {
                 _keyStorage.Remove(dbPath);
             }

@@ -97,4 +97,12 @@ namespace KeePassWinHello
         public const string OptionsTabName = "WindowsHello";
         public const string ProductName = "KeePassWinHello";
     }
+
+    internal static class SettingsExtension
+    {
+        public static AuthCacheType GetAuthCacheType(this Settings settings)
+        {
+            return settings.WinStorageEnabled ? AuthCacheType.Persistent : AuthCacheType.Local;
+        }
+    }
 }
