@@ -26,12 +26,14 @@ namespace KeePassWinHello
             if (imageList == null)
             {
                 if (tabMain.ImageList == null)
+                {
                     tabMain.ImageList = new ImageList();
-                imageList = tabMain.ImageList;
-            }
+                    tabMain.ImageList.ColorDepth = ColorDepth.Depth32Bit;
+                    tabMain.ImageList.TransparentColor = Color.Transparent;
+                }
 
-            imageList.ColorDepth = ColorDepth.Depth32Bit;
-            imageList.TransparentColor = Color.Transparent;
+                imageList = tabMain.ImageList;
+            }   
 
             const string iconKey = "KPWH_icon";
             imageList.Images.Add(iconKey, Properties.Resources.KPWH);
