@@ -100,10 +100,10 @@ namespace KeePassWinHello.Utilities
             MinimizeWindow(winHandle);
         }
 
-        private static void BringToFrontAndActivate(IntPtr winHandle)
+        private static bool BringToFrontAndActivate(IntPtr winHandle)
         {
             ResotoreAndFocus(winHandle);
-            WinAPI.SetForegroundWindow(winHandle).ThrowOnError("SetForegroundWindow");
+            return WinAPI.SetForegroundWindow(winHandle).ThrowOnError("SetForegroundWindow");
         }
 
         private static void ResotoreAndFocus(IntPtr winHandle)

@@ -16,7 +16,7 @@ namespace KeePassWinHello
             if (!Result)
             {
                 int errorCode = Marshal.GetLastWin32Error();
-                if (ignoredErrors == null || !ignoredErrors.Contains(errorCode))
+                if (errorCode != 0 && (ignoredErrors == null || !ignoredErrors.Contains(errorCode)))
                     throw new EnviromentErrorException(debugInfo, errorCode);
             }
 
