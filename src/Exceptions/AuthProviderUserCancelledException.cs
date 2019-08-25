@@ -5,7 +5,7 @@ namespace KeePassWinHello
     [Serializable]
     public class AuthProviderUserCancelledException : AuthProviderException
     {
-        public AuthProviderUserCancelledException() : this("[TBD]") { }
+        public AuthProviderUserCancelledException() : this("[TBD] Operation was canceled by user") { }
         public AuthProviderUserCancelledException(string message) : base(message) { }
         public AuthProviderUserCancelledException(string message, Exception inner) : base(message, inner) { }
         protected AuthProviderUserCancelledException(

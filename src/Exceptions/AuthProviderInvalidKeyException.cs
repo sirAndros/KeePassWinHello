@@ -5,6 +5,8 @@ namespace KeePassWinHello
     [Serializable]
     public class AuthProviderInvalidKeyException : AuthProviderException
     {
+        public override bool IsPresentable { get { return true; } }
+
         public AuthProviderInvalidKeyException(string message) : base(message) { }
         public AuthProviderInvalidKeyException(string message, Exception inner) : base(message, inner) { }
         protected AuthProviderInvalidKeyException() { }

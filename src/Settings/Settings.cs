@@ -95,5 +95,6 @@ namespace KeePassWinHello
         public const string DecryptConfirmationMessage = "Authentication to access KeePass database";
         public const string KeyCreationConfirmationMessage = "Sign chipper key with your biometrics";
         public const string OptionsTabName = "WindowsHello";
+        public const string ProductName = "KeePassWinHello";
     }
 }

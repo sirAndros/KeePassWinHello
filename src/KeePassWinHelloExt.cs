@@ -1,8 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using KeePass.Forms;
 using KeePass.Plugins;
 using KeePass.UI;
+using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
@@ -29,9 +31,21 @@ namespace KeePassWinHello
             Settings.Instance.Initialize(host.CustomConfig);
 
             _host = host;
-            _keyManager = new KeyManager(_host.MainWindow.Handle);
-
-            _host.MainWindow.FileClosingPre += _keyManager.OnDBClosing;
+            try
+            {
+                _keyManager = new KeyManager(_host.MainWindow.Handle);
+                _host.MainWindow.FileClosingPre += _keyManager.OnDBClosing;
+            }
+            catch (AuthProviderIsUnavailableException)
+            {
+                // it's OK.
+            }
+            catch (Exception ex)
+            {
+                _keyManager = null;
+                ErrorHandler.ShowError(ex);
+            }
+ 
             GlobalWindowManager.WindowAdded += OnWindowAdded;
 
             return true;
@@ -43,25 +57,33 @@ namespace KeePassWinHello
                 return;
 
             GlobalWindowManager.WindowAdded -= OnWindowAdded;
-            _host.MainWindow.FileClosingPre -= _keyManager.OnDBClosing;
+            if (_keyManager != null)
+                _host.MainWindow.FileClosingPre -= _keyManager.OnDBClosing;
 
             _host = null;
         }
 
         private void OnWindowAdded(object sender, GwmWindowEventArgs e)
         {
-            var keyPromptForm = e.Form as KeyPromptForm;
-            if (keyPromptForm != null)
+            try
             {
-                _keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
-                return;
-            }
+                var keyPromptForm = e.Form as KeyPromptForm;
+                if (keyPromptForm != null && _keyManager != null)
+                {
+                    _keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
+                    return;
+                }
 
-            var optionsForm = e.Form as OptionsForm;
-            if (optionsForm != null)
+                var optionsForm = e.Form as OptionsForm;
+                if (optionsForm != null)
+                {
+                    OptionsPanel.OnOptionsLoad(optionsForm, _keyManager);
+                    return;
+                }
+            }
+            catch (Exception ex)
             {
-                OptionsPanel.OnOptionsLoad(optionsForm, _keyManager);
-                return;
+                ErrorHandler.ShowError(ex);
             }
         }
     }

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
@@ -115,7 +116,14 @@ namespace KeePassWinHello
                         var authCacheType = winKeyStorageCheckBox.Checked ? AuthCacheType.Persistent : AuthCacheType.Local;
                         using (AuthProviderUIContext.With(Settings.KeyCreationConfirmationMessage, this.Handle))
                         {
-                            _keyManager.ClaimCurrentCacheType(authCacheType); 
+                            try
+                            {
+                                _keyManager.ClaimCurrentCacheType(authCacheType);
+                            }
+                            catch (Exception ex)
+                            {
+                                ErrorHandler.ShowError(ex);
+                            }
                         }
                     }
                 }
@@ -152,7 +160,14 @@ namespace KeePassWinHello
         {
             if (_keyManager != null)
             {
-                _keyManager.RevokeAll();
+                try
+                {
+                    _keyManager.RevokeAll();
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandler.ShowError(ex);
+                }
             }
             ProcessStoredKeysVisibility(isEnabledCheckBox.Checked);
         }

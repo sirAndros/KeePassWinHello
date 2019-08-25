@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using KeePass.Forms;
 using KeePassLib.Keys;
 using KeePassLib.Serialization;
+using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
@@ -107,7 +108,17 @@ namespace KeePassWinHello
 
         public void ClaimCurrentCacheType(AuthCacheType authCacheType)
         {
-            _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
+            try
+            {
+                _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
+            }
+            catch (AuthProviderUserCancelledException)
+            {
+                if (authCacheType == AuthCacheType.Persistent)
+                    Settings.Instance.WinStorageEnabled = false;
+
+                MessageBox.Show(AuthProviderUIContext.Current, "[TBD]", Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private static void CloseFormWithResult(KeyPromptForm keyPromptForm, DialogResult result)
@@ -151,14 +162,14 @@ namespace KeePassWinHello
                     return true;
                 }
             }
-            catch (UnauthorizedAccessException)
+            catch (AuthProviderUserCancelledException)
             {
                 _keyStorage.Remove(dbPath);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Debug.Fail(ex.ToString()); // TODO: fix canceled exception
                 _keyStorage.Remove(dbPath);
+                throw;
             }
             return false;
         }

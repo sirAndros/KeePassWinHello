@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Utilities\ErrorHandler.cs" />
     <Compile Include="Exceptions\AuthProviderIsUnavailableException.cs" />
     <Compile Include="Exceptions\AuthProviderUserCancelledException.cs" />
     <Compile Include="Exceptions\AuthProviderInvalidKeyException.cs" />
