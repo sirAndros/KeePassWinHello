@@ -3,50 +3,23 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Security;
-using System.Security.Principal;
-using System.Text;
-using System.Xml.Serialization;
 
 namespace KeePassWinHello
 {
-    class KeyWindowsStorage : IKeyStorage
+    internal class KeyWindowsStorage : IKeyStorage
     {
-        [DllImport("advapi32", SetLastError = true)/*, SuppressUnmanagedCodeSecurityAttribute*/]
-        static extern int OpenProcessToken(
-System.IntPtr ProcessHandle, // handle to process
-int DesiredAccess, // desired access to process
-ref IntPtr TokenHandle // handle to open access token
-);
+        #region Credential Manager API
+        private const int ERROR_NOT_FOUND = 0x490;
 
-        [DllImport("kernel32", SetLastError = true)/*, SuppressUnmanagedCodeSecurityAttribute*/]
-        static extern bool CloseHandle(IntPtr handle);
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public extern static bool DuplicateToken(IntPtr ExistingTokenHandle,
-        int SECURITY_IMPERSONATION_LEVEL, ref IntPtr DuplicateTokenHandle);
+        private const int CRED_TYPE_GENERIC = 0x1;
 
-        public const int TOKEN_DUPLICATE = 2;
-        public const int TOKEN_QUERY = 0X00000008;
-        public const int TOKEN_IMPERSONATE = 0X00000004;
-
-        internal const int SecurityImpersonation = 2;
-
-        #region Credential Manager
-        internal const int ERROR_NOT_FOUND = 0x490;
-
-        internal const int CRED_TYPE_GENERIC = 0x1;
-
-        internal const int CRED_PERSIST_LOCAL_MACHINE = 0x2;
+        private const int CRED_PERSIST_LOCAL_MACHINE = 0x2;
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        internal struct CREDENTIAL
+        private struct CREDENTIAL
         {
             public UInt32 Flags;
             public UInt32 Type;
@@ -64,105 +37,44 @@ ref IntPtr TokenHandle // handle to open access token
         }
 
         [DllImport("advapi32.dll", EntryPoint = "CredDeleteW", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern bool CredDelete(string target, uint type, int reservedFlag);
+        private static extern bool CredDelete(string target, uint type, int reservedFlag);
 
         [DllImport("advapi32.dll", EntryPoint = "CredEnumerateW", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern bool CredEnumerate(string target, uint flags, out uint count, out IntPtr credentialsPtr);
+        private static extern bool CredEnumerate(string target, uint flags, out uint count, out IntPtr credentialsPtr);
 
         [DllImport("advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern bool CredRead(string target, uint type, int reservedFlag, out IntPtr CredentialPtr);
+        private static extern bool CredRead(string target, uint type, int reservedFlag, out IntPtr CredentialPtr);
 
         [DllImport("advapi32.dll", EntryPoint = "CredWriteW", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern bool CredWrite([In] ref CREDENTIAL userCredential, uint flags);
+        private static extern bool CredWrite([In] ref CREDENTIAL userCredential, uint flags);
 
         [DllImport("advapi32.dll", SetLastError = true)]
-        internal static extern bool CredFree([In] IntPtr cred);
-
+        private static extern bool CredFree([In] IntPtr cred);
         #endregion
-
-        IntPtr GetProcessToken(IntPtr processHandle)
-        {
-            IntPtr hToken = IntPtr.Zero;
-            IntPtr dupeTokenHandle = IntPtr.Zero;
-            // For simplicity I'm using the PID of System here
-            //Process proc = Process.GetProcessById(4);
-            if (OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_IMPERSONATE | TOKEN_DUPLICATE, ref hToken) != 0)
-            {
-#if DEBUG
-                WindowsIdentity newId = new WindowsIdentity(hToken);
-                Debug.WriteLine(newId.Owner);
-#endif
-                try
-                {
-                    DuplicateToken(hToken, SecurityImpersonation, ref dupeTokenHandle);
-                    if (IntPtr.Zero == dupeTokenHandle)
-                    {
-                        string s = String.Format("Dup failed {0}, privilege not held",
-                        Marshal.GetLastWin32Error());
-                        throw new Exception(s);
-                    }
-#if DEBUG
-                    WindowsImpersonationContext impersonatedUser =
-                    newId.Impersonate();
-                    IntPtr accountToken = WindowsIdentity.GetCurrent().Token;
-                    Debug.WriteLine("Token number is: " + accountToken.ToString());
-                    Debug.WriteLine("Windows ID Name is: " +
-                    WindowsIdentity.GetCurrent().Name);
-                    impersonatedUser.Undo();
-#endif
-                }
-                finally
-                {
-                    CloseHandle(hToken);
-                }
-            }
-            else
-            {
-                string s = String.Format("OpenProcess Failed {0}, privilege not held", Marshal.GetLastWin32Error());
-                throw new Exception(s); //TODO
-            }
-
-            return dupeTokenHandle;
-        }
 
         private const int _maxBlobSize = 512 * 5;
         private const string _credPrefix = "KeePassWinHello_";
-        private readonly IntPtr _systemToken;
 
-        public int Count { get { throw new NotImplementedException(); } }//TODO
+        public int Count
+        {
+            get
+            {
+                int count = 0;
+                ForEach(ncred => count += IsValid(ncred) ? 1 : 0);
+                return count;
+            }
+        }
 
         public void Clear()
         {
-            throw new NotImplementedException();
+            var credsToRemove = new List<string>();
+            ForEach(ncred => credsToRemove.Add(Marshal.PtrToStringUni(ncred.TargetName)));
+
+            foreach (var target in credsToRemove)
+                CredDelete(target, CRED_TYPE_GENERIC, 0);
         }
 
-        public KeyWindowsStorage()
-        {
-            if (!UAC.IsCurrentProcessElevated)
-                throw new Exception("Process is not elevated");
-
-            //Privileges.EnablePrivilege(SecurityEntity.SE_DEBUG_NAME);
-            Process.EnterDebugMode();
-
-            try
-            {
-                var winlogons = Process.GetProcessesByName("lsass"); //"winlogon.exe" ?
-                if (winlogons.Length == 0)
-                    throw new Exception("winlogon not found");
-
-                _systemToken = GetProcessToken(winlogons[0].Handle);
-            }
-            finally
-            {
-                Process.LeaveDebugMode();
-            }
-
-            // TODO: check if token has system rights:
-            //if (GetTokenInformation(hToken, TokenUser, data, sizeof(data), &dwNeed))
-            //{
-            //    system = IsWellKnownSid(pTokenUser->User.Sid, WinLocalSystemSid);
-            //}
-        }
+        //public KeyWindowsStorage() { }
 
         private string GetTarget(string path)
         {
@@ -192,17 +104,14 @@ ref IntPtr TokenHandle // handle to open access token
                     Marshal.Copy(data, 0, ncred.CredentialBlob, data.Length);
                     ncred.CredentialBlobSize = (uint)data.Length;
 
-                    using (var context = WindowsIdentity.Impersonate(_systemToken))
-                    {
-                        if (!CredWrite(ref ncred, 0))
-                            throw new Win32Exception(Marshal.GetLastWin32Error());
-                    }
+                    if (!CredWrite(ref ncred, 0))
+                        throw new Win32Exception(Marshal.GetLastWin32Error());
                 }
                 finally
                 {
                     Marshal.FreeCoTaskMem(ncred.UserName);
                     Marshal.FreeCoTaskMem(ncred.TargetName);
-                    Marshal.FreeCoTaskMem(ncred.CredentialBlob); // TODO: Zero data
+                    Marshal.FreeCoTaskMem(ncred.CredentialBlob);
                 }
             }
             finally
@@ -216,8 +125,8 @@ ref IntPtr TokenHandle // handle to open access token
             IntPtr ncredPtr = IntPtr.Zero;
             try
             {
-                using (var context = WindowsIdentity.Impersonate(_systemToken))
-                    return CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr);
+                bool hasKey = CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr);
+                return hasKey && IsValid((CREDENTIAL)Marshal.PtrToStructure(ncredPtr, typeof(CREDENTIAL)));
             }
             finally
             {
@@ -228,69 +137,70 @@ ref IntPtr TokenHandle // handle to open access token
 
         public void Purge()
         {
-            IntPtr ncredsPtr = IntPtr.Zero;
-            uint count = 0;
+            var credsToRemove = new List<string>();
 
-            using (var context = WindowsIdentity.Impersonate(_systemToken))
+            ForEach(ncred => {
+                if (!IsValid(ncred))
+                    credsToRemove.Add(Marshal.PtrToStringUni(ncred.TargetName));
+            });
+
+            foreach (var target in credsToRemove)
+                CredDelete(target, CRED_TYPE_GENERIC, 0);
+        }
+
+        private bool IsValid(CREDENTIAL ncred)
+        {
+            try
             {
-                if (!CredEnumerate(GetTarget("*"), 0, out count, out ncredsPtr))
-                {
-                    var lastError = Marshal.GetLastWin32Error();
-                    if (lastError == ERROR_NOT_FOUND)
-                        return;
+                long highDateTime = (long)((uint)ncred.LastWritten.dwHighDateTime) << 32;
+                long lowDateTime = (uint)ncred.LastWritten.dwLowDateTime;
 
-                    throw new Win32Exception(lastError);
-                }
+                var createdDate = DateTime.FromFileTime(highDateTime | lowDateTime);
+                if (DateTime.Now - createdDate >= Settings.Instance.InvalidatingTime)
+                    return false;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return false;
             }
 
-            var credsToRemove = new List<string>();
+            return true;
+        }
+
+        private void ForEach(Action<CREDENTIAL> action)
+        {
+            IntPtr ncredsPtr;
+            uint count;
+
+            if (!CredEnumerate(GetTarget("*"), 0, out count, out ncredsPtr))
+            {
+                var lastError = Marshal.GetLastWin32Error();
+                if (lastError == ERROR_NOT_FOUND)
+                    return;
+
+                throw new Win32Exception(lastError);
+            }
+
             try
             {
                 for (int i = 0; i != count; ++i)
                 {
                     IntPtr ncredPtr = Marshal.ReadIntPtr(ncredsPtr, i * IntPtr.Size);
                     var ncred = (CREDENTIAL)Marshal.PtrToStructure(ncredPtr, typeof(CREDENTIAL));
-                    bool isValid = true;
-                    try
-                    {
-                        long highDateTime = (long)((uint)ncred.LastWritten.dwHighDateTime) << 32;
-                        long lowDateTime = (uint)ncred.LastWritten.dwLowDateTime;
 
-                        var createdDate = DateTime.FromFileTime(highDateTime | lowDateTime);
-                        if (DateTime.UtcNow - createdDate >= Settings.Instance.InvalidatingTime)
-                            isValid = false;
-                    }
-                    catch (ArgumentOutOfRangeException)
-                    {
-                        isValid = false;
-                    }
-
-                    if (!isValid)
-                        credsToRemove.Add(Marshal.PtrToStringUni(ncred.TargetName));
+                    action(ncred);
                 }
             }
             finally
             {
                 CredFree(ncredsPtr);
             }
-
-            if (credsToRemove.Count == 0)
-                return;
-
-            using (var context = WindowsIdentity.Impersonate(_systemToken))
-            {
-                foreach (var target in credsToRemove)
-                    CredDelete(target, CRED_TYPE_GENERIC, 0);
-            }
         }
 
         public void Remove(string dbPath)
         {
-            using (var context = WindowsIdentity.Impersonate(_systemToken))
-            {
-                if (!CredDelete(GetTarget(dbPath), CRED_TYPE_GENERIC, 0))
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
+            if (!CredDelete(GetTarget(dbPath), CRED_TYPE_GENERIC, 0))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
         }
 
         public bool TryGetValue(string dbPath, out ProtectedKey protectedKey)
@@ -298,19 +208,19 @@ ref IntPtr TokenHandle // handle to open access token
             protectedKey = null;
             IntPtr ncredPtr = IntPtr.Zero;
 
-            using (var context = WindowsIdentity.Impersonate(_systemToken))
+            if (!CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr))
             {
-                if (!CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr))
-                {
-                    Debug.Assert(Marshal.GetLastWin32Error() == ERROR_NOT_FOUND);
-                    return false;
-                }
+                Debug.Assert(Marshal.GetLastWin32Error() == ERROR_NOT_FOUND);
+                return false;
             }
 
             byte[] data = null;
             try
             {
                 var ncred = (CREDENTIAL)Marshal.PtrToStructure(ncredPtr, typeof(CREDENTIAL));
+                if (!IsValid(ncred))
+                    return false;
+
                 data = new byte[ncred.CredentialBlobSize];
                 Marshal.Copy(ncred.CredentialBlob, data, 0, data.Length);
 
@@ -329,7 +239,8 @@ ref IntPtr TokenHandle // handle to open access token
             finally
             {
                 CredFree(ncredPtr);
-                MemUtil.ZeroByteArray(data);
+                if (data != null)
+                    MemUtil.ZeroByteArray(data);
             }
             return true;
         }
