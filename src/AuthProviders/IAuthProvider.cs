@@ -31,14 +31,5 @@ namespace KeePassWinHello
                 return provider;
 #endif
         }
-
-        public static bool IsAvailable()
-        {
-#if DEBUG
-            return true;
-#else
-            return WinHelloProvider.IsAvailable();
-#endif
-        }
     }
 }

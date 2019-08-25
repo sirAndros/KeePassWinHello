@@ -13,7 +13,6 @@ namespace KeePassWinHello
 {
     interface IKeyManager
     {
-        bool IsAvailable { get; }
         int KeysCount { get; }
 
         void RevokeAll();
@@ -27,7 +26,6 @@ namespace KeePassWinHello
         private volatile bool _isSecureDesktopSettingChanged = false;
         private readonly IntPtr _keePassMainWindowHandle;
 
-        public bool IsAvailable { get { return _keyCipher.IsAvailable; } }
         public int  KeysCount   { get { return _keyStorage.Count; } }
 
         public KeyManager(IntPtr windowHandle)
@@ -96,7 +94,7 @@ namespace KeePassWinHello
             {
                 _keyStorage.Remove(dbPath);
             }
-            else if (AuthProviderFactory.IsAvailable() && Settings.Instance.Enabled)
+            else if (Settings.Instance.Enabled)
             {
                 _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
             }

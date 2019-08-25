@@ -43,7 +43,7 @@ namespace KeePassWinHello
         private void InitializeControls()
         {
             bool isEnabled = Settings.Instance.Enabled;
-            bool isAvailable = _keyManager != null && _keyManager.IsAvailable;
+            bool isAvailable = _keyManager != null;
 
             LoadValuesFromSettings();
             ProcessControlsVisibility(isEnabled);
@@ -138,7 +138,7 @@ namespace KeePassWinHello
 
         private void ProcessStoredKeysVisibility(bool isEnabled)
         {
-            bool isAvailable = _keyManager != null && _keyManager.IsAvailable;
+            bool isAvailable = _keyManager != null;
             int keysCount = isAvailable ? _keyManager.KeysCount : 0;
             bool savedKeysExists = keysCount > 0;
 

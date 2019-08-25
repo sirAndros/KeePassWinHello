@@ -130,7 +130,6 @@ namespace KeePassWinHello
             return sid + "//" + Domain + "/" + SubDomain + "/" + PersistentName;
         }
 
-        /// public API
         public static bool IsAvailable()
         {
             return !string.IsNullOrEmpty(_localKeyName.Value);

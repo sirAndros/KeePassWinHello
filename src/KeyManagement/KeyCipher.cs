@@ -23,8 +23,6 @@ namespace KeePassWinHello
             _cryptProvider = AuthProviderFactory.GetInstance(keePassWindowHandle);
         }
 
-        public bool IsAvailable { get { return AuthProviderFactory.IsAvailable(); } }
-
         public IAuthProvider AuthProvider { get { return _cryptProvider; } }
 
         public ProtectedBinary Protect(ProtectedBinary key)
