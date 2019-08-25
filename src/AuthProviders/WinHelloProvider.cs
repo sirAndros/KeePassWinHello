@@ -8,6 +8,7 @@ namespace KeePassWinHello
 {
     internal class WinHelloProvider : IAuthProvider
     {
+        #region CNG key storage provider API
         private const string MS_NGC_KEY_STORAGE_PROVIDER = "Microsoft Passport Key Storage Provider";
         private const string NCRYPT_WINDOW_HANDLE_PROPERTY = "HWND Handle";
         private const string NCRYPT_USE_CONTEXT_PROPERTY = "Use Context";
@@ -21,7 +22,6 @@ namespace KeePassWinHello
         private const int NCRYPT_ALLOW_KEY_IMPORT_FLAG = 0x00000008;
         private const int NCRYPT_PAD_PKCS1_FLAG = 0x00000002;
         private const int NTE_USER_CANCELLED = unchecked((int)0x80090036);
-        private const int NTE_BAD_KEYSET = unchecked((int)0x80090016);
         private const int NTE_NO_KEY = unchecked((int)0x8009000D);
 
         [StructLayout(LayoutKind.Sequential)]
@@ -107,16 +107,16 @@ namespace KeePassWinHello
                                                int cbOutput,
                                                [Out] out int pcbResult,
                                                int dwFlags);
-
+        #endregion
 
         private static readonly Lazy<string> _localKeyName = new Lazy<string>(RetreiveLocalKeyName);
 
         private static readonly object _mutex = new object();
         private static WeakReference _instance;
 
-        private const string Domain = "KeePassWinHello"; // Assembly.ProductName or smth
+        private const string Domain = Settings.ProductName;
         private const string SubDomain = "";
-        private const string PersistentName = "KeePassWinHello";
+        private const string PersistentName = Settings.ProductName;
         private const string InvalidatedKeyMessage = "[TDB]Persistent key has not met integrity requirements.";
         private string _currentKeyName;
 
@@ -132,7 +132,7 @@ namespace KeePassWinHello
             return sid + "//" + Domain + "/" + SubDomain + "/" + PersistentName;
         }
 
-        public static bool IsAvailable()
+        private static bool IsAvailable()
         {
             return !string.IsNullOrEmpty(_localKeyName.Value);
         }
@@ -221,7 +221,6 @@ namespace KeePassWinHello
                 CurrentCacheType = authCacheType;
             }
         }
-
 
         public AuthCacheType CurrentCacheType
         {

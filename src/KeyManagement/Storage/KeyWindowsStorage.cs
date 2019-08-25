@@ -51,7 +51,7 @@ namespace KeePassWinHello
         #endregion
 
         private const int _maxBlobSize = 512 * 5;
-        private const string _credPrefix = "KeePassWinHello_";
+        private const string _credPrefix = Settings.ProductName + "_";
 
         public int Count
         {
@@ -72,8 +72,6 @@ namespace KeePassWinHello
                 CredDelete(target, CRED_TYPE_GENERIC, 0);
         }
 
-        //public KeyWindowsStorage() { }
-
         private string GetTarget(string path)
         {
             return _credPrefix + path;
@@ -92,7 +90,7 @@ namespace KeePassWinHello
                 {
                     ncred.Type = CRED_TYPE_GENERIC;
                     ncred.Persist = CRED_PERSIST_LOCAL_MACHINE;
-                    ncred.UserName = Marshal.StringToCoTaskMemUni("dummy");
+                    ncred.UserName = Marshal.StringToCoTaskMemUni(Settings.ProductName);
                     ncred.TargetName = Marshal.StringToCoTaskMemUni(GetTarget(dbPath));
                     ncred.CredentialBlob = Marshal.AllocCoTaskMem(data.Length);
                     Marshal.Copy(data, 0, ncred.CredentialBlob, data.Length);
