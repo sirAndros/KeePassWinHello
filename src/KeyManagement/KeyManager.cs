@@ -24,7 +24,6 @@ namespace KeePassWinHello
     {
         private readonly KeyCipher _keyCipher;
         private readonly IKeyStorage _keyStorage;
-        private volatile bool _isSecureDesktopSettingChanged = false;
         private readonly IntPtr _keePassMainWindowHandle;
 
         public int  KeysCount   { get { return _keyStorage.Count; } }
@@ -51,30 +50,29 @@ namespace KeePassWinHello
                     Task.Factory.StartNew(() =>
                     {
                         KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = false;
-                        _isSecureDesktopSettingChanged = true;
                         Thread.Yield();
                         ReOpenKeyPromptForm(mainWindow, dbFile);
                     })
                     .ContinueWith(_ =>
                     {
                         KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = true;
-                        _isSecureDesktopSettingChanged = false;
                     });
                 }
             }
             else
             {
-                CompositeKey compositeKey;
-                if (ExtractCompositeKey(dbPath, out compositeKey))
+                try
                 {
-                    SetCompositeKey(keyPromptForm, compositeKey);
-                    CloseFormWithResult(keyPromptForm, DialogResult.OK);
+                    CompositeKey compositeKey;
+                    if (ExtractCompositeKey(dbPath, out compositeKey))
+                    {
+                        SetCompositeKey(keyPromptForm, compositeKey);
+                        CloseFormWithResult(keyPromptForm, DialogResult.OK);
+                    }
                 }
-                else if (_isSecureDesktopSettingChanged)    // can be here only from recursive call. No extra sync needed.
+                catch (AuthProviderUserCancelledException)
                 {
-                    var dbFile = GetIoInfo(keyPromptForm);
                     CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
-                    Task.Factory.StartNew(() => ReOpenKeyPromptForm(mainWindow, dbFile));
                 }
             }
         }
@@ -117,7 +115,7 @@ namespace KeePassWinHello
                 if (authCacheType == AuthCacheType.Persistent)
                     Settings.Instance.WinStorageEnabled = false;
 
-                MessageBox.Show(AuthProviderUIContext.Current, "[TBD]", Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(AuthProviderUIContext.Current, "[TBD] Canceled", Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -161,10 +159,6 @@ namespace KeePassWinHello
                     compositeKey = encryptedData.GetCompositeKey(_keyCipher);
                     return true;
                 }
-            }
-            catch (AuthProviderUserCancelledException)
-            {
-                _keyStorage.Remove(dbPath);
             }
             catch (Exception)
             {
