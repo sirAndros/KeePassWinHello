@@ -3,7 +3,8 @@ param (
     [string] $OutputFileNameBase = 'KeePassWinHelloPlugin',
     [string] $OutputDir = $null,
     [string] $Version = $null,
-    [string] $ReleaseNotes = $null
+    [string] $ReleaseNotes = $null,
+    [switch] $SkipChoco
 )
 
 $versionPattern = '[\d\.]+(?:\-\w+)?'
@@ -59,22 +60,24 @@ try {
 
 Remove-Item $packingSourcesFolder -Force -Recurse
 
-$outputFile = "$OutputDir\$OutputFileNameBase.plgx"
-$chocoDir = "$ProjectDir\Chocolatey"
-$chocoInstallScriptFile = "$chocoDir\tools\ChocolateyInstall.ps1"
-$hash = (Get-FileHash $outputFile -Algorithm SHA256).Hash
-(Get-Content $chocoInstallScriptFile) `
-    -replace "\`$version\s*\=\s*['`"]$versionPattern['`"]", "`$version = '$Version'" `
-    -replace "\`$checksum\s*\=\s*['`"][\w\d]+['`"]", "`$checksum = '$hash'" `
-    | Set-Content $chocoInstallScriptFile
+if (!$SkipChoco) {
+    $outputFile = "$OutputDir\$OutputFileNameBase.plgx"
+    $chocoDir = "$ProjectDir\Chocolatey"
+    $chocoInstallScriptFile = "$chocoDir\tools\ChocolateyInstall.ps1"
+    $hash = (Get-FileHash $outputFile -Algorithm SHA256).Hash
+    (Get-Content $chocoInstallScriptFile) `
+        -replace "\`$version\s*\=\s*['`"]$versionPattern['`"]", "`$version = '$Version'" `
+        -replace "\`$checksum\s*\=\s*['`"][\w\d]+['`"]", "`$checksum = '$hash'" `
+        | Set-Content $chocoInstallScriptFile
 
-$chocoVerificationFile = "$chocoDir\tools\VERIFICATION.txt"
-(Get-Content $chocoVerificationFile) `
-    -replace "checksum\:\s*[\w\d]+", "checksum: $hash" `
-    | Set-Content $chocoVerificationFile
+    $chocoVerificationFile = "$chocoDir\tools\VERIFICATION.txt"
+    (Get-Content $chocoVerificationFile) `
+        -replace "checksum\:\s*[\w\d]+", "checksum: $hash" `
+        | Set-Content $chocoVerificationFile
 
-if (Get-Command choco -ErrorAction SilentlyContinue) {
-    & choco pack "`"$chocoDir\keepass-plugin-winhello.nuspec`"" --version $Version --out `"$OutputDir`" ReleaseNotes=`"$ReleaseNotes`"
-} else {
-    Write-Warning "Can't create Chocolatey package. Install Chocolatey first!"
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
+        & choco pack "`"$chocoDir\keepass-plugin-winhello.nuspec`"" --version $Version --out `"$OutputDir`" ReleaseNotes=`"$ReleaseNotes`"
+    } else {
+        Write-Warning "Can't create Chocolatey package. Install Chocolatey first!"
+    }
 }

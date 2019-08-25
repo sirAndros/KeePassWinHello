@@ -110,10 +110,12 @@
     <None Include="Resources\windows-hello48x48.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$(ProjectDir)..\Pack-Plugin.ps1"</PostBuildEvent>
-  </PropertyGroup>
-  <Target Name="DeployForDebug" Condition="'$(Configuration)' == 'Debug'" AfterTargets="PostBuildEvent">
+  
+  <Target Name="PackPlugin" AfterTargets="PostBuildEvent">
+    <Exec Condition="'$(Configuration)' == 'Debug'" ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot; -Arg &quot;-SkipChoco&quot;" WorkingDirectory="$(ProjectDir).." />
+    <Exec Condition="'$(Configuration)' == 'Release'" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot;" WorkingDirectory="$(ProjectDir).." />
+  </Target>
+  <Target Name="DeployForDebug" Condition="'$(Configuration)' == 'Debug'" AfterTargets="PackPlugin">
     <Exec ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Deploy-Plugin.ps1&quot; -Arg &quot;-ForDebug&quot;" WorkingDirectory="$(ProjectDir).." />
   </Target>
 </Project>
