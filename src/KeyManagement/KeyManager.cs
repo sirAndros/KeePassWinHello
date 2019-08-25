@@ -22,8 +22,8 @@ namespace KeePassWinHello
 
     class KeyManager : IKeyManager
     {
+        private IKeyStorage _keyStorage;
         private readonly KeyCipher _keyCipher;
-        private readonly IKeyStorage _keyStorage;
         private readonly IntPtr _keePassMainWindowHandle;
 
         public int  KeysCount   { get { return _keyStorage.Count; } }
@@ -109,6 +109,8 @@ namespace KeePassWinHello
             try
             {
                 _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
+                _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
+                // todo migrate
             }
             catch (AuthProviderUserCancelledException)
             {
