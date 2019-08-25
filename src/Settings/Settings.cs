@@ -92,7 +92,8 @@ namespace KeePassWinHello
         public const long VALID_PERIOD_DEFAULT = 1000 * 60 * 60 * 24; // one day in ms
         public const long VALID_UNLIMITED_PERIOD = 922337203685476; // TimeSpan.MaxValue.TotalMilliseconds - 1
 
-        public const string ConfirmationMessage = "Authentication to access KeePass database";
+        public const string DecryptConfirmationMessage = "Authentication to access KeePass database";
+        public const string KeyCreationConfirmationMessage = "Sign chipper key with your biometrics";
         public const string OptionsTabName = "WindowsHello";
     }
 }

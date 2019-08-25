@@ -147,7 +147,7 @@ namespace KeePassWinHello
 
             try
             {
-                using (AuthProviderUIContext.With(Settings.ConfirmationMessage, _keePassMainWindowHandle))
+                using (AuthProviderUIContext.With(Settings.DecryptConfirmationMessage, _keePassMainWindowHandle))
                 {
                     compositeKey = encryptedData.GetCompositeKey(_keyCipher);
                     return true;
