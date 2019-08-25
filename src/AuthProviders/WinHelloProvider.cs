@@ -154,7 +154,11 @@ namespace KeePassWinHello
                 using (ngcKeyHandle)
                 {
                     if (!VerifyPersistentKeyIntegrity(ngcKeyHandle))
+                    {
+                        ngcKeyHandle.Close();
+                        DeletePersistentKey();
                         throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
+                    }
                 }
 
                 _currentKeyName = RetreivePersistentKeyName();
