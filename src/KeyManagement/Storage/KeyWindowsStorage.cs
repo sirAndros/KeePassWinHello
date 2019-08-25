@@ -3,9 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace KeePassWinHello
 {
@@ -60,7 +58,7 @@ namespace KeePassWinHello
             get
             {
                 int count = 0;
-                ForEach(ncred => count += IsValid(ncred) ? 1 : 0);
+                ForEach(ncred => count += IsExpired(ncred) ? 0 : 1);
                 return count;
             }
         }
@@ -83,11 +81,7 @@ namespace KeePassWinHello
 
         public void AddOrUpdate(string dbPath, ProtectedKey protectedKey)
         {
-            var stream = new MemoryStream();
-            var formatter = new BinaryFormatter();
-            formatter.Serialize(stream, protectedKey);
-
-            byte[] data = stream.ToArray();
+            byte[] data = ProtectedKey.Serialize(protectedKey);
             try
             {
                 if (data.Length > _maxBlobSize)
@@ -126,7 +120,7 @@ namespace KeePassWinHello
             try
             {
                 bool hasKey = CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr);
-                return hasKey && IsValid((CREDENTIAL)Marshal.PtrToStructure(ncredPtr, typeof(CREDENTIAL)));
+                return hasKey && !IsExpired((CREDENTIAL)Marshal.PtrToStructure(ncredPtr, typeof(CREDENTIAL)));
             }
             finally
             {
@@ -140,7 +134,7 @@ namespace KeePassWinHello
             var credsToRemove = new List<string>();
 
             ForEach(ncred => {
-                if (!IsValid(ncred))
+                if (IsExpired(ncred))
                     credsToRemove.Add(Marshal.PtrToStringUni(ncred.TargetName));
             });
 
@@ -148,7 +142,7 @@ namespace KeePassWinHello
                 CredDelete(target, CRED_TYPE_GENERIC, 0);
         }
 
-        private bool IsValid(CREDENTIAL ncred)
+        private bool IsExpired(CREDENTIAL ncred)
         {
             try
             {
@@ -157,14 +151,14 @@ namespace KeePassWinHello
 
                 var createdDate = DateTime.FromFileTime(highDateTime | lowDateTime);
                 if (DateTime.Now - createdDate >= Settings.Instance.InvalidatingTime)
-                    return false;
+                    return true;
             }
             catch (ArgumentOutOfRangeException)
             {
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         private void ForEach(Action<CREDENTIAL> action)
@@ -206,7 +200,7 @@ namespace KeePassWinHello
         public bool TryGetValue(string dbPath, out ProtectedKey protectedKey)
         {
             protectedKey = null;
-            IntPtr ncredPtr = IntPtr.Zero;
+            IntPtr ncredPtr;
 
             if (!CredRead(GetTarget(dbPath), CRED_TYPE_GENERIC, 0, out ncredPtr))
             {
@@ -218,22 +212,17 @@ namespace KeePassWinHello
             try
             {
                 var ncred = (CREDENTIAL)Marshal.PtrToStructure(ncredPtr, typeof(CREDENTIAL));
-                if (!IsValid(ncred))
+                if (IsExpired(ncred))
                     return false;
 
                 data = new byte[ncred.CredentialBlobSize];
                 Marshal.Copy(ncred.CredentialBlob, data, 0, data.Length);
 
-                var stream = new MemoryStream();
-                stream.Write(data, 0, data.Length);
-                stream.Position = 0;
-
-                var formatter = new BinaryFormatter();
-                formatter.Binder = new ProtectedKey();
-                protectedKey = (ProtectedKey)formatter.Deserialize(stream);
+                protectedKey = ProtectedKey.Deserialize(data);
             }
             catch
             {
+                CredDelete(GetTarget(dbPath), CRED_TYPE_GENERIC, 0);
                 return false;
             }
             finally

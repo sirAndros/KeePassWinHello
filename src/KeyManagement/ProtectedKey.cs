@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Xml.Serialization;
 using KeePassLib.Keys;
@@ -72,6 +74,26 @@ namespace KeePassWinHello
                 //info.AddValue(pfx + "dl", key.EncryptedData.Length, typeof(uint));
                 info.AddValue(pfx + "d", key.EncryptedData != null ? key.EncryptedData.ReadData() : null, typeof(byte[]));
             }
+        }
+
+        public static byte[] Serialize(ProtectedKey protectedKey)
+        {
+            var stream = new MemoryStream();
+            var formatter = new BinaryFormatter();
+            formatter.Serialize(stream, protectedKey);
+
+            return stream.ToArray();
+        }
+
+        public static ProtectedKey Deserialize(byte[] data)
+        {
+            var stream = new MemoryStream();
+            stream.Write(data, 0, data.Length);
+            stream.Position = 0;
+
+            var formatter = new BinaryFormatter();
+            formatter.Binder = new ProtectedKey();
+            return (ProtectedKey)formatter.Deserialize(stream);
         }
 
         public static ProtectedKey Create(CompositeKey compositeKey, KeyCipher keyCipher)
