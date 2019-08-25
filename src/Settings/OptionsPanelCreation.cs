@@ -26,17 +26,23 @@ namespace KeePassWinHello
             if (imageList == null)
             {
                 if (tabMain.ImageList == null)
+                {
                     tabMain.ImageList = new ImageList();
-                imageList = tabMain.ImageList;
-            }
+                    tabMain.ImageList.ColorDepth = ColorDepth.Depth32Bit;
+                    tabMain.ImageList.TransparentColor = Color.Transparent;
+                }
 
-            var imageIndex = imageList.Images.Add(Properties.Resources.windows_hello16x16, Color.Transparent);
+                imageList = tabMain.ImageList;
+            }   
+
+            const string iconKey = "KPWH_icon";
+            imageList.Images.Add(iconKey, Properties.Resources.KPWH);
             var optionsPanel = new OptionsPanel(keyManager);
 
             var newTab = new TabPage(Settings.OptionsTabName)
             {
                 UseVisualStyleBackColor = true,
-                ImageIndex = imageIndex
+                ImageIndex = imageList.Images.IndexOfKey(iconKey),
             };
 
             newTab.Controls.Add(optionsPanel);
