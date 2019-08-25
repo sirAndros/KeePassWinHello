@@ -37,11 +37,17 @@ namespace KeePassWinHello
             }
         }
 
+        private const uint VERSION = 1;
         private readonly ProtectedBinary _protectedPassword;
         private readonly List<KcpData> _keys;
 
         protected ProtectedKey(SerializationInfo info, StreamingContext context)
         {
+            uint ver;
+            var version = (string)info.GetValue("v", typeof(string));
+            if (string.IsNullOrEmpty(version) || !uint.TryParse(version, out ver) || ver != VERSION)
+                throw new Exception("Incompatible version");
+
             var p = (byte[])info.GetValue("p", typeof(byte[]));
             _protectedPassword = new ProtectedBinary(false, p);
 
@@ -61,6 +67,7 @@ namespace KeePassWinHello
 
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
+            info.AddValue("v", VERSION);
             //info.AddValue("pl", _protectedPassword.Length, typeof(uint));
             info.AddValue("p", _protectedPassword.ReadData(), typeof(byte[]));
 
