@@ -37,7 +37,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="KeePass">
-      <HintPath>..\..\..\bin\KeePass\KeePass.exe</HintPath>
+      <HintPath>..\lib\KeePass.exe</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -47,12 +48,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Utilities\ErrorHandler.cs" />
+    <Compile Include="Exceptions\AuthProviderIsUnavailableException.cs" />
+    <Compile Include="Exceptions\AuthProviderUserCancelledException.cs" />
+    <Compile Include="Exceptions\AuthProviderInvalidKeyException.cs" />
+    <Compile Include="Exceptions\AuthProviderSystemErrorException.cs" />
+    <Compile Include="Exceptions\AuthProviderException.cs" />
     <Compile Include="AuthProviders\IAuthProvider.cs" />
+    <Compile Include="AuthProviders\AuthProviderUIContext.cs" />
     <Compile Include="AuthProviders\WinHelloProviderForegroundDecorator.cs" />
+    <Compile Include="Exceptions\EnviromentErrorException.cs" />
+    <Compile Include="Exceptions\KeePassWinHelloException.cs" />
+    <Compile Include="KeyManagement\Storage\IKeyStorage.cs" />
     <Compile Include="KeyManagement\KeyCipher.cs" />
     <Compile Include="KeyManagement\KeyManager.cs" />
-    <Compile Include="KeyManagement\KeyStorage.cs" />
+    <Compile Include="KeyManagement\Storage\KeyMemoryStorage.cs" />
     <Compile Include="KeyManagement\ProtectedKey.cs" />
+    <Compile Include="KeyManagement\Storage\KeyWindowsStorage.cs" />
     <Compile Include="Settings\OptionsPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -64,6 +76,9 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Settings\OptionsPanelCreation.cs">
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Settings\Settings.cs" />
     <Compile Include="AuthProviders\WinHelloProvider.cs" />
@@ -95,14 +110,12 @@
     <None Include="Resources\windows-hello48x48.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$(ProjectDir)..\Pack-Plugin.ps1"</PostBuildEvent>
-  </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
+  
+  <Target Name="PackPlugin" AfterTargets="PostBuildEvent">
+    <Exec Condition="'$(Configuration)' == 'Debug'" ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot; -Arg &quot;-SkipChoco&quot;" WorkingDirectory="$(ProjectDir).." />
+    <Exec Condition="'$(Configuration)' == 'Release'" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot;" WorkingDirectory="$(ProjectDir).." />
   </Target>
-  <Target Name="AfterBuild">
+  <Target Name="DeployForDebug" Condition="'$(Configuration)' == 'Debug'" AfterTargets="PackPlugin">
+    <Exec ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Deploy-Plugin.ps1&quot; -Arg &quot;-ForDebug&quot;" WorkingDirectory="$(ProjectDir).." />
   </Target>
-  -->
 </Project>

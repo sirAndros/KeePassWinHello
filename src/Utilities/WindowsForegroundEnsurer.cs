@@ -10,23 +10,23 @@ namespace KeePassWinHello.Utilities
 {
     class WindowsForegroundEnsurer
     {
-        public static bool AllowAllSetForeground()
+        public static void AllowAllSetForeground()
         {
             const int ASFW_ANY = -1;
-            return WinAPI.AllowSetForegroundWindow(ASFW_ANY);
+            WinAPI.AllowSetForegroundWindow(ASFW_ANY).ThrowOnError("AllowSetForegroundWindow");
         }
 
         public static bool IsWindowOnForeground(IntPtr windowHandle)
         {
-            return windowHandle == WinAPI.GetForegroundWindow();
+            return windowHandle == WinAPI.GetForegroundWindow().Value;
         }
 
-        public static bool EnsureForeground(IntPtr windowHandle)
+        public static void EnsureForeground(IntPtr windowHandle)
         {
-            return EnsureForeground(IntPtr.Zero, windowHandle);
+            EnsureForeground(IntPtr.Zero, windowHandle);
         }
 
-        public static bool EnsureForeground(IntPtr currentWindowHandle, string targetWindowClass, string targetWindowTitle, int timeoutMs)
+        public static void EnsureForeground(IntPtr currentWindowHandle, string targetWindowClass, string targetWindowTitle, int timeoutMs)
         {
             if (timeoutMs < 1)
                 throw new ArgumentOutOfRangeException("timeoutMs");
@@ -36,31 +36,33 @@ namespace KeePassWinHello.Utilities
             if (attemptsCount < 1)
                 attemptsCount = 1;
 
-            IntPtr targetWindowHandle = IntPtr.Zero;
-            for (int i = 0; i < attemptsCount && targetWindowHandle == IntPtr.Zero; i++)
+            HANDLE targetWindowHandle = new HANDLE();
+            for (int i = 0; i < attemptsCount && targetWindowHandle.Value == IntPtr.Zero; i++)
             {
                 targetWindowHandle = WinAPI.FindWindowEx(currentWindowHandle, IntPtr.Zero, targetWindowClass, targetWindowTitle);
-                if (targetWindowHandle == IntPtr.Zero)
+                if (targetWindowHandle.Value == IntPtr.Zero)
                 {
-                    //ThrowIfErrorPersists();
                     Thread.Sleep(waitTimeMs);
                 }
             }
-            targetWindowHandle.CheckAndPass();
-            return EnsureForeground(currentWindowHandle, targetWindowHandle);
+            targetWindowHandle.ThrowOnError("FindWindowEx");
+            EnsureForeground(currentWindowHandle, targetWindowHandle.Value);
         }
 
-        public static bool EnsureForeground(IntPtr currentWindowHandle, string targetWindowClass, string targetWindowTitle)
+        public static void EnsureForeground(IntPtr currentWindowHandle, string targetWindowClass, string targetWindowTitle)
         {
             var targetWindowHandle = WinAPI.FindWindowEx(currentWindowHandle, IntPtr.Zero, targetWindowClass, targetWindowTitle)
-                    .CheckAndPass();
-            return EnsureForeground(currentWindowHandle, targetWindowHandle);
+                    .ThrowOnError("FindWindowEx");
+            EnsureForeground(currentWindowHandle, targetWindowHandle);
         }
 
-        public static bool EnsureForeground(IntPtr currentWindowHandle, IntPtr targetWindowHandle)
+        public static void EnsureForeground(IntPtr currentWindowHandle, IntPtr targetWindowHandle)
         {
+            if (targetWindowHandle == IntPtr.Zero)
+                return;
+
             if (IsWindowOnForeground(targetWindowHandle))
-                return true;
+                return;
 
             /*
               To set foreground we need at least one of this:
@@ -78,16 +80,7 @@ namespace KeePassWinHello.Utilities
             if (currentWindowHandle != IntPtr.Zero)
                 SilentlyBecomeForeground(currentWindowHandle);
             UnlockForeground();
-            return BringToFrontAndActivate(targetWindowHandle);
-        }
-
-        private static void ThrowIfErrorPersists()
-        {
-            const int ERROR_ACCESS_DENIED = 0x5;
-
-            int errorNum = Marshal.GetLastWin32Error();
-            if (errorNum == ERROR_ACCESS_DENIED)
-                throw new Win32Exception(errorNum);
+            BringToFrontAndActivate(targetWindowHandle);
         }
 
         private static void UnlockForeground()
@@ -110,7 +103,7 @@ namespace KeePassWinHello.Utilities
         private static bool BringToFrontAndActivate(IntPtr winHandle)
         {
             ResotoreAndFocus(winHandle);
-            return WinAPI.SetForegroundWindow(winHandle);
+            return WinAPI.SetForegroundWindow(winHandle).ThrowOnError("SetForegroundWindow");
         }
 
         private static void ResotoreAndFocus(IntPtr winHandle)
@@ -123,7 +116,7 @@ namespace KeePassWinHello.Utilities
         private static void MinimizeWindow(IntPtr winHandle)
         {
             const int SW_SHOWMINIMIZED = 0x02;
-            WinAPI.ShowWindow(winHandle, SW_SHOWMINIMIZED);
+            WinAPI.ShowWindow(winHandle, SW_SHOWMINIMIZED).ThrowOnError("ShowWindow");
         }
 
 
@@ -132,28 +125,25 @@ namespace KeePassWinHello.Utilities
             private const string User32 = "User32.dll";
 
             [DllImport(User32, SetLastError = true)]
-            public static extern bool SetForegroundWindow(IntPtr hWnd);
+            public static extern BOOL SetForegroundWindow(IntPtr hWnd);
 
             [DllImport(User32, SetLastError = true)]
             public static extern int SendMessage(IntPtr hWnd, Int32 msg, Int32 wParam, Int32 lParam);
 
             [DllImport(User32, SetLastError = true)]
-            public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+            public static extern BOOL ShowWindow(IntPtr hWnd, int nCmdShow);
 
             [DllImport(User32, SetLastError = true)]
-            public static extern IntPtr GetForegroundWindow();
+            public static extern HANDLE GetForegroundWindow();
 
             [DllImport(User32, SetLastError = true)]
-            public static extern bool AllowSetForegroundWindow(Int32 pid);
+            public static extern BOOL AllowSetForegroundWindow(Int32 pid);
 
             [DllImport(User32, SetLastError = true)]
             public static extern void keybd_event(Byte bVk, Byte bScan, UInt32 dwFlags, UIntPtr dwExtraInfo);
 
             [DllImport(User32, SetLastError = true, CharSet = CharSet.Unicode)]
-            public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-
-            [DllImport(User32, SetLastError = true, CharSet = CharSet.Unicode)]
-            public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string lpClassName, string lpWindowName);
+            public static extern HANDLE FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string lpClassName, string lpWindowName);
         }
     }
 }

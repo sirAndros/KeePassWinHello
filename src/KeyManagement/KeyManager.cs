@@ -8,30 +8,31 @@ using System.Windows.Forms;
 using KeePass.Forms;
 using KeePassLib.Keys;
 using KeePassLib.Serialization;
+using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
     interface IKeyManager
     {
-        bool IsAvailable { get; }
         int KeysCount { get; }
 
         void RevokeAll();
+        void ClaimCurrentCacheType(AuthCacheType authCacheType);
     }
 
     class KeyManager : IKeyManager
     {
+        private IKeyStorage _keyStorage;
         private readonly KeyCipher _keyCipher;
-        private readonly KeyStorage _keyStorage;
-        private volatile bool _isSecureDesktopSettingChanged = false;
+        private readonly IntPtr _keePassMainWindowHandle;
 
-        public bool IsAvailable { get { return _keyCipher.IsAvailable; } }
         public int  KeysCount   { get { return _keyStorage.Count; } }
 
         public KeyManager(IntPtr windowHandle)
         {
-            _keyStorage = new KeyStorage();
-            _keyCipher = new KeyCipher(Settings.ConfirmationMessage, windowHandle);
+            _keePassMainWindowHandle = windowHandle;
+            _keyCipher = new KeyCipher(windowHandle);
+            _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
         }
 
         public void OnKeyPrompt(KeyPromptForm keyPromptForm, MainForm mainWindow)
@@ -49,37 +50,31 @@ namespace KeePassWinHello
                     Task.Factory.StartNew(() =>
                     {
                         KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = false;
-                        _isSecureDesktopSettingChanged = true;
                         Thread.Yield();
                         ReOpenKeyPromptForm(mainWindow, dbFile);
                     })
                     .ContinueWith(_ =>
                     {
                         KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = true;
-                        _isSecureDesktopSettingChanged = false;
                     });
                 }
             }
             else
             {
-                CompositeKey compositeKey;
-                if (ExtractCompositeKey(dbPath, out compositeKey))
+                try
                 {
-                    SetCompositeKey(keyPromptForm, compositeKey);
-                    CloseFormWithResult(keyPromptForm, DialogResult.OK);
+                    CompositeKey compositeKey;
+                    if (ExtractCompositeKey(dbPath, out compositeKey))
+                    {
+                        SetCompositeKey(keyPromptForm, compositeKey);
+                        CloseFormWithResult(keyPromptForm, DialogResult.OK);
+                    }
                 }
-                else if (_isSecureDesktopSettingChanged)    // can be here only from recursive call. No extra sync needed.
+                catch (AuthProviderUserCancelledException)
                 {
-                    var dbFile = GetIoInfo(keyPromptForm);
                     CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
-                    Task.Factory.StartNew(() => ReOpenKeyPromptForm(mainWindow, dbFile));
                 }
             }
-        }
-
-        public void OnOptionsLoad(OptionsForm optionsForm)
-        {
-            OptionsPanel.AddTab(GetTabControl(optionsForm), GetTabsImageList(optionsForm), this);
         }
 
         public void OnDBClosing(object sender, FileClosingEventArgs e)
@@ -94,11 +89,11 @@ namespace KeePassWinHello
                 return;
 
             string dbPath = e.Database.IOConnectionInfo.Path;
-            if (!IsDBLocking(e))
+            if (!IsDBLocking(e) && Settings.Instance.GetAuthCacheType() == AuthCacheType.Local)
             {
                 _keyStorage.Remove(dbPath);
             }
-            else if (AuthProviderFactory.IsAvailable() && Settings.Instance.Enabled)
+            else if (Settings.Instance.Enabled)
             {
                 _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
             }
@@ -107,6 +102,24 @@ namespace KeePassWinHello
         public void RevokeAll()
         {
             _keyStorage.Clear();
+        }
+
+        public void ClaimCurrentCacheType(AuthCacheType authCacheType)
+        {
+            try
+            {
+                _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
+                _keyStorage.Clear();
+                _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
+                // todo migrate
+            }
+            catch (AuthProviderUserCancelledException)
+            {
+                if (authCacheType == AuthCacheType.Persistent)
+                    Settings.Instance.WinStorageEnabled = false;
+
+                MessageBox.Show(AuthProviderUIContext.Current, "Creating persistent key for Credential Manager has been canceled", Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private static void CloseFormWithResult(KeyPromptForm keyPromptForm, DialogResult result)
@@ -144,19 +157,17 @@ namespace KeePassWinHello
 
             try
             {
-                compositeKey = encryptedData.GetCompositeKey(_keyCipher);
-                return true;
+                using (AuthProviderUIContext.With(Settings.DecryptConfirmationMessage, _keePassMainWindowHandle))
+                {
+                    compositeKey = encryptedData.GetCompositeKey(_keyCipher);
+                    return true;
+                }
             }
-            catch (UnauthorizedAccessException)
+            catch (Exception)
             {
                 _keyStorage.Remove(dbPath);
+                throw;
             }
-            catch (Exception ex)
-            {
-                Debug.Fail(ex.ToString()); // TODO: fix canceled exception
-                _keyStorage.Remove(dbPath);
-            }
-            return false;
         }
 
         private static void SetCompositeKey(KeyPromptForm keyPromptForm, CompositeKey compositeKey)
@@ -209,19 +220,6 @@ namespace KeePassWinHello
             if (fieldInfo == null)
                 return null;
             return fieldInfo.GetValue(keyPromptForm) as IOConnectionInfo;
-        }
-
-        private static TabControl GetTabControl(OptionsForm optionsForm)
-        {
-            return optionsForm.Controls.Find("m_tabMain", true).FirstOrDefault() as TabControl;
-        }
-
-        private static ImageList GetTabsImageList(OptionsForm optionsForm)
-        {
-            var m_ilIconsField = optionsForm.GetType().GetField("m_ilIcons", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (m_ilIconsField == null)
-                return null;
-            return m_ilIconsField.GetValue(optionsForm) as ImageList;
         }
     }
 }

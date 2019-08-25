@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace KeePassWinHello
 {
-    class KeyStorage
+    class KeyMemoryStorage : IKeyStorage
     {
         class Data
         {

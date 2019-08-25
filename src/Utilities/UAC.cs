@@ -14,15 +14,13 @@ namespace KeePassWinHello
         private const string uacRegistryValue = "EnableLUA";
 
         [DllImport("advapi32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool OpenProcessToken(IntPtr processHandle, uint desiredAccess, out IntPtr TokenHandle);
+        static extern BOOL OpenProcessToken(IntPtr processHandle, uint desiredAccess, out IntPtr TokenHandle);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool CloseHandle(IntPtr hObject);
+        static extern BOOL CloseHandle(IntPtr hObject);
 
         [DllImport("advapi32.dll", SetLastError = true)]
-        static extern bool GetTokenInformation(IntPtr tokenHandle, TOKEN_INFORMATION_CLASS tokenInformationClass, IntPtr tokenInformation, uint tokenInformationLength, out uint returnLength);
+        static extern BOOL GetTokenInformation(IntPtr tokenHandle, TOKEN_INFORMATION_CLASS tokenInformationClass, IntPtr tokenInformation, uint tokenInformationLength, out uint returnLength);
 
         enum TOKEN_INFORMATION_CLASS
         {
@@ -75,7 +73,16 @@ namespace KeePassWinHello
             }
         }
 
-        public static bool IsCurrentProcessElevated()
+        public static bool IsCurrentProcessElevated
+        {
+            get
+            {
+                return _isCurrentProcessElevated.Value;
+            }
+        }
+        private static readonly Lazy<bool> _isCurrentProcessElevated = new Lazy<bool>(CheckIsCurrentProcessElevated);
+
+        private static bool CheckIsCurrentProcessElevated()
         {
             try
             {
@@ -124,11 +131,10 @@ namespace KeePassWinHello
             try
             {
                 uint returnedSize = 0;
-                bool success = GetTokenInformation(tokenHandle, TOKEN_INFORMATION_CLASS.TokenElevationType,
-                                                           elevationTypePtr, (uint) elevationResultSize,
-                                                           out returnedSize);
-                if (!success)
-                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Unable to determine the current elevation status.");
+                GetTokenInformation(tokenHandle, TOKEN_INFORMATION_CLASS.TokenElevationType,
+                                    elevationTypePtr, (uint) elevationResultSize,
+                                    out returnedSize)
+                    .ThrowOnError("Unable to determine the current elevation status.");
 
                 return (TokenElevationType)Marshal.ReadInt32(elevationTypePtr);
             }
@@ -148,8 +154,8 @@ namespace KeePassWinHello
                 const uint TOKEN_QUERY = 0x0008;
                 const uint TOKEN_READ = (STANDARD_RIGHTS_READ | TOKEN_QUERY);
 
-                if (!OpenProcessToken(process.Handle, TOKEN_READ, out tokenHandle))
-                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not get process token.");
+                OpenProcessToken(process.Handle, TOKEN_READ, out tokenHandle)
+                    .ThrowOnError("Could not get process token.");
             }
             return tokenHandle;
         }

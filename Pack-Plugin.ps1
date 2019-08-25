@@ -3,9 +3,10 @@ param (
     [string] $OutputFileNameBase = 'KeePassWinHelloPlugin',
     [string] $OutputDir = $null,
     [string] $Version = $null,
-    [string] $ReleaseNotes = $null
+    [string] $ReleaseNotes = $null,
+    [switch] $SkipChoco
 )
-$keePassExe = 'C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe'
+
 $versionPattern = '[\d\.]+(?:\-\w+)?'
 
 if (!$PSScriptRoot) {
@@ -44,6 +45,11 @@ Get-ChildItem $sources |
     Where-Object   { $i=$_; $res=$true; $excludedItems | ForEach-Object { $i -notlike $_ } | ForEach-Object { $res = $_ -and $res }; $res } |
     ForEach-Object { Copy-Item $_.FullName $packingSourcesFolder -Recurse }
 
+$keePassExe = "$ProjectDir\lib\KeePass.exe"
+if (!(Test-Path $keePassExe)) {
+    $keePassExe = 'C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe'
+}
+
 try {
     Push-Location
     Set-Location $OutputDir
@@ -54,18 +60,24 @@ try {
 
 Remove-Item $packingSourcesFolder -Force -Recurse
 
-$outputFile = "$OutputDir\$OutputFileNameBase.plgx"
-$chocoDir = "$ProjectDir\Chocolatey"
-$chocoInstallScriptFile = "$chocoDir\tools\ChocolateyInstall.ps1"
-$hash = (Get-FileHash $outputFile -Algorithm SHA256).Hash
-(Get-Content $chocoInstallScriptFile) `
-    -replace "\`$version\s*\=\s*['`"]$versionPattern['`"]", "`$version = '$Version'" `
-    -replace "\`$checksum\s*\=\s*['`"][\w\d]+['`"]", "`$checksum = '$hash'" `
-    | Set-Content $chocoInstallScriptFile
+if (!$SkipChoco) {
+    $outputFile = "$OutputDir\$OutputFileNameBase.plgx"
+    $chocoDir = "$ProjectDir\Chocolatey"
+    $chocoInstallScriptFile = "$chocoDir\tools\ChocolateyInstall.ps1"
+    $hash = (Get-FileHash $outputFile -Algorithm SHA256).Hash
+    (Get-Content $chocoInstallScriptFile) `
+        -replace "\`$version\s*\=\s*['`"]$versionPattern['`"]", "`$version = '$Version'" `
+        -replace "\`$checksum\s*\=\s*['`"][\w\d]+['`"]", "`$checksum = '$hash'" `
+        | Set-Content $chocoInstallScriptFile
 
-$chocoVerificationFile = "$chocoDir\tools\VERIFICATION.txt"
-(Get-Content $chocoVerificationFile) `
-    -replace "checksum\:\s*[\w\d]+", "checksum: $hash" `
-    | Set-Content $chocoVerificationFile
+    $chocoVerificationFile = "$chocoDir\tools\VERIFICATION.txt"
+    (Get-Content $chocoVerificationFile) `
+        -replace "checksum\:\s*[\w\d]+", "checksum: $hash" `
+        | Set-Content $chocoVerificationFile
 
-& choco pack "`"$chocoDir\keepass-plugin-winhello.nuspec`"" --version $Version --out `"$OutputDir`" ReleaseNotes=`"$ReleaseNotes`"
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
+        & choco pack "`"$chocoDir\keepass-plugin-winhello.nuspec`"" --version $Version --out `"$OutputDir`" ReleaseNotes=`"$ReleaseNotes`"
+    } else {
+        Write-Warning "Can't create Chocolatey package. Install Chocolatey first!"
+    }
+}

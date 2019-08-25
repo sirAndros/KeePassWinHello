@@ -43,12 +43,10 @@ Or you can use [Chocolatey](https://chocolatey.org/packages/keepass-plugin-winhe
 choco install keepass-plugin-winhello
 ```
 
-Setup
------
+Key storage
+-----------
 
-This plugin requires KeePass to remain open to function as intended. Ensure that your KeePass lock settings do not close the program as shown below:
-
-<img src="https://github.com/sirAndros/KeePassWinHello/blob/master/Screenshots/KeePassLockOptions.png?raw=true" width=500/>
+By default this plugin holds an encrypted master password in memory and removes it upon KeePass closing. In order to be able to unlock your database via Windows Hello authentication in between KeePass launches you may check "Store keys in the Windows Credential Manager" on in the Options dialog. This will prompts you for creating a persistent key signed with your biometry via Windows Hello. The key is used to encrypt master passwords for securely storing them in the Windows Credential Manager.
 
 Options
 -------
@@ -59,8 +57,9 @@ The plugin integrates itself into the KeePass settings dialog.
 
 Available settings:
 
-* Auto prompt (default: true): If enabled a Windows Hello prompt will automatically be opened while unlocking the database as long as it is available.
 * Valid time period (default: 24 hours): Choose how long a saved key will be available. Once this period has expired you need to provide your full password to unlock the database again.
+* Storage location: Choose where to hold encrypted master passwords - in the KeePass process memory (by default) or in the Windows Credential Manager.
+* Revoke all: Allows you to delete all stored keys.
 
 Notes
 -----

@@ -4,12 +4,37 @@ using System.Windows.Forms;
 
 namespace KeePassWinHello
 {
-    class XorProvider : IAuthProvider, IWin32Window
+    class XorProvider : IAuthProvider
     {
         private const byte _entropy = 42;
 
-        public string Message { get; set; }
-        public IntPtr Handle { get; set; }
+        public XorProvider(AuthCacheType authCacheType)
+        {
+            CurrentCacheType = authCacheType;
+        }
+
+        public AuthCacheType CurrentCacheType { get; private set; } // TDB
+
+        public void ClaimCurrentCacheType(AuthCacheType newType)
+        {
+            CurrentCacheType = newType;
+
+            if (newType == AuthCacheType.Persistent)
+            {
+                string message = "Default message for persistent auth type";
+                var uiContext = AuthProviderUIContext.Current;
+                if (uiContext != null)
+                    message = uiContext.Message;
+
+                var dlgRslt = MessageBox.Show(uiContext, message, "Test cache type change", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+                if (dlgRslt != DialogResult.OK)
+                    throw new AuthProviderUserCancelledException();
+            }
+            else
+            {
+                MessageBox.Show(AuthProviderUIContext.Current, "Switched to local.", "Keys removed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
 
         public byte[] Encrypt(byte[] data)
         {
@@ -18,14 +43,19 @@ namespace KeePassWinHello
 
         public byte[] PromptToDecrypt(byte[] data)
         {
-            var dlgRslt = MessageBox.Show(this, Message, "Test", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+            string message = "Default message for encrypt";
+            var uiContext = AuthProviderUIContext.Current;
+            if (uiContext != null)
+                message = uiContext.Message;
+
+            var dlgRslt = MessageBox.Show(uiContext, message, "Windows Security", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
             if (dlgRslt == DialogResult.OK)
             {
                 return Encrypt(data);
             }
             else
             {
-                throw new UnauthorizedAccessException("Canceled");
+                throw new AuthProviderUserCancelledException();
             }
         }
     }

@@ -6,14 +6,29 @@ namespace KeePassWinHello
 {
     class WinHelloProviderForegroundDecorator : IAuthProvider
     {
-        private readonly WinHelloProvider _winHelloProvider;
+        private readonly IAuthProvider _winHelloProvider;
+        private readonly IntPtr _keePassWindowHandle;
 
-        public WinHelloProviderForegroundDecorator(WinHelloProvider winHelloProvider)
+        public WinHelloProviderForegroundDecorator(IAuthProvider provider, IntPtr keePassWindowHandle)
         {
-            if (winHelloProvider == null)
-                throw new ArgumentNullException("winHelloProvider");
+            if (provider == null)
+                throw new ArgumentNullException("provider");
 
-            _winHelloProvider = winHelloProvider;
+            _winHelloProvider = provider;
+            _keePassWindowHandle = keePassWindowHandle;
+        }
+
+        public AuthCacheType CurrentCacheType
+        {
+            get
+            {
+                return _winHelloProvider.CurrentCacheType;
+            }
+        }
+
+        public void ClaimCurrentCacheType(AuthCacheType newType)
+        {
+            _winHelloProvider.ClaimCurrentCacheType(newType);
         }
 
         public byte[] Encrypt(byte[] data)
@@ -31,7 +46,7 @@ namespace KeePassWinHello
                 try
                 {
                     var result = _winHelloProvider.PromptToDecrypt(data);
-                    Utilities.WindowsForegroundEnsurer.EnsureForeground(_winHelloProvider.ParentHandle);
+                    BringKeePassMainWindowToFrontSafe();
                     return result;
                 }
                 catch
@@ -42,11 +57,28 @@ namespace KeePassWinHello
             }
         }
 
+        private void BringKeePassMainWindowToFrontSafe()
+        {
+            try
+            {
+                Utilities.WindowsForegroundEnsurer.EnsureForeground(_keePassWindowHandle);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.Fail(ex.Message);
+            }
+        }
+
         private void MakePromptWindowForegroundSafe()
         {
             try
             {
-                Utilities.WindowsForegroundEnsurer.EnsureForeground(IntPtr.Zero, "Credential Dialog Xaml Host", "Windows Security", 2000); 
+#if DEBUG
+                const string targetWindowClass = null;
+#else
+                const string targetWindowClass = "Credential Dialog Xaml Host"; 
+#endif
+                Utilities.WindowsForegroundEnsurer.EnsureForeground(IntPtr.Zero, targetWindowClass, "Windows Security", 2000); 
             }
             catch (Exception ex)
             {

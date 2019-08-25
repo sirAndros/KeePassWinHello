@@ -11,6 +11,7 @@ namespace KeePassWinHello
 
         private const string CFG_VALID_PERIOD = "WindowsHello.QuickUnlock.ValidPeriod";
         private const string CFG_ENABLED = "WindowsHello.QuickUnlock.Enabled";
+        private const string CFG_WINSTORAGE_ENABLED = "WindowsHello.QuickUnlock.WindowsStorage.Enabled";
 
         private static Lazy<Settings> _instance = new Lazy<Settings>(() => new Settings(), true);
         private AceCustomConfig _customConfig;
@@ -76,10 +77,32 @@ namespace KeePassWinHello
             }
         }
 
+        public bool WinStorageEnabled
+        {
+            get
+            {
+                return _customConfig.GetBool(CFG_WINSTORAGE_ENABLED, false);
+            }
+            set
+            {
+                _customConfig.SetBool(CFG_WINSTORAGE_ENABLED, value);
+            }
+        }
+
         public const long VALID_PERIOD_DEFAULT = 1000 * 60 * 60 * 24; // one day in ms
         public const long VALID_UNLIMITED_PERIOD = 922337203685476; // TimeSpan.MaxValue.TotalMilliseconds - 1
 
-        public const string ConfirmationMessage = "Authentication to access KeePass database";
+        public const string DecryptConfirmationMessage = "Authentication to access KeePass database";
+        public const string KeyCreationConfirmationMessage = "KeePassWinHello requires for a signed persistent key";
         public const string OptionsTabName = "WindowsHello";
+        public const string ProductName = "KeePassWinHello";
+    }
+
+    internal static class SettingsExtension
+    {
+        public static AuthCacheType GetAuthCacheType(this Settings settings)
+        {
+            return settings.WinStorageEnabled ? AuthCacheType.Persistent : AuthCacheType.Local;
+        }
     }
 }

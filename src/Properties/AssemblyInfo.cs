@@ -1,8 +1,9 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using KeePassWinHello;
 
-[assembly: AssemblyTitle("KeePassWinHello")]
+[assembly: AssemblyTitle(Settings.ProductName)]
 [assembly: AssemblyDescription("This plugin for KeePass 2 password manager is intended for fast authorization to a database after its first unlock using Windows Hello technology.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("AS & AO")]
