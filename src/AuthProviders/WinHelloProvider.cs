@@ -22,6 +22,7 @@ namespace KeePassWinHello
         private const int NCRYPT_PAD_PKCS1_FLAG = 0x00000002;
         private const int NTE_USER_CANCELLED = unchecked((int)0x80090036);
         private const int NTE_BAD_KEYSET = unchecked((int)0x80090016);
+        private const int NTE_NO_KEY = unchecked((int)0x8009000D);
 
         [StructLayout(LayoutKind.Sequential)]
         struct SECURITY_STATUS
@@ -264,7 +265,7 @@ namespace KeePassWinHello
                     out ngcKeyHandle,
                     RetreivePersistentKeyName(),
                     0, CngKeyOpenOptions.None
-                    ).CheckStatus(NTE_BAD_KEYSET);
+                    ).CheckStatus(NTE_NO_KEY);
             }
 
             return ngcKeyHandle != null && !ngcKeyHandle.IsInvalid;
