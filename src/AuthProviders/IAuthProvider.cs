@@ -21,15 +21,14 @@ namespace KeePassWinHello
         public static IAuthProvider GetInstance(IntPtr keePassWindowHandle)
         {
 #if DEBUG
-            return new XorProvider();
+            var provider = new XorProvider();
 #else
             var provider = WinHelloProvider.CreateInstance(AuthCacheType.Local);
-
+#endif
             if (UAC.IsCurrentProcessElevated)
                 return new WinHelloProviderForegroundDecorator(provider, keePassWindowHandle);
             else
                 return provider;
-#endif
         }
     }
 }
