@@ -15,7 +15,7 @@ namespace KeePassWinHello
 
         public override Image SmallIcon
         {
-            get { return Properties.Resources.windows_hello16x16; }
+            get { return Properties.Resources.KPWH_32x32; }
         }
 
         public override string UpdateUrl
