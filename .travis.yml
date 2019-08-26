@@ -13,9 +13,12 @@ jdk:
   - oraclejdk8
 
 script:
+  - wget https://sourceforge.net/projects/keepass/files/KeePass%202.x/2.42.1/KeePass-2.42.1.zip
+  - unzip KeePass-2.42.1.zip lib
+  - ls lib
   - sonar-scanner
   - npm install -g snyk
-  - snyk test
+  - snyk test src
 
 cache:
   directories:
