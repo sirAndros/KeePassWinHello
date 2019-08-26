@@ -18,7 +18,7 @@ script:
   - wget https://sourceforge.net/projects/keepass/files/KeePass%202.x/2.42.1/KeePass-2.42.1.zip
   - unzip KeePass-2.42.1.zip -d lib
   - cd src
-  - msbuild /p:Configuration=Release src/KeePassWinHello.sln
+  - msbuild /p:Configuration=Release KeePassWinHello.sln
   - npm install -g snyk
   - snyk test
 
