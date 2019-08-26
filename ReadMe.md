@@ -1,6 +1,13 @@
 Quick unlock with Windows Hello for KeePass 2
 =============================================
 
+[![Build Status](https://travis-ci.org/sirAndros/KeePassWinHello.svg?branch=master)](https://travis-ci.com/sirAndros/KeePassWinHello)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=sirAndros_KeePassWinHello&metric=alert_status)](https://sonarcloud.io/dashboard?id=sirAndros_KeePassWinHello)
+[![GitHub All Releases](https://img.shields.io/github/downloads/sirAndros/KeePassWinHello/total)](https://github.com/sirAndros/KeePassWinHello/releases)
+[![Chocolatey](https://img.shields.io/chocolatey/dt/keepass-plugin-winhello?label=chocolatey)](https://chocolatey.org/packages/keepass-plugin-winhello)
+
+
+
 This plugin for [KeePass 2][KeePass] password manager is intended for fast authorization to a database after its first unlock using [Windows Hello technology][WinHello].
 
 [KeePass]: https://keepass.info/
