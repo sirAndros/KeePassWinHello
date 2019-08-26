@@ -393,4 +393,75 @@ namespace KeePassWinHello
             }
         }
     }
+
+
+
+#if __MonoCS__
+
+    public abstract class SafeNCryptHandle : SafeHandleZeroOrMinusOneIsInvalid
+	{
+		protected SafeNCryptHandle ()
+			: base (true)
+		{
+		}
+
+		protected SafeNCryptHandle (IntPtr handle, System.Runtime.InteropServices.SafeHandle parentHandle)
+			: base (false)
+		{
+			throw new NotImplementedException ();
+		}
+
+		public override bool IsInvalid { get { throw new NotImplementedException (); } }
+
+		protected override bool ReleaseHandle ()
+		{
+			return false;
+		}
+
+		protected abstract bool ReleaseNativeHandle();
+	}
+    
+    public sealed class SafeNCryptKeyHandle : SafeNCryptHandle
+	{
+		public SafeNCryptKeyHandle ()
+		{
+		}
+
+		public SafeNCryptKeyHandle (IntPtr handle, System.Runtime.InteropServices.SafeHandle parentHandle)
+			: base (handle, parentHandle)
+		{
+
+		}
+
+		protected override bool ReleaseNativeHandle ()
+		{
+			return false;
+		}
+	}
+    
+    public sealed class SafeNCryptProviderHandle : SafeNCryptHandle
+	{
+		public SafeNCryptProviderHandle ()
+		{
+		}
+
+		protected override bool ReleaseNativeHandle ()
+		{
+			return false;
+		}
+	}
+    
+    public sealed class SafeNCryptSecretHandle : SafeNCryptHandle
+	{
+		public SafeNCryptSecretHandle ()
+		{
+		}
+
+		protected override bool ReleaseNativeHandle ()
+		{
+			return false;
+		}
+	}
+
+#endif
 }
