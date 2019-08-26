@@ -5,7 +5,6 @@ addons:
   apt:
     packages:
       - openjdk-8-jdk
-      - npm
   sonarcloud:
     organization: "sirandros-github"
 
@@ -14,9 +13,3 @@ jdk:
 
 script:
   - sonar-scanner
-  - npm install -g snyk
-  - snyk test
-
-cache:
-  directories:
-    - '$HOME/.sonar/cache'
