@@ -20,8 +20,4 @@ script:
   - cd src
   - msbuild /p:Configuration=Release KeePassWinHello.sln
   - npm install -g snyk
-  - snyk test
-
-cache:
-  directories:
-    - '$HOME/.sonar/cache'
+  - snyk test --file=KeePassWinHello.sln
