@@ -424,7 +424,6 @@ namespace KeePassWinHello
     ///     Flags controlling how a key is opened
     /// </summary>
     [Flags]
-    [SuppressMessage("Microsoft.Design", "CA1008:EnumsShouldHaveZeroValue", Justification = "Approved API exception to have an easy way to express user keys")]
     public enum CngKeyOpenOptions {
         None = 0x00000000,
         UserKey = 0x00000000,
@@ -445,7 +444,6 @@ namespace KeePassWinHello
     ///     Bits defining what operations are valid to use a key with
     /// </summary>
     [Flags]
-    [SuppressMessage("Microsoft.Usage", "CA2217:DoNotMarkEnumsWithFlags", Justification = "Flags are defined by the native ncrypt API")]
     public enum CngKeyUsages {
         None = 0x00000000,
         Decryption = 0x00000001,                        // NCRYPT_ALLOW_DECRYPT_FLAG
@@ -458,7 +456,6 @@ namespace KeePassWinHello
     ///     Options affecting how a property is interpreted by CNG
     /// </summary>
     [Flags]
-    [SuppressMessage("Microsoft.Usage", "CA2217:DoNotMarkEnumsWithFlags", Justification = "Flags are defined by the native ncrypt API")]
     public enum CngPropertyOptions {
         None = 0x00000000,
         CustomProperty = 0x40000000,                    // NCRYPT_PERSIST_ONLY_FLAG
