@@ -398,11 +398,9 @@ namespace KeePassWinHello
 
 #if MONO
 
-    /// <summary>
-    ///     Flags to control how often and in which format a key is allowed to be exported
-    /// </summary>
     [Flags]
-    public enum CngExportPolicies {
+    public enum CngExportPolicies
+    {
         None = 0x00000000,
         AllowExport = 0x00000001,                       // NCRYPT_ALLOW_EXPORT_FLAG
         AllowPlaintextExport = 0x00000002,              // NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG
@@ -410,41 +408,33 @@ namespace KeePassWinHello
         AllowPlaintextArchiving = 0x00000008            // NCRYPT_ALLOW_PLAINTEXT_ARCHIVING_FLAG
     }
 
-    /// <summary>
-    ///     Flags controlling how the key is created
-    /// </summary>
     [Flags]
-    public enum CngKeyCreationOptions {
+    public enum CngKeyCreationOptions
+    {
         None = 0x00000000,
         MachineKey = 0x00000020,                        // NCRYPT_MACHINE_KEY_FLAG
         OverwriteExistingKey = 0x00000080               // NCRYPT_OVERWRITE_KEY_FLAG               
     }
 
-    /// <summary>
-    ///     Flags controlling how a key is opened
-    /// </summary>
     [Flags]
-    public enum CngKeyOpenOptions {
+    public enum CngKeyOpenOptions
+    {
         None = 0x00000000,
         UserKey = 0x00000000,
         MachineKey = 0x00000020,                        // NCRYPT_MACHINE_KEY_FLAG
         Silent = 0x00000040                             // NCRYPT_SILENT_FLAG                      
     }
 
-    /// <summary>
-    ///     Flags indicating the type of key
-    /// </summary>
     [Flags]
-    internal enum CngKeyTypes {
+    internal enum CngKeyTypes
+    {
         None = 0x00000000,
         MachineKey = 0x00000020                         // NCRYPT_MACHINE_KEY_FLAG
     }
 
-    /// <summary>
-    ///     Bits defining what operations are valid to use a key with
-    /// </summary>
     [Flags]
-    public enum CngKeyUsages {
+    public enum CngKeyUsages
+    {
         None = 0x00000000,
         Decryption = 0x00000001,                        // NCRYPT_ALLOW_DECRYPT_FLAG
         Signing = 0x00000002,                           // NCRYPT_ALLOW_SIGNING_FLAG
@@ -452,80 +442,70 @@ namespace KeePassWinHello
         AllUsages = 0x00ffffff                          // NCRYPT_ALLOW_ALL_USAGES
     }
 
-    /// <summary>
-    ///     Options affecting how a property is interpreted by CNG
-    /// </summary>
     [Flags]
-    public enum CngPropertyOptions {
+    public enum CngPropertyOptions
+    {
         None = 0x00000000,
         CustomProperty = 0x40000000,                    // NCRYPT_PERSIST_ONLY_FLAG
         Persist = unchecked((int)0x80000000)            // NCRYPT_PERSIST_FLAG
     }
 
     public abstract class SafeNCryptHandle : SafeHandleZeroOrMinusOneIsInvalid
-	{
-		protected SafeNCryptHandle ()
-			: base (true)
-		{
-		}
+    {
+        protected SafeNCryptHandle()
+            : base(true)
+        {
+        }
 
-		protected SafeNCryptHandle (IntPtr handle, System.Runtime.InteropServices.SafeHandle parentHandle)
-			: base (false)
-		{
-			throw new NotImplementedException ();
-		}
+        protected SafeNCryptHandle(IntPtr handle, System.Runtime.InteropServices.SafeHandle parentHandle)
+            : base(false)
+        {
+            throw new NotImplementedException();
+        }
 
-		public override bool IsInvalid { get { throw new NotImplementedException (); } }
+        public override bool IsInvalid { get { throw new NotImplementedException(); } }
 
-		protected override bool ReleaseHandle ()
-		{
-			return false;
-		}
+        protected override bool ReleaseHandle()
+        {
+            return false;
+        }
 
-		protected abstract bool ReleaseNativeHandle();
-	}
-    
+        protected abstract bool ReleaseNativeHandle();
+    }
+
     public sealed class SafeNCryptKeyHandle : SafeNCryptHandle
-	{
-		public SafeNCryptKeyHandle ()
-		{
-		}
+    {
+        public SafeNCryptKeyHandle()
+        {
+        }
 
-		public SafeNCryptKeyHandle (IntPtr handle, System.Runtime.InteropServices.SafeHandle parentHandle)
-			: base (handle, parentHandle)
-		{
+        public SafeNCryptKeyHandle(IntPtr handle, System.Runtime.InteropServices.SafeHandle parentHandle)
+            : base(handle, parentHandle)
+        {
 
-		}
+        }
 
-		protected override bool ReleaseNativeHandle ()
-		{
-			return false;
-		}
-	}
-    
+        protected override bool ReleaseNativeHandle()
+        {
+            return false;
+        }
+    }
+
     public sealed class SafeNCryptProviderHandle : SafeNCryptHandle
-	{
-		public SafeNCryptProviderHandle ()
-		{
-		}
+    {
+        protected override bool ReleaseNativeHandle()
+        {
+            return false;
+        }
+    }
 
-		protected override bool ReleaseNativeHandle ()
-		{
-			return false;
-		}
-	}
-    
     public sealed class SafeNCryptSecretHandle : SafeNCryptHandle
-	{
-		public SafeNCryptSecretHandle ()
-		{
-		}
-
-		protected override bool ReleaseNativeHandle ()
-		{
-			return false;
-		}
-	}
+    {
+        protected override bool ReleaseNativeHandle()
+        {
+            return false;
+        }
+    }
 
 #endif
 }
