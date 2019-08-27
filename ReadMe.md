@@ -35,7 +35,7 @@ This plugin relies on Windows Hello API and its [requirements][WinHelloReq].
 There are some known issues with Windows Hello reported by community.
 Please, check [here](https://github.com/sirAndros/KeePassWinHello/wiki/Windows-Hello-issues) before write issue.
 
-Tested on Microsoft Surface with KeePass 2.39.1 and 2.42.1.
+Tested on Microsoft Surface Pro 2017 with KeePass 2.39.1 and 2.42.1.
 
 [WinHelloReq]: https://www.microsoft.com/en-US/windows/windows-10-specifications
 
