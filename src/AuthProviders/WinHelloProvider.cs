@@ -396,7 +396,74 @@ namespace KeePassWinHello
 
 
 
-#if __MonoCS__
+#if MONO
+
+    /// <summary>
+    ///     Flags to control how often and in which format a key is allowed to be exported
+    /// </summary>
+    [Flags]
+    public enum CngExportPolicies {
+        None = 0x00000000,
+        AllowExport = 0x00000001,                       // NCRYPT_ALLOW_EXPORT_FLAG
+        AllowPlaintextExport = 0x00000002,              // NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG
+        AllowArchiving = 0x00000004,                    // NCRYPT_ALLOW_ARCHIVING_FLAG
+        AllowPlaintextArchiving = 0x00000008            // NCRYPT_ALLOW_PLAINTEXT_ARCHIVING_FLAG
+    }
+
+    /// <summary>
+    ///     Flags controlling how the key is created
+    /// </summary>
+    [Flags]
+    public enum CngKeyCreationOptions {
+        None = 0x00000000,
+        MachineKey = 0x00000020,                        // NCRYPT_MACHINE_KEY_FLAG
+        OverwriteExistingKey = 0x00000080               // NCRYPT_OVERWRITE_KEY_FLAG               
+    }
+
+    /// <summary>
+    ///     Flags controlling how a key is opened
+    /// </summary>
+    [Flags]
+    [SuppressMessage("Microsoft.Design", "CA1008:EnumsShouldHaveZeroValue", Justification = "Approved API exception to have an easy way to express user keys")]
+    public enum CngKeyOpenOptions {
+        None = 0x00000000,
+        UserKey = 0x00000000,
+        MachineKey = 0x00000020,                        // NCRYPT_MACHINE_KEY_FLAG
+        Silent = 0x00000040                             // NCRYPT_SILENT_FLAG                      
+    }
+
+    /// <summary>
+    ///     Flags indicating the type of key
+    /// </summary>
+    [Flags]
+    internal enum CngKeyTypes {
+        None = 0x00000000,
+        MachineKey = 0x00000020                         // NCRYPT_MACHINE_KEY_FLAG
+    }
+
+    /// <summary>
+    ///     Bits defining what operations are valid to use a key with
+    /// </summary>
+    [Flags]
+    [SuppressMessage("Microsoft.Usage", "CA2217:DoNotMarkEnumsWithFlags", Justification = "Flags are defined by the native ncrypt API")]
+    public enum CngKeyUsages {
+        None = 0x00000000,
+        Decryption = 0x00000001,                        // NCRYPT_ALLOW_DECRYPT_FLAG
+        Signing = 0x00000002,                           // NCRYPT_ALLOW_SIGNING_FLAG
+        KeyAgreement = 0x00000004,                      // NCRYPT_ALLOW_KEY_AGREEMENT_FLAG
+        AllUsages = 0x00ffffff                          // NCRYPT_ALLOW_ALL_USAGES
+    }
+
+    /// <summary>
+    ///     Options affecting how a property is interpreted by CNG
+    /// </summary>
+    [Flags]
+    [SuppressMessage("Microsoft.Usage", "CA2217:DoNotMarkEnumsWithFlags", Justification = "Flags are defined by the native ncrypt API")]
+    public enum CngPropertyOptions {
+        None = 0x00000000,
+        CustomProperty = 0x40000000,                    // NCRYPT_PERSIST_ONLY_FLAG
+        Persist = unchecked((int)0x80000000)            // NCRYPT_PERSIST_FLAG
+    }
 
     public abstract class SafeNCryptHandle : SafeHandleZeroOrMinusOneIsInvalid
 	{
