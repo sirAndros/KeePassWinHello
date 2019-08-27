@@ -393,4 +393,119 @@ namespace KeePassWinHello
             }
         }
     }
+
+
+
+#if MONO
+
+    [Flags]
+    public enum CngExportPolicies
+    {
+        None = 0x00000000,
+        AllowExport = 0x00000001,                       // NCRYPT_ALLOW_EXPORT_FLAG
+        AllowPlaintextExport = 0x00000002,              // NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG
+        AllowArchiving = 0x00000004,                    // NCRYPT_ALLOW_ARCHIVING_FLAG
+        AllowPlaintextArchiving = 0x00000008            // NCRYPT_ALLOW_PLAINTEXT_ARCHIVING_FLAG
+    }
+
+    [Flags]
+    public enum CngKeyCreationOptions
+    {
+        None = 0x00000000,
+        MachineKey = 0x00000020,                        // NCRYPT_MACHINE_KEY_FLAG
+        OverwriteExistingKey = 0x00000080               // NCRYPT_OVERWRITE_KEY_FLAG               
+    }
+
+    [Flags]
+    public enum CngKeyOpenOptions
+    {
+        None = 0x00000000,
+        UserKey = 0x00000000,
+        MachineKey = 0x00000020,                        // NCRYPT_MACHINE_KEY_FLAG
+        Silent = 0x00000040                             // NCRYPT_SILENT_FLAG                      
+    }
+
+    [Flags]
+    internal enum CngKeyTypes
+    {
+        None = 0x00000000,
+        MachineKey = 0x00000020                         // NCRYPT_MACHINE_KEY_FLAG
+    }
+
+    [Flags]
+    public enum CngKeyUsages
+    {
+        None = 0x00000000,
+        Decryption = 0x00000001,                        // NCRYPT_ALLOW_DECRYPT_FLAG
+        Signing = 0x00000002,                           // NCRYPT_ALLOW_SIGNING_FLAG
+        KeyAgreement = 0x00000004,                      // NCRYPT_ALLOW_KEY_AGREEMENT_FLAG
+        AllUsages = 0x00ffffff                          // NCRYPT_ALLOW_ALL_USAGES
+    }
+
+    [Flags]
+    public enum CngPropertyOptions
+    {
+        None = 0x00000000,
+        CustomProperty = 0x40000000,                    // NCRYPT_PERSIST_ONLY_FLAG
+        Persist = unchecked((int)0x80000000)            // NCRYPT_PERSIST_FLAG
+    }
+
+    public abstract class SafeNCryptHandle : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        protected SafeNCryptHandle()
+            : base(true)
+        {
+        }
+
+        protected SafeNCryptHandle(IntPtr handle, System.Runtime.InteropServices.SafeHandle parentHandle)
+            : base(false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool IsInvalid { get { throw new NotImplementedException(); } }
+
+        protected override bool ReleaseHandle()
+        {
+            return false;
+        }
+
+        protected abstract bool ReleaseNativeHandle();
+    }
+
+    public sealed class SafeNCryptKeyHandle : SafeNCryptHandle
+    {
+        public SafeNCryptKeyHandle()
+        {
+        }
+
+        public SafeNCryptKeyHandle(IntPtr handle, System.Runtime.InteropServices.SafeHandle parentHandle)
+            : base(handle, parentHandle)
+        {
+
+        }
+
+        protected override bool ReleaseNativeHandle()
+        {
+            return false;
+        }
+    }
+
+    public sealed class SafeNCryptProviderHandle : SafeNCryptHandle
+    {
+        protected override bool ReleaseNativeHandle()
+        {
+            return false;
+        }
+    }
+
+    public sealed class SafeNCryptSecretHandle : SafeNCryptHandle
+    {
+        protected override bool ReleaseNativeHandle()
+        {
+            return false;
+        }
+    }
+
+#endif
 }
