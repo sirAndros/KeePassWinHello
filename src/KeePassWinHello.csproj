@@ -110,7 +110,7 @@
     <Content Include="Resources\KPWH_512x512.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="PackPlugin" AfterTargets="PostBuildEvent">
+  <Target Name="PackPlugin" AfterTargets="PostBuildEvent" Condition="!($(DefineConstants.Contains('MONO')))">
     <Exec Condition="'$(Configuration)' == 'Debug'" ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot; -Arg &quot;-SkipChoco&quot;" WorkingDirectory="$(ProjectDir).." />
     <Exec Condition="'$(Configuration)' == 'Release'" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot;" WorkingDirectory="$(ProjectDir).." />
   </Target>
