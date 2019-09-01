@@ -39,15 +39,26 @@ namespace KeePassWinHello
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    struct HANDLE   // TODO Rewrite using SafeHandle
+    struct HWND
     {
-        private static IntPtr _invalidHandle = new IntPtr(-1);
-
         public IntPtr Value;
+
+        public HWND(IntPtr handle)
+        {
+            Value = handle;
+        }
+
+        public bool IsValid
+        {
+            get
+            {
+                return Value != IntPtr.Zero;
+            }
+        }
 
         public IntPtr ThrowOnError(string debugInfo = "", params int[] ignoredErrors)
         {
-            if (Value == IntPtr.Zero || Value == _invalidHandle)
+            if (!IsValid)
             {
                 int errorCode = Marshal.GetLastWin32Error();
                 if (ignoredErrors == null || !ignoredErrors.Contains(errorCode))
