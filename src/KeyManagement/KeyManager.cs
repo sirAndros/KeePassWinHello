@@ -163,6 +163,12 @@ namespace KeePassWinHello
                     return true;
                 }
             }
+            catch (AuthProviderUserCancelledException)
+            {
+                if (Settings.Instance.RevokeOnCancel)
+                    _keyStorage.Remove(dbPath);
+                throw;
+            }
             catch (Exception)
             {
                 _keyStorage.Remove(dbPath);

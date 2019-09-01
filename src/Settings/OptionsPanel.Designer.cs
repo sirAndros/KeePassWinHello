@@ -37,6 +37,7 @@
             this.uacIcoPanel = new System.Windows.Forms.Panel();
             this.isNotElevatedLabel = new System.Windows.Forms.Label();
             this.isEnabledCheckBox = new System.Windows.Forms.CheckBox();
+            this.revokeOnCancel = new System.Windows.Forms.CheckBox();
             this.winHelloDisabledPanel.SuspendLayout();
             this.invalidationPanel.SuspendLayout();
             this.storedKeysInfoPanel.SuspendLayout();
@@ -53,10 +54,10 @@
             this.winKeyStorageCheckBox.Name = "winKeyStorageCheckBox";
             this.winKeyStorageCheckBox.Padding = new System.Windows.Forms.Padding(5, 5, 0, 5);
             this.winKeyStorageCheckBox.Size = new System.Drawing.Size(550, 27);
-            this.winKeyStorageCheckBox.TabIndex = 11;
+            this.winKeyStorageCheckBox.TabIndex = 3;
             this.winKeyStorageCheckBox.Text = "Store keys in the Windows Credential Manager";
-            this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for storing databases access keys while KeePass is n" +
-        "ot running.\r\nRequires for KeePass to create persistent Windows Hello key.");
+            this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for storing databases access keys while KeePass is" +
+        " not running.\r\nRequires for KeePass to create persistent Windows Hello key.");
             this.winKeyStorageCheckBox.UseVisualStyleBackColor = true;
             this.winKeyStorageCheckBox.CheckedChanged += new System.EventHandler(this.WinKeyStorageCheckBox_CheckedChanged);
             // 
@@ -91,7 +92,7 @@
             this.invalidationPanel.Controls.Add(this.validPeriodComboBox);
             this.invalidationPanel.Controls.Add(this.validPeriodLabel);
             this.invalidationPanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.invalidationPanel.Location = new System.Drawing.Point(0, 97);
+            this.invalidationPanel.Location = new System.Drawing.Point(0, 119);
             this.invalidationPanel.Name = "invalidationPanel";
             this.invalidationPanel.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
             this.invalidationPanel.Size = new System.Drawing.Size(550, 28);
@@ -138,7 +139,7 @@
             this.btnRevokeAll.Location = new System.Drawing.Point(84, 0);
             this.btnRevokeAll.Name = "btnRevokeAll";
             this.btnRevokeAll.Size = new System.Drawing.Size(71, 23);
-            this.btnRevokeAll.TabIndex = 46;
+            this.btnRevokeAll.TabIndex = 5;
             this.btnRevokeAll.Text = "Revoke all";
             this.btnRevokeAll.UseVisualStyleBackColor = true;
             this.btnRevokeAll.Click += new System.EventHandler(this.BtnRevokeAll_Click);
@@ -165,7 +166,7 @@
             this.validPeriodComboBox.Location = new System.Drawing.Point(169, 5);
             this.validPeriodComboBox.Name = "validPeriodComboBox";
             this.validPeriodComboBox.Size = new System.Drawing.Size(136, 21);
-            this.validPeriodComboBox.TabIndex = 45;
+            this.validPeriodComboBox.TabIndex = 4;
             // 
             // validPeriodLabel
             // 
@@ -186,7 +187,7 @@
             this.persistentStoragePanel.Controls.Add(this.isNotElevatedPanel);
             this.persistentStoragePanel.Controls.Add(this.winKeyStorageCheckBox);
             this.persistentStoragePanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.persistentStoragePanel.Location = new System.Drawing.Point(0, 22);
+            this.persistentStoragePanel.Location = new System.Drawing.Point(0, 44);
             this.persistentStoragePanel.Name = "persistentStoragePanel";
             this.persistentStoragePanel.Size = new System.Drawing.Size(550, 75);
             this.persistentStoragePanel.TabIndex = 50;
@@ -219,10 +220,10 @@
             this.keyCreateLabel.ForeColor = System.Drawing.SystemColors.InfoText;
             this.keyCreateLabel.Location = new System.Drawing.Point(19, 5);
             this.keyCreateLabel.Name = "keyCreateLabel";
-            this.keyCreateLabel.Size = new System.Drawing.Size(464, 13);
+            this.keyCreateLabel.Size = new System.Drawing.Size(480, 13);
             this.keyCreateLabel.TabIndex = 38;
-            this.keyCreateLabel.Text = "A persistent key will be created. You will be prompted to sign it with your biometry " +
-    "via Windows Hello.";
+            this.keyCreateLabel.Text = "A persistent key will be created. You will be prompted to sign it with your biome" +
+    "try via Windows Hello.";
             // 
             // isNotElevatedPanel
             // 
@@ -271,12 +272,29 @@
             this.isEnabledCheckBox.UseVisualStyleBackColor = true;
             this.isEnabledCheckBox.CheckedChanged += new System.EventHandler(this.isEnabledCheckBox_CheckedChanged);
             // 
+            // revokeOnCancel
+            // 
+            this.revokeOnCancel.AutoSize = true;
+            this.revokeOnCancel.Checked = true;
+            this.revokeOnCancel.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.revokeOnCancel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.revokeOnCancel.Location = new System.Drawing.Point(0, 22);
+            this.revokeOnCancel.Name = "revokeOnCancel";
+            this.revokeOnCancel.Padding = new System.Windows.Forms.Padding(5, 5, 0, 0);
+            this.revokeOnCancel.Size = new System.Drawing.Size(550, 22);
+            this.revokeOnCancel.TabIndex = 2;
+            this.revokeOnCancel.Text = "Revoke current key in case Windows Hello prompt was cancelled";
+            this.winKeyStorageToolTip.SetToolTip(this.revokeOnCancel, "If enabled, you\'ll need to manually enter the password next time you unlock DB if" +
+        " the Windows Hello prompt was previously cancelled by a user");
+            this.revokeOnCancel.UseVisualStyleBackColor = true;
+            // 
             // OptionsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.invalidationPanel);
             this.Controls.Add(this.persistentStoragePanel);
+            this.Controls.Add(this.revokeOnCancel);
             this.Controls.Add(this.isEnabledCheckBox);
             this.Controls.Add(this.winHelloDisabledPanel);
             this.Name = "OptionsPanel";
@@ -318,5 +336,6 @@
         private System.Windows.Forms.Label storedKeysInfoLabel;
         private System.Windows.Forms.Label storedKeysCountLabel;
         private System.Windows.Forms.Button btnRevokeAll;
+        private System.Windows.Forms.CheckBox revokeOnCancel;
     }
 }
