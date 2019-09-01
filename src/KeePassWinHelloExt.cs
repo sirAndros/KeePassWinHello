@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Reflection;
 using KeePass.Forms;
 using KeePass.Plugins;
 using KeePass.UI;
@@ -17,9 +18,19 @@ namespace KeePassWinHello
         {
             get
             {
-                return UIUtil.GetSmallIconSize().Height > 16
-                    ? Properties.Resources.KPWH_32x32
-                    : Properties.Resources.KPWH_16x16;
+                try
+                {
+                    var GetSmallIconSize = typeof(UIUtil).GetMethod("GetSmallIconSize", BindingFlags.Public | BindingFlags.Static);
+                    var size = GetSmallIconSize != null ? (Size)GetSmallIconSize.Invoke(null, null) : new Size(16, 16);
+
+                    return size.Height > 16
+                        ? Properties.Resources.KPWH_32x32
+                        : Properties.Resources.KPWH_16x16;
+                }
+                catch (Exception)
+                {
+                    return Properties.Resources.KPWH_16x16;
+                }
             }
         }
 
