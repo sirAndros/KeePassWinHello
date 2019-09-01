@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
-using KeePassWinHello.Utilities;
 using Microsoft.Win32.SafeHandles;
 
 namespace KeePassWinHello
