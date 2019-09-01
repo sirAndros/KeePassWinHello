@@ -163,6 +163,18 @@ namespace KeePassWinHello
                     return true;
                 }
             }
+            catch (AuthProviderInvalidKeyException)
+            {
+                // The key might be compromised so we revoke all stored passwords
+                _keyStorage.Clear();
+                throw;
+            }
+            catch (AuthProviderUserCancelledException)
+            {
+                if (Settings.Instance.RevokeOnCancel)
+                    _keyStorage.Remove(dbPath);
+                throw;
+            }
             catch (Exception)
             {
                 _keyStorage.Remove(dbPath);

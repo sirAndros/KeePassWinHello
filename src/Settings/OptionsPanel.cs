@@ -59,6 +59,7 @@ namespace KeePassWinHello
         private void LoadValuesFromSettings()
         {
             isEnabledCheckBox.Checked = Settings.Instance.Enabled;
+            revokeOnCancel.Checked = Settings.Instance.RevokeOnCancel;
             winKeyStorageCheckBox.Checked = Settings.Instance.WinStorageEnabled;
             validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
         }
@@ -108,6 +109,8 @@ namespace KeePassWinHello
                     settings.InvalidatingTime = newInvalidatingTime;
                 }
 
+                settings.RevokeOnCancel = revokeOnCancel.Checked;
+
                 if (settings.WinStorageEnabled != winKeyStorageCheckBox.Checked)
                 {
                     settings.WinStorageEnabled = winKeyStorageCheckBox.Checked;
@@ -134,6 +137,7 @@ namespace KeePassWinHello
         {
             validPeriodLabel.Enabled = isEnabled;
             validPeriodComboBox.Enabled = isEnabled;
+            revokeOnCancel.Enabled = isEnabled;
             winKeyStorageCheckBox.Enabled = isEnabled;
 
             keyCreatePanel.Visible = isEnabled
