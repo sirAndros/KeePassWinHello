@@ -20,7 +20,7 @@ This plugin for [KeePass 2](https://keepass.info/) password manager is intended 
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <releaseNotes>$ReleaseNotes$</releaseNotes>
     <dependencies>
-      <dependency id="keepass" version="[2.39, 3.0)" />
+      <dependency id="keepass" version="[2.33, 3.0)" />
     </dependencies>
   </metadata>
   <files>
