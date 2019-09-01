@@ -112,6 +112,7 @@ namespace KeePassWinHello
         #endregion
 
         private static readonly Lazy<string> _localKeyName = new Lazy<string>(RetreiveLocalKeyName);
+        private static readonly Lazy<string> _persistentKeyName = new Lazy<string>(RetreivePersistentKeyName);
 
         private static readonly object _mutex = new object();
         private static WeakReference _instance;
@@ -144,7 +145,7 @@ namespace KeePassWinHello
             if (authCacheType == AuthCacheType.Local)
             {
                 DeletePersistentKey();
-                _currentKeyName = RetreiveLocalKeyName();
+                _currentKeyName = _localKeyName.Value;
             }
             else
             {
@@ -164,7 +165,7 @@ namespace KeePassWinHello
                     }
                 }
 
-                _currentKeyName = RetreivePersistentKeyName();
+                _currentKeyName = _persistentKeyName.Value;
             }
         }
 
@@ -228,16 +229,16 @@ namespace KeePassWinHello
         {
             get
             {
-                return _currentKeyName == RetreiveLocalKeyName() ? AuthCacheType.Local : AuthCacheType.Persistent;
+                return _currentKeyName == _localKeyName.Value ? AuthCacheType.Local : AuthCacheType.Persistent;
             }
             private set
             {
                 if (value == AuthCacheType.Local)
-                    _currentKeyName = RetreiveLocalKeyName();
+                    _currentKeyName = _localKeyName.Value;
                 else
                 {
                     System.Diagnostics.Debug.Assert(value == AuthCacheType.Persistent);
-                    _currentKeyName = RetreivePersistentKeyName();
+                    _currentKeyName = _persistentKeyName.Value;
                 }
             }
         }
@@ -264,7 +265,7 @@ namespace KeePassWinHello
             {
                 NCryptOpenKey(ngcProviderHandle,
                     out ngcKeyHandle,
-                    RetreivePersistentKeyName(),
+                    _persistentKeyName.Value,
                     0, CngKeyOpenOptions.None
                     ).CheckStatus("NCryptOpenKey", NTE_NO_KEY);
             }
@@ -307,7 +308,7 @@ namespace KeePassWinHello
                 NCryptCreatePersistedKey(ngcProviderHandle,
                             out ngcKeyHandle,
                             BCRYPT_RSA_ALGORITHM,
-                            RetreivePersistentKeyName(),
+                            _persistentKeyName.Value,
                             0, overwriteExisting ? CngKeyCreationOptions.OverwriteExistingKey : CngKeyCreationOptions.None
                             ).CheckStatus("NCryptCreatePersistedKey");
 
