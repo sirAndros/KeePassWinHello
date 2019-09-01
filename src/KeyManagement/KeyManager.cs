@@ -26,6 +26,11 @@ namespace KeePassWinHello
         private readonly KeyCipher _keyCipher;
         private readonly IntPtr _keePassMainWindowHandle;
 
+
+        private const int NoChanges = -777;
+        private volatile int _masterKeyTries = NoChanges;
+        private CancellationTokenSource _cancellationTokenSource;
+
         public int  KeysCount   { get { return _keyStorage.Count; } }
 
         public KeyManager(IntPtr windowHandle)
@@ -45,35 +50,73 @@ namespace KeePassWinHello
             {
                 if (IsKeyForDataBaseExist(dbPath))
                 {
-                    var dbFile = GetIoInfo(keyPromptForm);
-                    CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
-                    Task.Factory.StartNew(() =>
-                    {
-                        KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = false;
-                        Thread.Yield();
-                        ReOpenKeyPromptForm(mainWindow, dbFile);
-                    })
-                    .ContinueWith(_ =>
-                    {
-                        KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = true;
-                    });
+                    if (_cancellationTokenSource == null)
+                        _cancellationTokenSource = new CancellationTokenSource();
+
+                    Task.Factory.StartNew(() => MonitorWarning(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
+
+                    int masterKeyTries = KeePass.Program.Config.Security.MasterKeyTries;
+                    Interlocked.Exchange(ref _masterKeyTries, masterKeyTries);
+                    KeePass.Program.Config.Security.MasterKeyTries = ++masterKeyTries;
+                    KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = false;
+                    SetCompositeKey(keyPromptForm, new CompositeKey());
+                    CloseFormWithResult(keyPromptForm, DialogResult.OK);
                 }
             }
             else
             {
-                try
+                int oldTriesValue = Interlocked.Exchange(ref _masterKeyTries, NoChanges);
+                if (oldTriesValue != NoChanges)
                 {
-                    CompositeKey compositeKey;
-                    if (ExtractCompositeKey(dbPath, out compositeKey))
-                    {
-                        SetCompositeKey(keyPromptForm, compositeKey);
-                        CloseFormWithResult(keyPromptForm, DialogResult.OK);
-                    }
+                    KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = true;
+                    KeePass.Program.Config.Security.MasterKeyTries = oldTriesValue;
                 }
-                catch (AuthProviderUserCancelledException)
+
+                if (_cancellationTokenSource != null)
                 {
-                    CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource = null;
                 }
+
+                Unlock(keyPromptForm, dbPath);
+            }
+        }
+
+        const int WM_CLOSE = 0x0010;
+        [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+
+        private void MonitorWarning(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                var msgBox = FindWindow("#32770", "KeePass");
+                if (msgBox != IntPtr.Zero)
+                {
+                    SendMessage(msgBox, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                    break;
+                }
+                Thread.Sleep(10);
+            }
+        }
+
+        private void Unlock(KeyPromptForm keyPromptForm, string dbPath)
+        {
+            try
+            {
+                CompositeKey compositeKey;
+                if (ExtractCompositeKey(dbPath, out compositeKey))
+                {
+                    SetCompositeKey(keyPromptForm, compositeKey);
+                    CloseFormWithResult(keyPromptForm, DialogResult.OK);
+                }
+            }
+            catch (AuthProviderUserCancelledException)
+            {
+                CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
             }
         }
 
