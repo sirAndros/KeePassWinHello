@@ -250,7 +250,7 @@ namespace KeePassWinHello
             {
                 using (ngcKeyHandle)
                 {
-                    NCryptDeleteKey(ngcKeyHandle, 0).CheckStatus();
+                    NCryptDeleteKey(ngcKeyHandle, 0).CheckStatus("NCryptDeleteKey");
                     ngcKeyHandle.SetHandleAsInvalid();
                 }
             }
@@ -259,7 +259,7 @@ namespace KeePassWinHello
         private static bool TryOpenPersistentKey(out SafeNCryptKeyHandle ngcKeyHandle)
         {
             SafeNCryptProviderHandle ngcProviderHandle;
-            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus();
+            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus("NCryptOpenStorageProvider");
 
             using (ngcProviderHandle)
             {
@@ -340,21 +340,21 @@ namespace KeePassWinHello
         {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
-            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus();
+            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus("NCryptOpenStorageProvider");
             using (ngcProviderHandle)
             {
                 SafeNCryptKeyHandle ngcKeyHandle;
-                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.Silent).CheckStatus();
+                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.Silent).CheckStatus("NCryptOpenKey");
                 using (ngcKeyHandle)
                 {
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
                         throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
 
                     int pcbResult;
-                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus();
+                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus("NCryptEncrypt");
 
                     cbResult = new byte[pcbResult];
-                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus();
+                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus("NCryptEncrypt");
                     System.Diagnostics.Debug.Assert(cbResult.Length == pcbResult);
                 }
             }
@@ -366,11 +366,11 @@ namespace KeePassWinHello
         {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
-            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus();
+            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus("NCryptOpenStorageProvider");
             using (ngcProviderHandle)
             {
                 SafeNCryptKeyHandle ngcKeyHandle;
-                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.None).CheckStatus();
+                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.None).CheckStatus("NCryptOpenKey");
                 using (ngcKeyHandle)
                 {
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
@@ -379,12 +379,12 @@ namespace KeePassWinHello
                     ApplyUIContext(ngcKeyHandle);
 
                     byte[] pinRequired = BitConverter.GetBytes(1);
-                    NCryptSetProperty(ngcKeyHandle, NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, pinRequired, pinRequired.Length, CngPropertyOptions.None).CheckStatus();
+                    NCryptSetProperty(ngcKeyHandle, NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, pinRequired, pinRequired.Length, CngPropertyOptions.None).CheckStatus("NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY");
 
                     // The pbInput and pbOutput parameters can point to the same buffer. In this case, this function will perform the decryption in place.
                     cbResult = new byte[data.Length * 2];
                     int pcbResult;
-                    NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus();
+                    NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus("NCryptDecrypt");
                     // TODO: secure resize
                     Array.Resize(ref cbResult, pcbResult);
                 }
