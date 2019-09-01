@@ -12,6 +12,7 @@ namespace KeePassWinHello
     {
         private IPluginHost _host;
         private KeyManager _keyManager;
+        private readonly object _unlockMutex = new Object();
 
         public override Image SmallIcon
         {
@@ -78,7 +79,8 @@ namespace KeePassWinHello
                 var keyPromptForm = e.Form as KeyPromptForm;
                 if (keyPromptForm != null && _keyManager != null)
                 {
-                    _keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
+                    lock (_unlockMutex)
+                        _keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
                     return;
                 }
 
