@@ -78,8 +78,9 @@ namespace KeePassWinHello
 #else
                 const string targetWindowClass = "Credential Dialog Xaml Host"; 
 #endif
-                Win32Window.Find(targetWindowClass, "Windows Security", 2000)
-                    .EnsureForeground();
+                var win = Win32Window.Find(targetWindowClass, "Windows Security", 2000);
+                if (win != null)
+                    win.EnsureForeground();
             }
             catch (Exception ex)
             {

@@ -41,8 +41,6 @@ namespace KeePassWinHello
     [StructLayout(LayoutKind.Sequential)]
     struct HWND
     {
-        private static IntPtr _invalidHandle = new IntPtr(-1);
-
         public IntPtr Value;
 
         public HWND(IntPtr handle)
@@ -54,8 +52,7 @@ namespace KeePassWinHello
         {
             get
             {
-                return Value != IntPtr.Zero
-                    && Value != _invalidHandle;
+                return Value != IntPtr.Zero;
             }
         }
 

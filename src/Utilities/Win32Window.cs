@@ -36,13 +36,13 @@ namespace KeePassWinHello
         public static Win32Window Get(IntPtr parentHandle, IntPtr childAfter, string @class, string name)
         {
             var hwnd = WinAPI.FindWindowEx(parentHandle, childAfter, @class, name);
-            return GetOrError(hwnd);
+            return GetOrError(hwnd, "FindWindowEx");
         }
 
         public static Win32Window Get(string @class, string name, int timeoutMs)
         {
             var hwnd = FindWithRetry(IntPtr.Zero, IntPtr.Zero, @class, name, timeoutMs);
-            return GetOrError(hwnd);
+            return GetOrError(hwnd, "FindWindowEx");
         }
 
         /// <summary>
@@ -86,9 +86,9 @@ namespace KeePassWinHello
             return targetWindowHandle;
         }
 
-        private static Win32Window GetOrError(HWND hwnd)
+        private static Win32Window GetOrError(HWND hwnd, string funcName)
         {
-            hwnd.ThrowOnError("FindWindowEx");
+            hwnd.ThrowOnError(funcName);
             return new Win32Window(hwnd.Value);
         }
 
