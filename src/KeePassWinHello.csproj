@@ -82,9 +82,9 @@
     <Compile Include="AuthProviders\WinHelloProvider.cs" />
     <Compile Include="KeePassWinHelloExt.cs" />
     <Compile Include="AuthProviders\XorProvider.cs" />
+    <Compile Include="Utilities\Win32Window.cs" />
     <Compile Include="Utilities\UAC.cs" />
     <Compile Include="Utilities\WinAPIResultExtensions.cs" />
-    <Compile Include="Utilities\WindowsForegroundEnsurer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Settings\OptionsPanel.resx">

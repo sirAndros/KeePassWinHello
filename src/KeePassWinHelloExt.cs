@@ -63,7 +63,10 @@ namespace KeePassWinHello
 
             GlobalWindowManager.WindowAdded -= OnWindowAdded;
             if (_keyManager != null)
+            {
                 _host.MainWindow.FileClosingPre -= _keyManager.OnDBClosing;
+                _keyManager.Dispose();
+            }
 
             _host = null;
         }
