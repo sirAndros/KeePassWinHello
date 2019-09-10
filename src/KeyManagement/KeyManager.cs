@@ -232,7 +232,7 @@ namespace KeePassWinHello
             catch (AuthProviderInvalidKeyException)
             {
                 // The key might be compromised so we revoke all stored passwords
-                _keyStorage.Clear();
+                ClaimCurrentCacheType(AuthCacheType.Local);
                 throw;
             }
             catch (AuthProviderUserCancelledException)
