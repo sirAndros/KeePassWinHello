@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using KeePass.Forms;
 using KeePassLib.Keys;
 using KeePassLib.Serialization;
+using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
@@ -138,14 +139,31 @@ namespace KeePassWinHello
             if (e.Cancel || e.Database == null || e.Database.MasterKey == null || e.Database.IOConnectionInfo == null)
                 return;
 
-            string dbPath = e.Database.IOConnectionInfo.Path;
-            if (!IsDBLocking(e) && Settings.Instance.GetAuthCacheType() == AuthCacheType.Local)
+            try
             {
-                _keyStorage.Remove(dbPath);
+                string dbPath = e.Database.IOConnectionInfo.Path;
+                if (!IsDBLocking(e) && Settings.Instance.GetAuthCacheType() == AuthCacheType.Local)
+                {
+                    _keyStorage.Remove(dbPath);
+                }
+                else if (Settings.Instance.Enabled)
+                {
+                    _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
+                }
             }
-            else if (Settings.Instance.Enabled)
+            catch (AuthProviderInvalidKeyException ex)
             {
-                _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
+                // It's expected not to throw exceptions
+                ClaimCurrentCacheType(AuthCacheType.Local);
+                ErrorHandler.ShowError(ex, "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
+            }
+            catch (AuthProviderUserCancelledException)
+            {
+                // it's OK
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowError(ex);
             }
         }
 
@@ -156,20 +174,12 @@ namespace KeePassWinHello
 
         public void ClaimCurrentCacheType(AuthCacheType authCacheType)
         {
-            try
-            {
-                _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
-                _keyStorage.Clear();
-                _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
-                // todo migrate
-            }
-            catch (AuthProviderUserCancelledException)
-            {
-                if (authCacheType == AuthCacheType.Persistent)
-                    Settings.Instance.WinStorageEnabled = false;
-
-                MessageBox.Show(AuthProviderUIContext.Current, "Creating persistent key for Credential Manager has been canceled", Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
+            _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
+            _keyStorage.Clear();
+            _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
+            if (authCacheType == AuthCacheType.Local)
+                Settings.Instance.WinStorageEnabled = false;
+            // todo migrate
         }
 
         public void Dispose()

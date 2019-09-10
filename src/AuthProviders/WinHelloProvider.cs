@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -18,6 +19,7 @@ namespace KeePassWinHello
         private const string NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED = "NgcCacheTypeProperty";
         private const string NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY = "PinCacheIsGestureRequired";
         private const string BCRYPT_RSA_ALGORITHM = "RSA";
+        private const int NCRYPT_NGC_CACHE_TYPE_PROPERTY_AUTH_MANDATORY_FLAG = 0x00000001;
         private const int NCRYPT_ALLOW_DECRYPT_FLAG = 0x00000001;
         private const int NCRYPT_ALLOW_SIGNING_FLAG = 0x00000002;
         private const int NCRYPT_ALLOW_KEY_IMPORT_FLAG = 0x00000008;
@@ -204,20 +206,27 @@ namespace KeePassWinHello
                 }
                 else
                 {
-                    System.Diagnostics.Debug.Assert(authCacheType == AuthCacheType.Persistent);
+                    Debug.Assert(authCacheType == AuthCacheType.Persistent);
 
                     SafeNCryptKeyHandle ngcKeyHandle;
                     if (TryOpenPersistentKey(out ngcKeyHandle))
                     {
-                        using (ngcKeyHandle)
+                        try
                         {
                             if (!VerifyPersistentKeyIntegrity(ngcKeyHandle))
                                 throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
+                            ngcKeyHandle.Dispose();
+                        }
+                        catch
+                        {
+                            ngcKeyHandle.Dispose();
+                            DeletePersistentKey();
+                            throw;
                         }
                     }
                     else
                     {
-                        using (ngcKeyHandle = CreatePersistentKey(false)) { }
+                        CreatePersistentKey(false).Dispose();
                     }
                 }
                 CurrentCacheType = authCacheType;
@@ -289,7 +298,7 @@ namespace KeePassWinHello
             {
                 NCryptGetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED, ref cacheType, sizeof(int), out pcbResult, CngPropertyOptions.None).CheckStatus("NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED");
             }
-            if (cacheType == 0)
+            if (cacheType != NCRYPT_NGC_CACHE_TYPE_PROPERTY_AUTH_MANDATORY_FLAG)
                 return false;
 
             return true;
@@ -317,7 +326,7 @@ namespace KeePassWinHello
                 byte[] keyUsage = BitConverter.GetBytes(NCRYPT_ALLOW_DECRYPT_FLAG | NCRYPT_ALLOW_SIGNING_FLAG);
                 NCryptSetProperty(ngcKeyHandle, NCRYPT_KEY_USAGE_PROPERTY, keyUsage, keyUsage.Length, CngPropertyOptions.None).CheckStatus("NCRYPT_KEY_USAGE_PROPERTY");
 
-                byte[] cacheType = BitConverter.GetBytes(1);
+                byte[] cacheType = BitConverter.GetBytes(NCRYPT_NGC_CACHE_TYPE_PROPERTY_AUTH_MANDATORY_FLAG);
                 try
                 {
                     NCryptSetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY, cacheType, cacheType.Length, CngPropertyOptions.None).CheckStatus("NCRYPT_NGC_CACHE_TYPE_PROPERTY");

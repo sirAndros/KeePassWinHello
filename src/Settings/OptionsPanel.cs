@@ -123,8 +123,14 @@ namespace KeePassWinHello
                             {
                                 _keyManager.ClaimCurrentCacheType(authCacheType);
                             }
+                            catch (AuthProviderUserCancelledException)
+                            {
+                                _keyManager.ClaimCurrentCacheType(AuthCacheType.Local);
+                                MessageBox.Show(AuthProviderUIContext.Current, "Creating persistent key for Credential Manager has been canceled", Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
                             catch (Exception ex)
                             {
+                                _keyManager.ClaimCurrentCacheType(AuthCacheType.Local);
                                 ErrorHandler.ShowError(ex);
                             }
                         }
