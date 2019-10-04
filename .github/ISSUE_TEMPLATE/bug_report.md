@@ -23,7 +23,14 @@ If applicable, add screenshots to help explain your problem.
 **Desktop (please complete the following information):**
  - OS Version
  - KeePass Version
+ - Plugin Version
  - Hardware info
+ 
+ **KeePass settings and enviroment**
+ - Is secure desktop enabled
+ - Is KeePass running under Administrator (in elevated process)
+ - Installed plugins (if any)
+ - Any specific settings in KeePass/Plugin
 
 **Additional context**
 Add any other context about the problem here.
