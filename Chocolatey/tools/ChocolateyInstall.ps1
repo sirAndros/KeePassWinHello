@@ -9,16 +9,9 @@ if ($psver -ge 3) {
 $packageName = 'keepass-plugin-winhello'
 $keePassDisplayName = 'KeePass Password Safe'
 
+Write-Verbose "Searching $env:ChocolateyBinRoot..."
+$installPath = Get-AppInstallLocation "^$keePassDisplayName"
 
-Write-Verbose "Searching registry for installed KeePass..."
-$regPath = Get-ItemProperty -Path @('HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
-                                    'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
-                                    'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*') `
-            -ErrorAction:SilentlyContinue `
-        | Where-Object { $_.DisplayName -like "$keePassDisplayName*" } `
-        | ForEach-Object { $_.InstallLocation }
-    
-$installPath = $regPath #todo process multiple installations
 if (!$installPath) {
     Write-Verbose "Searching $env:ChocolateyBinRoot for portable install..."
     $binRoot = Get-BinRoot
@@ -26,17 +19,9 @@ if (!$installPath) {
     $installPath = Get-ChildItemDir $portPath* -ErrorAction SilentlyContinue
 }
 if (!$installPath) {
-    Write-Verbose "Searching $env:Path for unregistered install..."
-    $installFullName = (Get-Command keepass -ErrorAction SilentlyContinue).Path
-    if (! $installFullName) {
-        $installPath = [io.path]::GetDirectoryName($installFullName)
-    }
+    throw "$keePassDisplayName not found."
 }
-if (!$installPath) {
-    Write-Warning "$keePassDisplayName not found."
-    throw
-}
-Write-Verbose "`t...found."
+Write-Verbose "`t...found: $installPath"
 
 Write-Verbose "Searching for plugin directory..."
 $pluginPath = (Get-ChildItemDir $installPath\Plugin*).FullName
