@@ -161,6 +161,7 @@
             "6 Hours",
             "12 Hours",
             "1 Day",
+            "3 Days",
             "Week",
             "Month"});
             this.validPeriodComboBox.Location = new System.Drawing.Point(169, 5);

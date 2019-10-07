@@ -293,6 +293,7 @@ namespace KeePassWinHello
         private const long VALID_6HOURS = VALID_2HOURS * 3;
         private const long VALID_12HOURS = VALID_6HOURS * 2;
         private const long VALID_1DAY = VALID_12HOURS * 2;
+        private const long VALID_3DAYS = VALID_1DAY * 3;
         private const long VALID_7DAYS = VALID_1DAY * 7;
         private const long VALID_MONTH = VALID_1DAY * 30;
         private const long VALID_DEFAULT = Settings.VALID_PERIOD_DEFAULT;
@@ -312,8 +313,9 @@ namespace KeePassWinHello
                 case 8: return VALID_6HOURS;
                 case 9: return VALID_12HOURS;
                 case 10: return VALID_1DAY;
-                case 11: return VALID_7DAYS;
-                case 12: return VALID_MONTH;
+                case 11: return VALID_3DAYS;
+                case 12: return VALID_7DAYS;
+                case 13: return VALID_MONTH;
                 default: return VALID_DEFAULT;
             }
         }
@@ -333,8 +335,9 @@ namespace KeePassWinHello
                 case VALID_6HOURS: return 8;
                 case VALID_12HOURS: return 9;
                 case VALID_1DAY: return 10;
-                case VALID_7DAYS: return 11;
-                case VALID_MONTH: return 12;
+                case VALID_3DAYS: return 11;
+                case VALID_7DAYS: return 12;
+                case VALID_MONTH: return 13;
                 default: return 10;
             }
         }
