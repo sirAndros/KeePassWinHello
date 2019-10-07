@@ -4,6 +4,7 @@ param (
     [string] $OutputDir = $null,
     [string] $Version = $null,
     [string] $ReleaseNotes = $null,
+    [switch] $SkipRepack,
     [switch] $SkipChoco
 )
 
@@ -32,33 +33,35 @@ if (!$Version) {
 (Get-Content $versionFile) -replace "(?<=\:)$versionPattern", $Version | Set-Content $versionFile
 
 
-$tempDirName = $OutputFileNameBase
-$packingSourcesFolder = "$OutputDir\$tempDirName"
-if (Test-Path $packingSourcesFolder) {
+if (!$SkipRepack) {
+    $tempDirName = $OutputFileNameBase
+    $packingSourcesFolder = "$OutputDir\$tempDirName"
+    if (Test-Path $packingSourcesFolder) {
+        Remove-Item $packingSourcesFolder -Force -Recurse
+    }
+    New-Item $packingSourcesFolder -Type Directory > $null
+    
+    
+    $excludedItems = '.*', '*.sln', 'bin', 'obj', '*.user', '*.ps1', '*.plgx', '*.md', $tempDirName, 'Screenshots'
+    Get-ChildItem $sources | 
+        Where-Object   { $i=$_; $res=$true; $excludedItems | ForEach-Object { $i -notlike $_ } | ForEach-Object { $res = $_ -and $res }; $res } |
+        ForEach-Object { Copy-Item $_.FullName $packingSourcesFolder -Recurse }
+    
+    $keePassExe = "$ProjectDir\lib\KeePass.exe"
+    if (!(Test-Path $keePassExe)) {
+        $keePassExe = 'C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe'
+    }
+    
+    try {
+        Push-Location
+        Set-Location $OutputDir
+        Start-Process $keePassExe -arg '--plgx-create',"`"$packingSourcesFolder`"" -Wait
+    } finally {
+        Pop-Location
+    }
+    
     Remove-Item $packingSourcesFolder -Force -Recurse
 }
-New-Item $packingSourcesFolder -Type Directory > $null
-
-
-$excludedItems = '.*', '*.sln', 'bin', 'obj', '*.user', '*.ps1', '*.plgx', '*.md', $tempDirName, 'Screenshots'
-Get-ChildItem $sources | 
-    Where-Object   { $i=$_; $res=$true; $excludedItems | ForEach-Object { $i -notlike $_ } | ForEach-Object { $res = $_ -and $res }; $res } |
-    ForEach-Object { Copy-Item $_.FullName $packingSourcesFolder -Recurse }
-
-$keePassExe = "$ProjectDir\lib\KeePass.exe"
-if (!(Test-Path $keePassExe)) {
-    $keePassExe = 'C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe'
-}
-
-try {
-    Push-Location
-    Set-Location $OutputDir
-    Start-Process $keePassExe -arg '--plgx-create',"`"$packingSourcesFolder`"" -Wait
-} finally {
-    Pop-Location
-}
-
-Remove-Item $packingSourcesFolder -Force -Recurse
 
 if (!$SkipChoco) {
     $outputFile = "$OutputDir\$OutputFileNameBase.plgx"

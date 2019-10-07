@@ -12,18 +12,12 @@ $files = @("KeePassWinHelloPlugin.plgx")
 
 Write-Verbose "Checking KeePass is not running..."
 if (Get-Process -Name "KeePass" -ErrorAction SilentlyContinue) {
-    Write-Warning "$($keePassDisplayName) is running. Please save any opened databases and close $($keePassDisplayName) before attempting to uninstall KeePass plugins."
-    throw
+    throw "$($keePassDisplayName) is running. Please save any opened databases and close $($keePassDisplayName) before attempting to uninstall KeePass plugins."
 }
 
-Write-Verbose "Searching registry for installed KeePass..."
-$regPath = Get-ItemProperty -Path @('HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
-                                    'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
-                                    'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*') `
-                -ErrorAction:SilentlyContinue `
-            | Where-Object { $_.DisplayName -like "$keePassDisplayName*" } `
-            | ForEach-Object { $_.InstallLocation }
-$installPath = $regPath
+Write-Verbose "Searching $env:ChocolateyBinRoot..."
+$installPath = Get-AppInstallLocation "^$keePassDisplayName"
+
 if (!$installPath) {
     Write-Verbose "Searching $env:ChocolateyBinRoot for portable install..."
     $binRoot = Get-BinRoot
@@ -31,17 +25,9 @@ if (!$installPath) {
     $installPath = Get-ChildItemDir $portPath* -ErrorAction SilentlyContinue
 }
 if (!$installPath) {
-    Write-Verbose "Searching $env:Path for unregistered install..."
-    $installFullName = (Get-Command keepass -ErrorAction SilentlyContinue).Path
-    if (! $installFullName) {
-        $installPath = [io.path]::GetDirectoryName($installFullName)
-    }
+    throw "$keePassDisplayName not found."
 }
-if (!$installPath) {
-    Write-Warning "$($keePassDisplayName) not found."
-    throw
-}
-Write-Verbose "`t...found."
+Write-Verbose "`t...found: $installPath"
 
 Write-Verbose "Searching for plugin directory..."
 $pluginPath = (Get-ChildItemDir $installPath\Plugin*).FullName

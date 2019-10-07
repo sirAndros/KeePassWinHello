@@ -21,6 +21,7 @@ This plugin for [KeePass 2](https://keepass.info/) password manager is intended 
     <releaseNotes>$ReleaseNotes$</releaseNotes>
     <dependencies>
       <dependency id="keepass" version="[2.33, 3.0)" />
+      <dependency id="chocolatey-core.extension" version="1.0.4" />
     </dependencies>
   </metadata>
   <files>
