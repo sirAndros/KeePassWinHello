@@ -16,7 +16,7 @@ This plugin for [KeePass 2](https://keepass.info/) password manager is intended 
     <tags>keepass plugin unlock winhello security password-manager</tags>
     <copyright>© AS &amp; AO</copyright>
     <licenseUrl>https://github.com/sirAndros/KeePassWinHello/blob/master/LICENSE</licenseUrl>
-    <iconUrl>https://cdn.statically.io/gh/sirAndros/KeePassWinHello/896b8498c4b2789b17f6ebe7e913f6a211917549/Logo.svg</iconUrl>
+    <iconUrl>https://cdn.statically.io/gh/sirAndros/KeePassWinHello/896b8498c4b2789b17f6ebe7e913f6a211917549/src/Resources/KPWH_512x512.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <releaseNotes>$ReleaseNotes$</releaseNotes>
     <dependencies>
