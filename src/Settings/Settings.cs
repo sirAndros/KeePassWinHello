@@ -1,5 +1,6 @@
 ﻿using System;
 using KeePass.App.Configuration;
+using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
@@ -43,6 +44,18 @@ namespace KeePassWinHello
             _customConfig.SetString(CFG_SAVED_SETTINGS_PLUGIN_VERSION, currentVersion.ToString());
         }
 
+        private void UpgradeConfigSafe()
+        {
+            try
+            {
+                UpgradeConfig();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowError(ex, "Can not upgrade plugin settings");
+            }
+        }
+
         private Version GetSavedSettingsPluginVersion()
         {
             var versionStr = _customConfig.GetString(CFG_SAVED_SETTINGS_PLUGIN_VERSION, null);
@@ -66,7 +79,7 @@ namespace KeePassWinHello
 
             _customConfig = customConfig;
 
-            UpgradeConfig();
+            UpgradeConfigSafe();
         }
 
         public static readonly Settings Instance = _instance.Value;
