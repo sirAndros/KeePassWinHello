@@ -1,5 +1,6 @@
 ﻿using System;
 using KeePass.App.Configuration;
+using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
@@ -13,25 +14,60 @@ namespace KeePassWinHello
         private const string CFG_ENABLED = "WindowsHello.QuickUnlock.Enabled";
         private const string CFG_WINSTORAGE_ENABLED = "WindowsHello.QuickUnlock.WindowsStorage.Enabled";
         private const string CFG_REVOKE_ON_CANCEL = "WindowsHello.QuickUnlock.RevokeOnCancel";
+        private const string CFG_SAVED_SETTINGS_PLUGIN_VERSION = "WindowsHello.QuickUnlock.SavedSettingsPluginVersion";
+        private const string DEPRECATED_CFG_AUTO_PROMPT = "WindowsHello_AutoPrompt";
 
         private static Lazy<Settings> _instance = new Lazy<Settings>(() => new Settings(), true);
         private AceCustomConfig _customConfig;
 
         private void UpgradeConfig()
         {
-            const string deprecatedCfgAutoPrompt = "WindowsHello_AutoPrompt";
-            const string deprecatedCfgValidPeriod = "WindowsHello_ValidPeriod";
+            var currentVersion = GetType().Assembly.GetName().Version;
+            var savedVersion = GetSavedSettingsPluginVersion();
 
-            _customConfig.SetString(deprecatedCfgAutoPrompt, null);
-
-            long validPeriod = _customConfig.GetLong(deprecatedCfgValidPeriod, -1);
-            if (validPeriod != -1)
+            if (savedVersion.Major < 2)
             {
-                _customConfig.SetString(deprecatedCfgValidPeriod, null);
+                const string deprecatedCfgValidPeriod = "WindowsHello_ValidPeriod";
 
-                validPeriod *= 1000;
-                _customConfig.SetLong(CFG_VALID_PERIOD, validPeriod);
+                _customConfig.SetString(DEPRECATED_CFG_AUTO_PROMPT, null);
+
+                long validPeriod = _customConfig.GetLong(deprecatedCfgValidPeriod, -1);
+                if (validPeriod != -1)
+                {
+                    _customConfig.SetString(deprecatedCfgValidPeriod, null);
+
+                    validPeriod *= 1000;
+                    _customConfig.SetLong(CFG_VALID_PERIOD, validPeriod);
+                }
             }
+
+            _customConfig.SetString(CFG_SAVED_SETTINGS_PLUGIN_VERSION, currentVersion.ToString());
+        }
+
+        private void UpgradeConfigSafe()
+        {
+            try
+            {
+                UpgradeConfig();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowError(ex, "Can not upgrade plugin settings");
+            }
+        }
+
+        private Version GetSavedSettingsPluginVersion()
+        {
+            var versionStr = _customConfig.GetString(CFG_SAVED_SETTINGS_PLUGIN_VERSION, null);
+            Version version;
+            if (!Version.TryParse(versionStr, out version))
+            {
+                if (_customConfig.GetString(DEPRECATED_CFG_AUTO_PROMPT, null) != null)
+                    version = new Version(1, 0);
+                else
+                    version = new Version(2, 0);
+            }
+            return version;
         }
 
         public void Initialize(AceCustomConfig customConfig)
@@ -43,7 +79,7 @@ namespace KeePassWinHello
 
             _customConfig = customConfig;
 
-            UpgradeConfig();
+            UpgradeConfigSafe();
         }
 
         public static readonly Settings Instance = _instance.Value;
