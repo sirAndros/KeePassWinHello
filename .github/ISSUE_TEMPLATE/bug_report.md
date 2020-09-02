@@ -26,7 +26,7 @@ If applicable, add screenshots to help explain your problem.
  - Plugin Version
  - Hardware info
  
- **KeePass settings and enviroment**
+ **KeePass settings and environment**
  - Is secure desktop enabled
  - Is KeePass running under Administrator (in elevated process)
  - Installed plugins (if any)
