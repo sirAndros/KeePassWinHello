@@ -8,7 +8,7 @@ Quick unlock with Windows Hello for KeePass 2
 
 
 
-This plugin for [KeePass 2][KeePass] password manager is intended for fast authorization to a database after its first unlock using [Windows Hello technology][WinHello].
+This plugin for [KeePass 2][KeePass] password manager is intended for fast authorization with pin or biometrics to a database after its first unlock using [Windows Hello technology][WinHello].
 
 [KeePass]: https://keepass.info/
 [WinHello]: https://support.microsoft.com/en-us/help/17215/windows-10-what-is-hello
