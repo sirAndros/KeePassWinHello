@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
-using System.Threading;
+using System.Windows.Forms;
 using Microsoft.Win32.SafeHandles;
 
 namespace KeePassWinHello
@@ -405,7 +405,7 @@ namespace KeePassWinHello
 
         public byte[] PromptToDecrypt(byte[] data)
         {
-            for (int i = 0; ; ++i)
+            for (;;)
             {
                 try
                 {
@@ -413,10 +413,12 @@ namespace KeePassWinHello
                 }
                 catch (AuthProviderSystemErrorException ex)
                 {
-                    if (ex.ErrorCode != TPM_20_E_HANDLE || i > 4)
+                    if (ex.ErrorCode != TPM_20_E_HANDLE)
                         throw;
 
-                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    if (MessageBox.Show(AuthProviderUIContext.Current, "TPM_20_E_HANDLE :( Try again?",
+                        Settings.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.No)
+                        throw;
                 }
             }
         }
