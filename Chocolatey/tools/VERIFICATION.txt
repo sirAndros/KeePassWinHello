@@ -15,7 +15,7 @@ and than can be verified by doing the following:
 
 3. The checksum must match the following:
 
-   checksum: E08EFA822ABF0B343F88F31BC7FA49853E14BF547FEE6349BC18D52BDAFE458C
+   checksum: 8D9C00D058607E5692929DEF07F1368C8B7386AC5787ABCD9F63A4A3D7BAC22B
    checksum type: SHA256
 
 Likewise, the plugin installed from this package is identical and so must
