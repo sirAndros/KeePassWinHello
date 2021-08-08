@@ -6,6 +6,7 @@ about: Create a report to help us improve
 
 **Describe the bug**
 A clear and concise description of what the bug is.
+If the bug has an _error code_ in the message, please include it in the issue title.
 
 **To Reproduce**
 Steps to reproduce the behavior:
@@ -29,6 +30,8 @@ If applicable, add screenshots to help explain your problem.
  **KeePass settings and environment**
  - Is secure desktop enabled
  - Is KeePass running under Administrator (in elevated process)
+ - Was it right after hibernation
+ - Was KeePass minified or closed
  - Installed plugins (if any)
  - Any specific settings in KeePass/Plugin
 
