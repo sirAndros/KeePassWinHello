@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
+using System.Threading;
 using Microsoft.Win32.SafeHandles;
 
 namespace KeePassWinHello
@@ -26,6 +27,7 @@ namespace KeePassWinHello
         private const int NCRYPT_PAD_PKCS1_FLAG = 0x00000002;
         private const int NTE_USER_CANCELLED = unchecked((int)0x80090036);
         private const int NTE_NO_KEY = unchecked((int)0x8009000D);
+        private const int TPM_20_E_HANDLE = unchecked((int)0x8028008B);
 
         [StructLayout(LayoutKind.Sequential)]
         struct SECURITY_STATUS
@@ -372,6 +374,24 @@ namespace KeePassWinHello
 
         public byte[] PromptToDecrypt(byte[] data)
         {
+            for (int i = 0;; ++i)
+            {
+                try
+                {
+                    return PromptToDecrypt(data, retry: i > 0);
+                }
+                catch (AuthProviderSystemErrorException ex)
+                {
+                    if (ex.ErrorCode != TPM_20_E_HANDLE || i >= Settings.MAX_RETRY_COUNT)
+                        throw;
+
+                    Thread.Sleep(Settings.ATTEMPT_DELAY);
+                }
+            }
+        }
+
+        private byte[] PromptToDecrypt(byte[] data, bool retry)
+        {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
             NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus("NCryptOpenStorageProvider");
@@ -384,7 +404,7 @@ namespace KeePassWinHello
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
                         throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
 
-                    ApplyUIContext(ngcKeyHandle);
+                    ApplyUIContext(ngcKeyHandle, retry);
 
                     byte[] pinRequired = BitConverter.GetBytes(1);
                     NCryptSetProperty(ngcKeyHandle, NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, pinRequired, pinRequired.Length, CngPropertyOptions.None).CheckStatus("NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY");
@@ -401,7 +421,7 @@ namespace KeePassWinHello
             return cbResult;
         }
 
-        private static void ApplyUIContext(SafeNCryptKeyHandle ngcKeyHandle)
+        private static void ApplyUIContext(SafeNCryptKeyHandle ngcKeyHandle, bool retryMessage = false)
         {
             var uiContext = AuthProviderUIContext.Current;
             if (uiContext != null)
@@ -414,6 +434,9 @@ namespace KeePassWinHello
                 }
 
                 string message = uiContext.Message;
+                if (retryMessage)
+                    message = Settings.FailedRetryMessage + message;
+
                 if (!string.IsNullOrEmpty(message))
                     NCryptSetProperty(ngcKeyHandle, NCRYPT_USE_CONTEXT_PROPERTY, message, (message.Length + 1) * 2, CngPropertyOptions.None).CheckStatus("NCRYPT_USE_CONTEXT_PROPERTY");
             }

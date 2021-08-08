@@ -140,9 +140,12 @@ namespace KeePassWinHello
 
         public const long VALID_PERIOD_DEFAULT = 1000 * 60 * 60 * 24; // one day in ms
         public const long VALID_UNLIMITED_PERIOD = 922337203685476; // TimeSpan.MaxValue.TotalMilliseconds - 1
+        public const int MAX_RETRY_COUNT = 5;
+        public static readonly TimeSpan ATTEMPT_DELAY = TimeSpan.FromSeconds(2);
 
         public const string DecryptConfirmationMessage = "Authentication to access KeePass database";
         public const string KeyCreationConfirmationMessage = "KeePassWinHello requires for a signed persistent key";
+        public const string FailedRetryMessage = "Failed to authenticate, please try again.\r\n";
         public const string OptionsTabName = "WindowsHello";
         public const string ProductName = "KeePassWinHello";
     }
