@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
+using System.Threading;
 using Microsoft.Win32.SafeHandles;
 
 namespace KeePassWinHello
@@ -26,6 +27,7 @@ namespace KeePassWinHello
         private const int NCRYPT_PAD_PKCS1_FLAG = 0x00000002;
         private const int NTE_USER_CANCELLED = unchecked((int)0x80090036);
         private const int NTE_NO_KEY = unchecked((int)0x8009000D);
+        private const int TPM_20_E_HANDLE = unchecked((int)0x8028008B);
 
         [StructLayout(LayoutKind.Sequential)]
         struct SECURITY_STATUS
@@ -370,7 +372,7 @@ namespace KeePassWinHello
             return cbResult;
         }
 
-        public byte[] PromptToDecrypt(byte[] data)
+        private byte[] PromptToDecryptImpl(byte[] data)
         {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
@@ -399,6 +401,24 @@ namespace KeePassWinHello
             }
 
             return cbResult;
+        }
+
+        public byte[] PromptToDecrypt(byte[] data)
+        {
+            for (int i = 0; ; ++i)
+            {
+                try
+                {
+                    return PromptToDecryptImpl(data);
+                }
+                catch (AuthProviderSystemErrorException ex)
+                {
+                    if (ex.ErrorCode != TPM_20_E_HANDLE || i > 4)
+                        throw;
+
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                }
+            }
         }
 
         private static void ApplyUIContext(SafeNCryptKeyHandle ngcKeyHandle)

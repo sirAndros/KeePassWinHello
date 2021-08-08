@@ -14,8 +14,11 @@ namespace KeePassWinHello
 
         public EnviromentErrorException(string debugInfo, int errorCode) : this(debugInfo + "\nError code: " + errorCode.ToString("X"))
         {
+            ErrorCode = errorCode;
             // TODO: Implement ExternalException logic
         }
+
+        public int ErrorCode { get; private set; }
 
         protected EnviromentErrorException(
           System.Runtime.Serialization.SerializationInfo info,
