@@ -145,7 +145,7 @@ namespace KeePassWinHello
 
         public const string DecryptConfirmationMessage = "Authentication to access KeePass database";
         public const string KeyCreationConfirmationMessage = "KeePassWinHello requires for a signed persistent key";
-        public const string FailedRetryMessage = "Failed to authenticate, please try again. ";
+        public const string FailedRetryMessage = "Failed to authenticate, please try again.\r\n";
         public const string OptionsTabName = "WindowsHello";
         public const string ProductName = "KeePassWinHello";
     }

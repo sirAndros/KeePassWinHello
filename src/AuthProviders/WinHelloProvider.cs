@@ -372,7 +372,25 @@ namespace KeePassWinHello
             return cbResult;
         }
 
-        private byte[] PromptToDecryptImpl(byte[] data, bool retry)
+        public byte[] PromptToDecrypt(byte[] data)
+        {
+            for (int i = 0;; ++i)
+            {
+                try
+                {
+                    return PromptToDecrypt(data, retry: i > 0);
+                }
+                catch (AuthProviderSystemErrorException ex)
+                {
+                    if (ex.ErrorCode != TPM_20_E_HANDLE || i >= Settings.MAX_RETRY_COUNT)
+                        throw;
+
+                    Thread.Sleep(Settings.ATTEMPT_DELAY);
+                }
+            }
+        }
+
+        private byte[] PromptToDecrypt(byte[] data, bool retry)
         {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
@@ -401,24 +419,6 @@ namespace KeePassWinHello
             }
 
             return cbResult;
-        }
-
-        public byte[] PromptToDecrypt(byte[] data)
-        {
-            for (int i = 0;; ++i)
-            {
-                try
-                {
-                    return PromptToDecryptImpl(data, i > 0);
-                }
-                catch (AuthProviderSystemErrorException ex)
-                {
-                    if (ex.ErrorCode != TPM_20_E_HANDLE || i >= Settings.MAX_RETRY_COUNT)
-                        throw;
-
-                    Thread.Sleep(Settings.ATTEMPT_DELAY);
-                }
-            }
         }
 
         private static void ApplyUIContext(SafeNCryptKeyHandle ngcKeyHandle, bool retryMessage = false)
