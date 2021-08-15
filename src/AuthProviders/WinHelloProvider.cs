@@ -28,8 +28,11 @@ namespace KeePassWinHello
         private const int NTE_USER_CANCELLED = unchecked((int)0x80090036);
         private const int NTE_NO_KEY = unchecked((int)0x8009000D);
         private const int NTE_BAD_DATA = unchecked((int)0x80090005);
+        private const int NTE_BAD_KEYSET = unchecked((int)0x80090016);
+        private const int NTE_INVALID_HANDLE = unchecked((int)0x80090026);
         private const int TPM_20_E_HANDLE = unchecked((int)0x8028008B);
         private const int TPM_20_E_159 = unchecked((int)0x80280159);
+        private const int ERROR_CANCELLED = unchecked((int)0x800704C7);
 
         [StructLayout(LayoutKind.Sequential)]
         struct SECURITY_STATUS
@@ -350,6 +353,33 @@ namespace KeePassWinHello
 
         public byte[] Encrypt(byte[] data)
         {
+            for (int i = 0; ; ++i)
+            {
+                try
+                {
+                    return Encrypt(data, retry: i > 0);
+                }
+                catch (AuthProviderSystemErrorException ex)
+                {
+                    switch (ex.ErrorCode)
+                    {
+                        case NTE_BAD_KEYSET:     // #69
+                        case NTE_INVALID_HANDLE: // #63
+                        case ERROR_CANCELLED:    // #72
+                            if (i < Settings.MAX_RETRY_COUNT)
+                                break;
+                            throw;
+                        default:
+                            throw;
+                    }
+
+                    Thread.Sleep(Settings.ATTEMPT_DELAY);
+                }
+            }
+        }
+
+        private byte[] Encrypt(byte[] data, bool retry)
+        {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
             NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).ThrowOnError("NCryptOpenStorageProvider");
@@ -384,9 +414,16 @@ namespace KeePassWinHello
                 }
                 catch (AuthProviderSystemErrorException ex)
                 {
-                    if (ex.ErrorCode != TPM_20_E_HANDLE && ex.ErrorCode != TPM_20_E_159 ||
-                        i >= Settings.MAX_RETRY_COUNT)
-                        throw;
+                    switch (ex.ErrorCode)
+                    {
+                        case TPM_20_E_HANDLE: // #68
+                        case TPM_20_E_159:    // #42
+                            if (i < Settings.MAX_RETRY_COUNT)
+                                break;
+                            throw;
+                        default:
+                            throw;
+                    }
 
                     Thread.Sleep(Settings.ATTEMPT_DELAY);
                 }
