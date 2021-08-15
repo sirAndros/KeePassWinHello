@@ -26,10 +26,11 @@ namespace KeePassWinHello
         private readonly KeyCipher _keyCipher;
         private readonly IntPtr _keePassMainWindowHandle;
 
-
         private const int NoChanges = -777;
         private int _masterKeyTries = NoChanges;
         private CancellationTokenSource _cancellationTokenSource;
+
+        private bool _notifiedAboutRdp = false;
 
         public int  KeysCount   { get { return _keyStorage.Count; } }
 
@@ -44,6 +45,23 @@ namespace KeePassWinHello
         {
             if (!Settings.Instance.Enabled)
                 return;
+
+            if (SystemInformation.TerminalServerSession) // RDP
+            {
+                if (!_notifiedAboutRdp)
+                {
+                    MessageBox.Show(AuthProviderUIContext.Current,
+                        "Windows Hello is not available for a remote session. Unfortunately, you are forced to enter database using classic authorization.\n" +
+                        "The key will be kept in case you prompt to enter without using RDP. The usual key retention settings are being applied.",
+                        Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    _notifiedAboutRdp = true;
+                }
+                return;
+            }
+            else
+            {
+                _notifiedAboutRdp = false;
+            }
 
             string dbPath = GetDbPath(keyPromptForm);
             if (keyPromptForm.SecureDesktopMode)
