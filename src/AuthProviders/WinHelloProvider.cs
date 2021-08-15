@@ -27,6 +27,7 @@ namespace KeePassWinHello
         private const int NCRYPT_PAD_PKCS1_FLAG = 0x00000002;
         private const int NTE_USER_CANCELLED = unchecked((int)0x80090036);
         private const int NTE_NO_KEY = unchecked((int)0x8009000D);
+        private const int NTE_BAD_DATA = unchecked((int)0x80090005);
         private const int TPM_20_E_HANDLE = unchecked((int)0x8028008B);
 
         [StructLayout(LayoutKind.Sequential)]
@@ -46,7 +47,7 @@ namespace KeePassWinHello
             * NTE_NOT_SUPPORTED
             * NTE_USER_CANCELLED
             */
-            public void CheckStatus(string name = "", int ignoreStatus = 0)
+            public void ThrowOnError(string name = "", int ignoreStatus = 0)
             {
                 if (secStatus >= 0 || secStatus == ignoreStatus)
                     return;
@@ -260,7 +261,7 @@ namespace KeePassWinHello
             {
                 using (ngcKeyHandle)
                 {
-                    NCryptDeleteKey(ngcKeyHandle, 0).CheckStatus("NCryptDeleteKey");
+                    NCryptDeleteKey(ngcKeyHandle, 0).ThrowOnError("NCryptDeleteKey");
                     ngcKeyHandle.SetHandleAsInvalid();
                 }
             }
@@ -269,7 +270,7 @@ namespace KeePassWinHello
         private static bool TryOpenPersistentKey(out SafeNCryptKeyHandle ngcKeyHandle)
         {
             SafeNCryptProviderHandle ngcProviderHandle;
-            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus("NCryptOpenStorageProvider");
+            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).ThrowOnError("NCryptOpenStorageProvider");
 
             using (ngcProviderHandle)
             {
@@ -277,7 +278,7 @@ namespace KeePassWinHello
                     out ngcKeyHandle,
                     _persistentKeyName.Value,
                     0, CngKeyOpenOptions.None
-                    ).CheckStatus("NCryptOpenKey", NTE_NO_KEY);
+                    ).ThrowOnError("NCryptOpenKey", NTE_NO_KEY);
             }
 
             return ngcKeyHandle != null && !ngcKeyHandle.IsInvalid;
@@ -287,18 +288,18 @@ namespace KeePassWinHello
         {
             int pcbResult;
             int keyUsage = 0;
-            NCryptGetProperty(ngcKeyHandle, NCRYPT_KEY_USAGE_PROPERTY, ref keyUsage, sizeof(int), out pcbResult, CngPropertyOptions.None).CheckStatus("NCRYPT_KEY_USAGE_PROPERTY");
+            NCryptGetProperty(ngcKeyHandle, NCRYPT_KEY_USAGE_PROPERTY, ref keyUsage, sizeof(int), out pcbResult, CngPropertyOptions.None).ThrowOnError("NCRYPT_KEY_USAGE_PROPERTY");
             if ((keyUsage & NCRYPT_ALLOW_KEY_IMPORT_FLAG) == NCRYPT_ALLOW_KEY_IMPORT_FLAG)
                 return false;
 
             int cacheType = 0;
             try
             {
-                NCryptGetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY, ref cacheType, sizeof(int), out pcbResult, CngPropertyOptions.None).CheckStatus("NCRYPT_NGC_CACHE_TYPE_PROPERTY");
+                NCryptGetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY, ref cacheType, sizeof(int), out pcbResult, CngPropertyOptions.None).ThrowOnError("NCRYPT_NGC_CACHE_TYPE_PROPERTY");
             }
             catch
             {
-                NCryptGetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED, ref cacheType, sizeof(int), out pcbResult, CngPropertyOptions.None).CheckStatus("NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED");
+                NCryptGetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED, ref cacheType, sizeof(int), out pcbResult, CngPropertyOptions.None).ThrowOnError("NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED");
             }
             if (cacheType != NCRYPT_NGC_CACHE_TYPE_PROPERTY_AUTH_MANDATORY_FLAG)
                 return false;
@@ -310,7 +311,7 @@ namespace KeePassWinHello
         {
             SafeNCryptProviderHandle ngcProviderHandle;
 
-            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus("NCryptOpenStorageProvider");
+            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).ThrowOnError("NCryptOpenStorageProvider");
 
             SafeNCryptKeyHandle ngcKeyHandle;
             using (ngcProviderHandle)
@@ -320,27 +321,27 @@ namespace KeePassWinHello
                             BCRYPT_RSA_ALGORITHM,
                             _persistentKeyName.Value,
                             0, overwriteExisting ? CngKeyCreationOptions.OverwriteExistingKey : CngKeyCreationOptions.None
-                            ).CheckStatus("NCryptCreatePersistedKey");
+                            ).ThrowOnError("NCryptCreatePersistedKey");
 
                 byte[] lengthProp = BitConverter.GetBytes(2048);
-                NCryptSetProperty(ngcKeyHandle, NCRYPT_LENGTH_PROPERTY, lengthProp, lengthProp.Length, CngPropertyOptions.None).CheckStatus("NCRYPT_LENGTH_PROPERTY");
+                NCryptSetProperty(ngcKeyHandle, NCRYPT_LENGTH_PROPERTY, lengthProp, lengthProp.Length, CngPropertyOptions.None).ThrowOnError("NCRYPT_LENGTH_PROPERTY");
 
                 byte[] keyUsage = BitConverter.GetBytes(NCRYPT_ALLOW_DECRYPT_FLAG | NCRYPT_ALLOW_SIGNING_FLAG);
-                NCryptSetProperty(ngcKeyHandle, NCRYPT_KEY_USAGE_PROPERTY, keyUsage, keyUsage.Length, CngPropertyOptions.None).CheckStatus("NCRYPT_KEY_USAGE_PROPERTY");
+                NCryptSetProperty(ngcKeyHandle, NCRYPT_KEY_USAGE_PROPERTY, keyUsage, keyUsage.Length, CngPropertyOptions.None).ThrowOnError("NCRYPT_KEY_USAGE_PROPERTY");
 
                 byte[] cacheType = BitConverter.GetBytes(NCRYPT_NGC_CACHE_TYPE_PROPERTY_AUTH_MANDATORY_FLAG);
                 try
                 {
-                    NCryptSetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY, cacheType, cacheType.Length, CngPropertyOptions.None).CheckStatus("NCRYPT_NGC_CACHE_TYPE_PROPERTY");
+                    NCryptSetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY, cacheType, cacheType.Length, CngPropertyOptions.None).ThrowOnError("NCRYPT_NGC_CACHE_TYPE_PROPERTY");
                 }
                 catch
                 {
-                    NCryptSetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED, cacheType, cacheType.Length, CngPropertyOptions.None).CheckStatus("NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED");
+                    NCryptSetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED, cacheType, cacheType.Length, CngPropertyOptions.None).ThrowOnError("NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED");
                 }
 
                 ApplyUIContext(ngcKeyHandle);
 
-                NCryptFinalizeKey(ngcKeyHandle, 0).CheckStatus("NCryptFinalizeKey");
+                NCryptFinalizeKey(ngcKeyHandle, 0).ThrowOnError("NCryptFinalizeKey");
             }
 
             return ngcKeyHandle;
@@ -350,21 +351,21 @@ namespace KeePassWinHello
         {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
-            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus("NCryptOpenStorageProvider");
+            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).ThrowOnError("NCryptOpenStorageProvider");
             using (ngcProviderHandle)
             {
                 SafeNCryptKeyHandle ngcKeyHandle;
-                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.Silent).CheckStatus("NCryptOpenKey");
+                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.Silent).ThrowOnError("NCryptOpenKey");
                 using (ngcKeyHandle)
                 {
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
                         throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
 
                     int pcbResult;
-                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus("NCryptEncrypt");
+                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptEncrypt");
 
                     cbResult = new byte[pcbResult];
-                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus("NCryptEncrypt");
+                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptEncrypt");
                     System.Diagnostics.Debug.Assert(cbResult.Length == pcbResult);
                 }
             }
@@ -394,11 +395,11 @@ namespace KeePassWinHello
         {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
-            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).CheckStatus("NCryptOpenStorageProvider");
+            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).ThrowOnError("NCryptOpenStorageProvider");
             using (ngcProviderHandle)
             {
                 SafeNCryptKeyHandle ngcKeyHandle;
-                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.None).CheckStatus("NCryptOpenKey");
+                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.None).ThrowOnError("NCryptOpenKey");
                 using (ngcKeyHandle)
                 {
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
@@ -407,12 +408,12 @@ namespace KeePassWinHello
                     ApplyUIContext(ngcKeyHandle, retry);
 
                     byte[] pinRequired = BitConverter.GetBytes(1);
-                    NCryptSetProperty(ngcKeyHandle, NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, pinRequired, pinRequired.Length, CngPropertyOptions.None).CheckStatus("NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY");
+                    NCryptSetProperty(ngcKeyHandle, NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, pinRequired, pinRequired.Length, CngPropertyOptions.None).ThrowOnError("NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY");
 
                     // The pbInput and pbOutput parameters can point to the same buffer. In this case, this function will perform the decryption in place.
                     cbResult = new byte[data.Length * 2];
                     int pcbResult;
-                    NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).CheckStatus("NCryptDecrypt");
+                    NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptDecrypt");
                     // TODO: secure resize
                     Array.Resize(ref cbResult, pcbResult);
                 }
@@ -430,7 +431,8 @@ namespace KeePassWinHello
                 if (parentWindowHandle != IntPtr.Zero)
                 {
                     byte[] handle = BitConverter.GetBytes(IntPtr.Size == 8 ? parentWindowHandle.ToInt64() : parentWindowHandle.ToInt32());
-                    NCryptSetProperty(ngcKeyHandle, NCRYPT_WINDOW_HANDLE_PROPERTY, handle, handle.Length, CngPropertyOptions.None).CheckStatus("NCRYPT_WINDOW_HANDLE_PROPERTY");
+                    NCryptSetProperty(ngcKeyHandle, NCRYPT_WINDOW_HANDLE_PROPERTY, handle, handle.Length, CngPropertyOptions.None)
+                        .ThrowOnError("NCRYPT_WINDOW_HANDLE_PROPERTY", NTE_BAD_DATA);
                 }
 
                 string message = uiContext.Message;
@@ -438,7 +440,7 @@ namespace KeePassWinHello
                     message = Settings.FailedRetryMessage + message;
 
                 if (!string.IsNullOrEmpty(message))
-                    NCryptSetProperty(ngcKeyHandle, NCRYPT_USE_CONTEXT_PROPERTY, message, (message.Length + 1) * 2, CngPropertyOptions.None).CheckStatus("NCRYPT_USE_CONTEXT_PROPERTY");
+                    NCryptSetProperty(ngcKeyHandle, NCRYPT_USE_CONTEXT_PROPERTY, message, (message.Length + 1) * 2, CngPropertyOptions.None).ThrowOnError("NCRYPT_USE_CONTEXT_PROPERTY");
             }
         }
     }
