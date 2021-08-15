@@ -105,7 +105,8 @@ namespace KeePassWinHello
         public static void AllowAllSetForeground()
         {
             const int ASFW_ANY = -1;
-            WinAPI.AllowSetForegroundWindow(ASFW_ANY).ThrowOnError("AllowSetForegroundWindow");
+            WinAPI.AllowSetForegroundWindow(ASFW_ANY)
+                .ThrowOnError("AllowSetForegroundWindow", WinAPI.ERROR_ACCESS_DENIED);
         }
 
         public void Close()
@@ -210,6 +211,8 @@ namespace KeePassWinHello
         static class WinAPI
         {
             private const string User32 = "User32.dll";
+
+            public const int ERROR_ACCESS_DENIED = 5;
 
             [DllImport(User32, SetLastError = true)]
             public static extern BOOL SetForegroundWindow(IntPtr hWnd);
