@@ -29,6 +29,7 @@ namespace KeePassWinHello
         private const int NTE_NO_KEY = unchecked((int)0x8009000D);
         private const int NTE_BAD_DATA = unchecked((int)0x80090005);
         private const int TPM_20_E_HANDLE = unchecked((int)0x8028008B);
+        private const int TPM_20_E_159 = unchecked((int)0x80280159);
 
         [StructLayout(LayoutKind.Sequential)]
         struct SECURITY_STATUS
@@ -383,7 +384,8 @@ namespace KeePassWinHello
                 }
                 catch (AuthProviderSystemErrorException ex)
                 {
-                    if (ex.ErrorCode != TPM_20_E_HANDLE || i >= Settings.MAX_RETRY_COUNT)
+                    if (ex.ErrorCode != TPM_20_E_HANDLE && ex.ErrorCode != TPM_20_E_159 ||
+                        i >= Settings.MAX_RETRY_COUNT)
                         throw;
 
                     Thread.Sleep(Settings.ATTEMPT_DELAY);
