@@ -53,6 +53,7 @@ namespace KeePassWinHello
 
             InitKeyManager();
 
+            _host.MainWindow.FileClosingPre += OnPreFileClosing;
             GlobalWindowManager.WindowAdded += OnWindowAdded;
 
             return true;
@@ -64,11 +65,12 @@ namespace KeePassWinHello
                 return;
 
             GlobalWindowManager.WindowAdded -= OnWindowAdded;
+            _host.MainWindow.FileClosingPre -= OnPreFileClosing;
+
             if (_keyManager != null)
             {
                 lock (_initMutex)
                 {
-                    _host.MainWindow.FileClosingPre -= _keyManager.OnDBClosing;
                     _keyManager.Dispose();
                     _keyManager = null;
                 }
@@ -84,7 +86,6 @@ namespace KeePassWinHello
                 try
                 {
                     _keyManager = new KeyManager(_host.MainWindow.Handle);
-                    _host.MainWindow.FileClosingPre += _keyManager.OnDBClosing;
                     _wasUnavailable = false;
                 }
                 catch (AuthProviderIsUnavailableException)
@@ -93,14 +94,18 @@ namespace KeePassWinHello
                 }
                 catch (Exception ex)
                 {
-                    if (_keyManager != null)
-                    {
-                        _keyManager.Dispose();
-                        _keyManager = null;
-                    }
                     ErrorHandler.ShowError(ex);
                 }
             }
+        }
+
+        private void OnPreFileClosing(object sender, FileClosingEventArgs e)
+        {
+            if (_wasUnavailable)
+                InitKeyManager();
+
+            if (_keyManager != null)
+                _keyManager.OnDBClosing(sender, e);
         }
 
         private void OnWindowAdded(object sender, GwmWindowEventArgs e)
