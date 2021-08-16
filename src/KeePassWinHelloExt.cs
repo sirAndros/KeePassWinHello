@@ -13,7 +13,7 @@ namespace KeePassWinHello
     {
         private IPluginHost _host;
         private KeyManager _keyManager;
-        private bool _wasUnavailable;
+        private bool? _wasUnavailable = null;
         private readonly object _initMutex = new Object();
         private readonly object _unlockMutex = new Object();
 
@@ -83,6 +83,9 @@ namespace KeePassWinHello
         {
             lock (_initMutex)
             {
+                if (_wasUnavailable == false)
+                    return;
+
                 try
                 {
                     _keyManager = new KeyManager(_host.MainWindow.Handle);
@@ -95,14 +98,14 @@ namespace KeePassWinHello
                 catch (Exception ex)
                 {
                     ErrorHandler.ShowError(ex);
+                    _wasUnavailable = false;
                 }
             }
         }
 
         private void OnPreFileClosing(object sender, FileClosingEventArgs e)
         {
-            if (_wasUnavailable)
-                InitKeyManager();
+            InitKeyManager();
 
             if (_keyManager != null)
                 _keyManager.OnDBClosing(sender, e);
@@ -115,8 +118,7 @@ namespace KeePassWinHello
                 var keyPromptForm = e.Form as KeyPromptForm;
                 if (keyPromptForm != null)
                 {
-                    if (_wasUnavailable)
-                        InitKeyManager();
+                    InitKeyManager();
 
                     if (_keyManager != null)
                     {
@@ -129,8 +131,7 @@ namespace KeePassWinHello
                 var optionsForm = e.Form as OptionsForm;
                 if (optionsForm != null)
                 {
-                    if (_wasUnavailable)
-                        InitKeyManager();
+                    InitKeyManager();
 
                     OptionsPanel.OnOptionsLoad(optionsForm, _keyManager);
                     return;
