@@ -51,7 +51,7 @@ namespace KeePassWinHello
                 if (!_notifiedAboutRdp)
                 {
                     MessageBox.Show(AuthProviderUIContext.Current,
-                        "Windows Hello is not available for a remote session. Unfortunately, you are forced to enter database using classic authorization.\n" +
+                        "Windows Hello is not available for a remote session. Unfortunately, you are forced to enter database using default authorization.\n" +
                         "The key will be kept in case you prompt to enter without using RDP. The usual key retention settings are being applied.",
                         Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     _notifiedAboutRdp = true;
