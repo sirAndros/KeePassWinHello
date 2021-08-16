@@ -1,22 +1,22 @@
 ﻿namespace KeePassWinHello
 {
-	partial class OptionsPanel
-	{
-		private System.ComponentModel.IContainer components = null;
+    partial class OptionsPanel
+    {
+        private System.ComponentModel.IContainer components = null;
 
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && (components != null))
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
-		#region Designer Code
+        #region Designer Code
 
-		private void InitializeComponent()
-		{
+        private void InitializeComponent()
+        {
             this.components = new System.ComponentModel.Container();
             this.winKeyStorageToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.winKeyStorageCheckBox = new System.Windows.Forms.CheckBox();
@@ -77,14 +77,14 @@
             // 
             // winHelloDisabledLabel
             // 
-            this.winHelloDisabledLabel.AutoSize = true;
+            this.winHelloDisabledLabel.AutoSize = false;
+            this.winHelloDisabledLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.winHelloDisabledLabel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.winHelloDisabledLabel.ForeColor = System.Drawing.Color.Red;
-            this.winHelloDisabledLabel.Location = new System.Drawing.Point(79, 5);
             this.winHelloDisabledLabel.Name = "winHelloDisabledLabel";
             this.winHelloDisabledLabel.Size = new System.Drawing.Size(393, 13);
             this.winHelloDisabledLabel.TabIndex = 10;
-            this.winHelloDisabledLabel.Text = "Windows Hello is disabled on your system. Please activate it in the system settin" +
-    "gs";
+            this.winHelloDisabledLabel.Text = "Windows Hello is not available.";
             // 
             // invalidationPanel
             // 
@@ -315,9 +315,9 @@
             this.ResumeLayout(false);
             this.PerformLayout();
 
-		}
+        }
 
-		#endregion
+        #endregion
         private System.Windows.Forms.ToolTip winKeyStorageToolTip;
         private System.Windows.Forms.Panel winHelloDisabledPanel;
         private System.Windows.Forms.Label winHelloDisabledLabel;

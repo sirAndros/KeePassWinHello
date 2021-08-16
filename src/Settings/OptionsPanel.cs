@@ -45,14 +45,20 @@ namespace KeePassWinHello
         {
             bool isEnabled = Settings.Instance.Enabled;
             bool isAvailable = _keyManager != null;
+            bool isLocalSession = !SystemInformation.TerminalServerSession;
 
             LoadValuesFromSettings();
-            ProcessControlsVisibility(isEnabled && isAvailable);
+            ProcessControlsVisibility(isEnabled && isAvailable && isLocalSession);
 
-            if (!isAvailable)
+            if (!isAvailable || !isLocalSession)
             {
+                string disableReason = "Windows Hello is disabled on your system. Please activate it in the system settings.";
+                if (!isLocalSession)
+                    disableReason = "Windows Hello is not available on a remote desktop.";
+
                 isEnabledCheckBox.Enabled = false;
                 winHelloDisabledPanel.Visible = true;
+                winHelloDisabledLabel.Text = disableReason;
             }
         }
 
