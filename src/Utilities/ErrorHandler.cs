@@ -13,21 +13,32 @@ namespace KeePassWinHello.Utilities
             string message = ex.Message;
             var messageType = MessageBoxIcon.Warning;
 
+            var bugReportUrl = "https://github.com/sirAndros/KeePassWinHello/issues/new?labels=bug&template=bug_report.md";
+
             var ourException = ex as KeePassWinHelloException;
             if (ourException == null || !ourException.IsPresentable)
             {
                 var sb = new StringBuilder();
-                sb.AppendLine("Something went wrong. Please report the issue in our Github repository with the following technical info.");
+                sb.AppendLine("Something went wrong. Please report the issue in our Github repository by pressing the \"Help\" button with the following technical info.");
                 sb.Append(ex);
 
                 message = sb.ToString();
                 messageType = MessageBoxIcon.Error;
+
+                var envException = ex as EnviromentErrorException;
+                if (envException != null)
+                {
+                    var title = String.Format("[{0} — 0x{1:X}]", envException.Context, envException.ErrorCode);
+                    bugReportUrl += "&title=" + Uri.EscapeDataString(title);
+                }
             }
 
             if (!String.IsNullOrEmpty(description))
                 message = description + Environment.NewLine + message;
 
-            return MessageBox.Show(AuthProviderUIContext.Current, message, Settings.ProductName, MessageBoxButtons.OK, messageType);
+            //todo TaskDialog
+            return MessageBox.Show(AuthProviderUIContext.Current, message, Settings.ProductName, MessageBoxButtons.OK, messageType,
+                    MessageBoxDefaultButton.Button1, 0, bugReportUrl, "Report the issue");
         }
     }
 }
