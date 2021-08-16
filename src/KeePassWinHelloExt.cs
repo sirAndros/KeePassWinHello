@@ -12,9 +12,7 @@ namespace KeePassWinHello
     public class KeePassWinHelloExt : Plugin
     {
         private IPluginHost _host;
-        private KeyManager _keyManager;
-        private bool? _wasUnavailable = null;
-        private readonly object _initMutex = new Object();
+        private KeyManagerProvider _keyManagerProvider;
         private readonly object _unlockMutex = new Object();
 
         public override Image SmallIcon
@@ -50,8 +48,7 @@ namespace KeePassWinHello
             Settings.Instance.Initialize(host.CustomConfig);
 
             _host = host;
-
-            InitKeyManager();
+            _keyManagerProvider = new KeyManagerProvider(host);
 
             _host.MainWindow.FileClosingPre += OnPreFileClosing;
             GlobalWindowManager.WindowAdded += OnWindowAdded;
@@ -67,48 +64,17 @@ namespace KeePassWinHello
             GlobalWindowManager.WindowAdded -= OnWindowAdded;
             _host.MainWindow.FileClosingPre -= OnPreFileClosing;
 
-            if (_keyManager != null)
-            {
-                lock (_initMutex)
-                {
-                    _keyManager.Dispose();
-                    _keyManager = null;
-                }
-            }
+            _keyManagerProvider.Dispose();
+            _keyManagerProvider = null;
 
             _host = null;
         }
 
-        private void InitKeyManager()
-        {
-            lock (_initMutex)
-            {
-                if (_wasUnavailable == false)
-                    return;
-
-                try
-                {
-                    _keyManager = new KeyManager(_host.MainWindow.Handle);
-                    _wasUnavailable = false;
-                }
-                catch (AuthProviderIsUnavailableException)
-                {
-                    _wasUnavailable = true;
-                }
-                catch (Exception ex)
-                {
-                    ErrorHandler.ShowError(ex);
-                    _wasUnavailable = false;
-                }
-            }
-        }
-
         private void OnPreFileClosing(object sender, FileClosingEventArgs e)
         {
-            InitKeyManager();
-
-            if (_keyManager != null)
-                _keyManager.OnDBClosing(sender, e);
+            var keyManager = _keyManagerProvider.ObtainKeyManager();
+            if (keyManager != null)
+                keyManager.OnDBClosing(sender, e);
         }
 
         private void OnWindowAdded(object sender, GwmWindowEventArgs e)
@@ -118,12 +84,11 @@ namespace KeePassWinHello
                 var keyPromptForm = e.Form as KeyPromptForm;
                 if (keyPromptForm != null)
                 {
-                    InitKeyManager();
-
-                    if (_keyManager != null)
+                    var keyManager = _keyManagerProvider.ObtainKeyManager();
+                    if (keyManager != null)
                     {
                         lock (_unlockMutex)
-                            _keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
+                            keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
                         return; 
                     }
                 }
@@ -131,9 +96,8 @@ namespace KeePassWinHello
                 var optionsForm = e.Form as OptionsForm;
                 if (optionsForm != null)
                 {
-                    InitKeyManager();
-
-                    OptionsPanel.OnOptionsLoad(optionsForm, _keyManager);
+                    var keyManager = _keyManagerProvider.ObtainKeyManager();
+                    OptionsPanel.OnOptionsLoad(optionsForm, keyManager);
                     return;
                 }
             }
