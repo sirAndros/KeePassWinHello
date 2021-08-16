@@ -157,6 +157,9 @@ namespace KeePassWinHello
             if (e.Cancel || e.Database == null || e.Database.MasterKey == null || e.Database.IOConnectionInfo == null)
                 return;
 
+            if (SystemInformation.TerminalServerSession) // RDP
+                return;
+
             try
             {
                 string dbPath = e.Database.IOConnectionInfo.Path;
