@@ -13,6 +13,8 @@ namespace KeePassWinHello
     {
         private IPluginHost _host;
         private KeyManager _keyManager;
+        private bool _wasUnavailable;
+        private readonly object _initMutex = new Object();
         private readonly object _unlockMutex = new Object();
 
         public override Image SmallIcon
@@ -48,21 +50,9 @@ namespace KeePassWinHello
             Settings.Instance.Initialize(host.CustomConfig);
 
             _host = host;
-            try
-            {
-                _keyManager = new KeyManager(_host.MainWindow.Handle);
-                _host.MainWindow.FileClosingPre += _keyManager.OnDBClosing;
-            }
-            catch (AuthProviderIsUnavailableException)
-            {
-                // it's OK.
-            }
-            catch (Exception ex)
-            {
-                _keyManager = null;
-                ErrorHandler.ShowError(ex);
-            }
- 
+
+            InitKeyManager();
+
             GlobalWindowManager.WindowAdded += OnWindowAdded;
 
             return true;
@@ -76,11 +66,41 @@ namespace KeePassWinHello
             GlobalWindowManager.WindowAdded -= OnWindowAdded;
             if (_keyManager != null)
             {
-                _host.MainWindow.FileClosingPre -= _keyManager.OnDBClosing;
-                _keyManager.Dispose();
+                lock (_initMutex)
+                {
+                    _host.MainWindow.FileClosingPre -= _keyManager.OnDBClosing;
+                    _keyManager.Dispose();
+                    _keyManager = null;
+                }
             }
 
             _host = null;
+        }
+
+        private void InitKeyManager()
+        {
+            lock (_initMutex)
+            {
+                try
+                {
+                    _keyManager = new KeyManager(_host.MainWindow.Handle);
+                    _host.MainWindow.FileClosingPre += _keyManager.OnDBClosing;
+                    _wasUnavailable = false;
+                }
+                catch (AuthProviderIsUnavailableException)
+                {
+                    _wasUnavailable = true;
+                }
+                catch (Exception ex)
+                {
+                    if (_keyManager != null)
+                    {
+                        _keyManager.Dispose();
+                        _keyManager = null;
+                    }
+                    ErrorHandler.ShowError(ex);
+                }
+            }
         }
 
         private void OnWindowAdded(object sender, GwmWindowEventArgs e)
@@ -88,16 +108,25 @@ namespace KeePassWinHello
             try
             {
                 var keyPromptForm = e.Form as KeyPromptForm;
-                if (keyPromptForm != null && _keyManager != null)
+                if (keyPromptForm != null)
                 {
-                    lock (_unlockMutex)
-                        _keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
-                    return;
+                    if (_wasUnavailable)
+                        InitKeyManager();
+
+                    if (_keyManager != null)
+                    {
+                        lock (_unlockMutex)
+                            _keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
+                        return; 
+                    }
                 }
 
                 var optionsForm = e.Form as OptionsForm;
                 if (optionsForm != null)
                 {
+                    if (_wasUnavailable)
+                        InitKeyManager();
+
                     OptionsPanel.OnOptionsLoad(optionsForm, _keyManager);
                     return;
                 }
