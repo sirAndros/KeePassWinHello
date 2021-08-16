@@ -38,7 +38,7 @@ namespace KeePassWinHello.Utilities
 
             //todo TaskDialog
             return MessageBox.Show(AuthProviderUIContext.Current, message, Settings.ProductName, MessageBoxButtons.OK, messageType,
-                    MessageBoxDefaultButton.Button1, 0, bugReportUrl, "Report an issue");
+                    MessageBoxDefaultButton.Button1, 0, bugReportUrl, "Report the issue");
         }
     }
 }
