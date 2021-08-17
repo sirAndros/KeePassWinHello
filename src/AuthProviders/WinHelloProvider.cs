@@ -119,8 +119,7 @@ namespace KeePassWinHello
                                                int dwFlags);
         #endregion
 
-        private static readonly Lazy<string> _localKeyName = new Lazy<string>(RetreiveLocalKeyName);
-        private static readonly Lazy<string> _persistentKeyName = new Lazy<string>(RetreivePersistentKeyName);
+        private static readonly Lazy<string> _currentSID = new Lazy<string>(WindowsIdentity.GetCurrent().User.ToString);
 
         private static readonly object _mutex = new object();
         private static WeakReference _instance;
@@ -129,31 +128,53 @@ namespace KeePassWinHello
         private const string SubDomain = "";
         private const string PersistentName = Settings.ProductName;
         private const string InvalidatedKeyMessage = "Persistent key has not met integrity requirements. It might be caused by a spoofing attack. Try to recreate the key.";
-        private string _currentKeyName;
 
-        private static string RetreiveLocalKeyName()
+        private static void RetrieveKeys(out string localKey, out string persistentKey)
         {
-            string key;
-            NgcGetDefaultDecryptionKeyName(WindowsIdentity.GetCurrent().User.Value, 0, 0, out key);
-            return key;
-        }
-        private static string RetreivePersistentKeyName()
-        {
-            var sid = WindowsIdentity.GetCurrent().User.Value;
-            return sid + "//" + Domain + "/" + SubDomain + "/" + PersistentName;
+            NgcGetDefaultDecryptionKeyName(_currentSID.Value, 0, 0, out localKey);
+            persistentKey = _currentSID.Value + "//" + Domain + "/" + SubDomain + "/" + PersistentName;
+
+            if (string.IsNullOrEmpty(localKey))
+                throw new AuthProviderIsUnavailableException("Windows Hello is not available.");
         }
 
-        private static bool IsAvailable()
+        private static string LocalKeyName
         {
-            return !string.IsNullOrEmpty(_localKeyName.Value);
+            get
+            {
+                string local, persistent;
+                RetrieveKeys(out local, out persistent);
+                return local;
+            }
+        }
+
+        private static string PersistentKeyName
+        {
+            get
+            {
+                string local, persistent;
+                RetrieveKeys(out local, out persistent);
+                return persistent;
+            }
+        }
+
+        private string CurrentKeyName
+        {
+            get { return CurrentCacheType == AuthCacheType.Local ? LocalKeyName : PersistentKeyName; }
+        }
+
+        private static void EnsureWinHelloAvailability()
+        {
+            var dummy = LocalKeyName;
         }
 
         private WinHelloProvider(AuthCacheType authCacheType)
         {
+            CurrentCacheType = authCacheType;
+
             if (authCacheType == AuthCacheType.Local)
             {
                 DeletePersistentKey();
-                _currentKeyName = _localKeyName.Value;
             }
             else
             {
@@ -172,15 +193,12 @@ namespace KeePassWinHello
                         throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
                     }
                 }
-
-                _currentKeyName = _persistentKeyName.Value;
             }
         }
 
         public static WinHelloProvider CreateInstance(AuthCacheType authCacheType)
         {
-            if (!IsAvailable())
-                throw new AuthProviderIsUnavailableException("Windows Hello is not available.");
+            EnsureWinHelloAvailability();
 
             lock (_mutex)
             {
@@ -236,27 +254,12 @@ namespace KeePassWinHello
                         CreatePersistentKey(false).Dispose();
                     }
                 }
+
                 CurrentCacheType = authCacheType;
             }
         }
 
-        public AuthCacheType CurrentCacheType
-        {
-            get
-            {
-                return _currentKeyName == _localKeyName.Value ? AuthCacheType.Local : AuthCacheType.Persistent;
-            }
-            private set
-            {
-                if (value == AuthCacheType.Local)
-                    _currentKeyName = _localKeyName.Value;
-                else
-                {
-                    System.Diagnostics.Debug.Assert(value == AuthCacheType.Persistent);
-                    _currentKeyName = _persistentKeyName.Value;
-                }
-            }
-        }
+        public AuthCacheType CurrentCacheType { get; private set; }
 
         private static void DeletePersistentKey()
         {
@@ -280,7 +283,7 @@ namespace KeePassWinHello
             {
                 NCryptOpenKey(ngcProviderHandle,
                     out ngcKeyHandle,
-                    _persistentKeyName.Value,
+                    PersistentKeyName,
                     0, CngKeyOpenOptions.None
                     ).ThrowOnError("NCryptOpenKey", NTE_NO_KEY);
             }
@@ -323,7 +326,7 @@ namespace KeePassWinHello
                 NCryptCreatePersistedKey(ngcProviderHandle,
                             out ngcKeyHandle,
                             BCRYPT_RSA_ALGORITHM,
-                            _persistentKeyName.Value,
+                            PersistentKeyName,
                             0, overwriteExisting ? CngKeyCreationOptions.OverwriteExistingKey : CngKeyCreationOptions.None
                             ).ThrowOnError("NCryptCreatePersistedKey");
 
@@ -386,7 +389,7 @@ namespace KeePassWinHello
             using (ngcProviderHandle)
             {
                 SafeNCryptKeyHandle ngcKeyHandle;
-                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.Silent).ThrowOnError("NCryptOpenKey");
+                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, CurrentKeyName, 0, CngKeyOpenOptions.Silent).ThrowOnError("NCryptOpenKey");
                 using (ngcKeyHandle)
                 {
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
@@ -438,7 +441,7 @@ namespace KeePassWinHello
             using (ngcProviderHandle)
             {
                 SafeNCryptKeyHandle ngcKeyHandle;
-                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.None).ThrowOnError("NCryptOpenKey");
+                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, CurrentKeyName, 0, CngKeyOpenOptions.None).ThrowOnError("NCryptOpenKey");
                 using (ngcKeyHandle)
                 {
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
