@@ -12,7 +12,7 @@ namespace KeePassWinHello
     public class KeePassWinHelloExt : Plugin
     {
         private IPluginHost _host;
-        private KeyManager _keyManager;
+        private KeyManagerProvider _keyManagerProvider;
         private readonly object _unlockMutex = new Object();
 
         public override Image SmallIcon
@@ -48,21 +48,9 @@ namespace KeePassWinHello
             Settings.Instance.Initialize(host.CustomConfig);
 
             _host = host;
-            try
-            {
-                _keyManager = new KeyManager(_host.MainWindow.Handle);
-                _host.MainWindow.FileClosingPre += _keyManager.OnDBClosing;
-            }
-            catch (AuthProviderIsUnavailableException)
-            {
-                // it's OK.
-            }
-            catch (Exception ex)
-            {
-                _keyManager = null;
-                ErrorHandler.ShowError(ex);
-            }
- 
+            _keyManagerProvider = new KeyManagerProvider(host);
+
+            _host.MainWindow.FileClosingPre += OnPreFileClosing;
             GlobalWindowManager.WindowAdded += OnWindowAdded;
 
             return true;
@@ -74,13 +62,19 @@ namespace KeePassWinHello
                 return;
 
             GlobalWindowManager.WindowAdded -= OnWindowAdded;
-            if (_keyManager != null)
-            {
-                _host.MainWindow.FileClosingPre -= _keyManager.OnDBClosing;
-                _keyManager.Dispose();
-            }
+            _host.MainWindow.FileClosingPre -= OnPreFileClosing;
+
+            _keyManagerProvider.Dispose();
+            _keyManagerProvider = null;
 
             _host = null;
+        }
+
+        private void OnPreFileClosing(object sender, FileClosingEventArgs e)
+        {
+            var keyManager = _keyManagerProvider.ObtainKeyManager();
+            if (keyManager != null)
+                keyManager.OnDBClosing(sender, e);
         }
 
         private void OnWindowAdded(object sender, GwmWindowEventArgs e)
@@ -88,17 +82,22 @@ namespace KeePassWinHello
             try
             {
                 var keyPromptForm = e.Form as KeyPromptForm;
-                if (keyPromptForm != null && _keyManager != null)
+                if (keyPromptForm != null)
                 {
-                    lock (_unlockMutex)
-                        _keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
-                    return;
+                    var keyManager = _keyManagerProvider.ObtainKeyManager();
+                    if (keyManager != null)
+                    {
+                        lock (_unlockMutex)
+                            keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
+                        return; 
+                    }
                 }
 
                 var optionsForm = e.Form as OptionsForm;
                 if (optionsForm != null)
                 {
-                    OptionsPanel.OnOptionsLoad(optionsForm, _keyManager);
+                    var keyManager = _keyManagerProvider.ObtainKeyManager();
+                    OptionsPanel.OnOptionsLoad(optionsForm, keyManager);
                     return;
                 }
             }

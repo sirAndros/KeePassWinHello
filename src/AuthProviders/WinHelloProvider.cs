@@ -119,8 +119,7 @@ namespace KeePassWinHello
                                                int dwFlags);
         #endregion
 
-        private static readonly Lazy<string> _localKeyName = new Lazy<string>(RetreiveLocalKeyName);
-        private static readonly Lazy<string> _persistentKeyName = new Lazy<string>(RetreivePersistentKeyName);
+        private static readonly Lazy<string> _currentSID = new Lazy<string>(WindowsIdentity.GetCurrent().User.ToString);
 
         private static readonly object _mutex = new object();
         private static WeakReference _instance;
@@ -129,31 +128,39 @@ namespace KeePassWinHello
         private const string SubDomain = "";
         private const string PersistentName = Settings.ProductName;
         private const string InvalidatedKeyMessage = "Persistent key has not met integrity requirements. It might be caused by a spoofing attack. Try to recreate the key.";
-        private string _currentKeyName;
 
-        private static string RetreiveLocalKeyName()
+        private static string LocalKeyName
         {
-            string key;
-            NgcGetDefaultDecryptionKeyName(WindowsIdentity.GetCurrent().User.Value, 0, 0, out key);
-            return key;
-        }
-        private static string RetreivePersistentKeyName()
-        {
-            var sid = WindowsIdentity.GetCurrent().User.Value;
-            return sid + "//" + Domain + "/" + SubDomain + "/" + PersistentName;
+            get
+            {
+                string local, persistent;
+                RetrieveKeys(out local, out persistent);
+                return local;
+            }
         }
 
-        private static bool IsAvailable()
+        private static string PersistentKeyName
         {
-            return !string.IsNullOrEmpty(_localKeyName.Value);
+            get
+            {
+                string local, persistent;
+                RetrieveKeys(out local, out persistent);
+                return persistent;
+            }
+        }
+
+        private string CurrentKeyName
+        {
+            get { return CurrentCacheType == AuthCacheType.Local ? LocalKeyName : PersistentKeyName; }
         }
 
         private WinHelloProvider(AuthCacheType authCacheType)
         {
+            CurrentCacheType = authCacheType;
+
             if (authCacheType == AuthCacheType.Local)
             {
                 DeletePersistentKey();
-                _currentKeyName = _localKeyName.Value;
             }
             else
             {
@@ -172,15 +179,14 @@ namespace KeePassWinHello
                         throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
                     }
                 }
-
-                _currentKeyName = _persistentKeyName.Value;
             }
         }
 
+        public AuthCacheType CurrentCacheType { get; private set; }
+
         public static WinHelloProvider CreateInstance(AuthCacheType authCacheType)
         {
-            if (!IsAvailable())
-                throw new AuthProviderIsUnavailableException("Windows Hello is not available.");
+            EnsureWinHelloAvailability();
 
             lock (_mutex)
             {
@@ -236,26 +242,134 @@ namespace KeePassWinHello
                         CreatePersistentKey(false).Dispose();
                     }
                 }
+
                 CurrentCacheType = authCacheType;
             }
         }
 
-        public AuthCacheType CurrentCacheType
+        public byte[] Encrypt(byte[] data)
         {
-            get
+            for (int i = 0; ; ++i)
             {
-                return _currentKeyName == _localKeyName.Value ? AuthCacheType.Local : AuthCacheType.Persistent;
-            }
-            private set
-            {
-                if (value == AuthCacheType.Local)
-                    _currentKeyName = _localKeyName.Value;
-                else
+                try
                 {
-                    System.Diagnostics.Debug.Assert(value == AuthCacheType.Persistent);
-                    _currentKeyName = _persistentKeyName.Value;
+                    return Encrypt(data, retry: i > 0);
+                }
+                catch (AuthProviderSystemErrorException ex)
+                {
+                    switch (ex.ErrorCode)
+                    {
+                        case NTE_BAD_KEYSET:     // #69
+                        case NTE_INVALID_HANDLE: // #63
+                        case ERROR_CANCELLED:    // #72
+                            if (i < Settings.MAX_RETRY_COUNT)
+                                break;
+                            throw;
+                        default:
+                            throw;
+                    }
+
+                    Thread.Sleep(Settings.ATTEMPT_DELAY);
                 }
             }
+        }
+
+        public byte[] PromptToDecrypt(byte[] data)
+        {
+            for (int i = 0; ; ++i)
+            {
+                try
+                {
+                    return PromptToDecrypt(data, retry: i > 0);
+                }
+                catch (AuthProviderSystemErrorException ex)
+                {
+                    switch (ex.ErrorCode)
+                    {
+                        case TPM_20_E_HANDLE: // #68
+                        case TPM_20_E_159:    // #42
+                            if (i < Settings.MAX_RETRY_COUNT)
+                                break;
+                            throw;
+                        default:
+                            throw;
+                    }
+
+                    Thread.Sleep(Settings.ATTEMPT_DELAY);
+                }
+            }
+        }
+
+        private byte[] Encrypt(byte[] data, bool retry)
+        {
+            byte[] cbResult;
+            SafeNCryptProviderHandle ngcProviderHandle;
+            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).ThrowOnError("NCryptOpenStorageProvider");
+            using (ngcProviderHandle)
+            {
+                SafeNCryptKeyHandle ngcKeyHandle;
+                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, CurrentKeyName, 0, CngKeyOpenOptions.Silent).ThrowOnError("NCryptOpenKey");
+                using (ngcKeyHandle)
+                {
+                    if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
+                        throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
+
+                    int pcbResult;
+                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptEncrypt");
+
+                    cbResult = new byte[pcbResult];
+                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptEncrypt");
+                    System.Diagnostics.Debug.Assert(cbResult.Length == pcbResult);
+                }
+            }
+
+            return cbResult;
+        }
+
+        private byte[] PromptToDecrypt(byte[] data, bool retry)
+        {
+            byte[] cbResult;
+            SafeNCryptProviderHandle ngcProviderHandle;
+            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).ThrowOnError("NCryptOpenStorageProvider");
+            using (ngcProviderHandle)
+            {
+                SafeNCryptKeyHandle ngcKeyHandle;
+                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, CurrentKeyName, 0, CngKeyOpenOptions.None).ThrowOnError("NCryptOpenKey");
+                using (ngcKeyHandle)
+                {
+                    if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
+                        throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
+
+                    ApplyUIContext(ngcKeyHandle, retry);
+
+                    byte[] pinRequired = BitConverter.GetBytes(1);
+                    NCryptSetProperty(ngcKeyHandle, NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, pinRequired, pinRequired.Length, CngPropertyOptions.None).ThrowOnError("NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY");
+
+                    // The pbInput and pbOutput parameters can point to the same buffer. In this case, this function will perform the decryption in place.
+                    cbResult = new byte[data.Length * 2];
+                    int pcbResult;
+                    NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptDecrypt");
+                    // TODO: secure resize
+                    Array.Resize(ref cbResult, pcbResult);
+                }
+            }
+
+            return cbResult;
+        }
+
+        private static void RetrieveKeys(out string localKey, out string persistentKey)
+        {
+            NgcGetDefaultDecryptionKeyName(_currentSID.Value, 0, 0, out localKey);
+            persistentKey = _currentSID.Value + "//" + Domain + "/" + SubDomain + "/" + PersistentName;
+
+            // It's not expected to use persistent key if local key does not exist
+            if (string.IsNullOrEmpty(localKey))
+                throw new AuthProviderIsUnavailableException("Windows Hello is not available.");
+        }
+
+        private static void EnsureWinHelloAvailability()
+        {
+            var dummy = LocalKeyName; // throw an exception if not available
         }
 
         private static void DeletePersistentKey()
@@ -280,7 +394,7 @@ namespace KeePassWinHello
             {
                 NCryptOpenKey(ngcProviderHandle,
                     out ngcKeyHandle,
-                    _persistentKeyName.Value,
+                    PersistentKeyName,
                     0, CngKeyOpenOptions.None
                     ).ThrowOnError("NCryptOpenKey", NTE_NO_KEY);
             }
@@ -323,7 +437,7 @@ namespace KeePassWinHello
                 NCryptCreatePersistedKey(ngcProviderHandle,
                             out ngcKeyHandle,
                             BCRYPT_RSA_ALGORITHM,
-                            _persistentKeyName.Value,
+                            PersistentKeyName,
                             0, overwriteExisting ? CngKeyCreationOptions.OverwriteExistingKey : CngKeyCreationOptions.None
                             ).ThrowOnError("NCryptCreatePersistedKey");
 
@@ -349,116 +463,6 @@ namespace KeePassWinHello
             }
 
             return ngcKeyHandle;
-        }
-
-        public byte[] Encrypt(byte[] data)
-        {
-            for (int i = 0; ; ++i)
-            {
-                try
-                {
-                    return Encrypt(data, retry: i > 0);
-                }
-                catch (AuthProviderSystemErrorException ex)
-                {
-                    switch (ex.ErrorCode)
-                    {
-                        case NTE_BAD_KEYSET:     // #69
-                        case NTE_INVALID_HANDLE: // #63
-                        case ERROR_CANCELLED:    // #72
-                            if (i < Settings.MAX_RETRY_COUNT)
-                                break;
-                            throw;
-                        default:
-                            throw;
-                    }
-
-                    Thread.Sleep(Settings.ATTEMPT_DELAY);
-                }
-            }
-        }
-
-        private byte[] Encrypt(byte[] data, bool retry)
-        {
-            byte[] cbResult;
-            SafeNCryptProviderHandle ngcProviderHandle;
-            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).ThrowOnError("NCryptOpenStorageProvider");
-            using (ngcProviderHandle)
-            {
-                SafeNCryptKeyHandle ngcKeyHandle;
-                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.Silent).ThrowOnError("NCryptOpenKey");
-                using (ngcKeyHandle)
-                {
-                    if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                        throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
-
-                    int pcbResult;
-                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, null, 0, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptEncrypt");
-
-                    cbResult = new byte[pcbResult];
-                    NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptEncrypt");
-                    System.Diagnostics.Debug.Assert(cbResult.Length == pcbResult);
-                }
-            }
-
-            return cbResult;
-        }
-
-        public byte[] PromptToDecrypt(byte[] data)
-        {
-            for (int i = 0;; ++i)
-            {
-                try
-                {
-                    return PromptToDecrypt(data, retry: i > 0);
-                }
-                catch (AuthProviderSystemErrorException ex)
-                {
-                    switch (ex.ErrorCode)
-                    {
-                        case TPM_20_E_HANDLE: // #68
-                        case TPM_20_E_159:    // #42
-                            if (i < Settings.MAX_RETRY_COUNT)
-                                break;
-                            throw;
-                        default:
-                            throw;
-                    }
-
-                    Thread.Sleep(Settings.ATTEMPT_DELAY);
-                }
-            }
-        }
-
-        private byte[] PromptToDecrypt(byte[] data, bool retry)
-        {
-            byte[] cbResult;
-            SafeNCryptProviderHandle ngcProviderHandle;
-            NCryptOpenStorageProvider(out ngcProviderHandle, MS_NGC_KEY_STORAGE_PROVIDER, 0).ThrowOnError("NCryptOpenStorageProvider");
-            using (ngcProviderHandle)
-            {
-                SafeNCryptKeyHandle ngcKeyHandle;
-                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, _currentKeyName, 0, CngKeyOpenOptions.None).ThrowOnError("NCryptOpenKey");
-                using (ngcKeyHandle)
-                {
-                    if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                        throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
-
-                    ApplyUIContext(ngcKeyHandle, retry);
-
-                    byte[] pinRequired = BitConverter.GetBytes(1);
-                    NCryptSetProperty(ngcKeyHandle, NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, pinRequired, pinRequired.Length, CngPropertyOptions.None).ThrowOnError("NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY");
-
-                    // The pbInput and pbOutput parameters can point to the same buffer. In this case, this function will perform the decryption in place.
-                    cbResult = new byte[data.Length * 2];
-                    int pcbResult;
-                    NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptDecrypt");
-                    // TODO: secure resize
-                    Array.Resize(ref cbResult, pcbResult);
-                }
-            }
-
-            return cbResult;
         }
 
         private static void ApplyUIContext(SafeNCryptKeyHandle ngcKeyHandle, bool retryMessage = false)

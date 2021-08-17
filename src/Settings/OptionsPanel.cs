@@ -45,14 +45,20 @@ namespace KeePassWinHello
         {
             bool isEnabled = Settings.Instance.Enabled;
             bool isAvailable = _keyManager != null;
+            bool isLocalSession = !SystemInformation.TerminalServerSession;
 
             LoadValuesFromSettings();
-            ProcessControlsVisibility(isEnabled && isAvailable);
+            ProcessControlsVisibility(isEnabled && isAvailable && isLocalSession);
 
-            if (!isAvailable)
+            if (!isAvailable || !isLocalSession)
             {
+                string disableReason = "Windows Hello is disabled on your system. Please activate it in the system settings.";
+                if (!isLocalSession)
+                    disableReason = "Windows Hello is not available on a remote desktop.";
+
                 isEnabledCheckBox.Enabled = false;
                 winHelloDisabledPanel.Visible = true;
+                winHelloDisabledLabel.Text = disableReason;
             }
         }
 
@@ -113,29 +119,52 @@ namespace KeePassWinHello
 
                 if (settings.WinStorageEnabled != winKeyStorageCheckBox.Checked)
                 {
-                    settings.WinStorageEnabled = winKeyStorageCheckBox.Checked;
                     if (_keyManager != null)
                     {
-                        var authCacheType = settings.GetAuthCacheType();
                         using (AuthProviderUIContext.With(Settings.KeyCreationConfirmationMessage, this.Handle))
                         {
                             try
                             {
+                                var authCacheType = settings.GetAuthCacheType();
                                 _keyManager.ClaimCurrentCacheType(authCacheType);
+                                settings.WinStorageEnabled = winKeyStorageCheckBox.Checked;
                             }
                             catch (AuthProviderUserCancelledException)
                             {
-                                _keyManager.ClaimCurrentCacheType(AuthCacheType.Local);
-                                MessageBox.Show(AuthProviderUIContext.Current, "Creating persistent key for Credential Manager has been canceled", Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                TryClaimLocalCacheType();
+                                MessageBox.Show(AuthProviderUIContext.Current,
+                                    "Creating persistent key for Credential Manager has been canceled",
+                                    Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                            catch (AuthProviderIsUnavailableException ex)
+                            {
+                                if (SystemInformation.TerminalServerSession) // RDP
+                                    MessageBox.Show(AuthProviderUIContext.Current,
+                                        "Changing settings on a remote session is not permitted",
+                                        Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                else
+                                    ErrorHandler.ShowError(ex);
                             }
                             catch (Exception ex)
                             {
-                                _keyManager.ClaimCurrentCacheType(AuthCacheType.Local);
+                                TryClaimLocalCacheType();
                                 ErrorHandler.ShowError(ex);
                             }
                         }
                     }
                 }
+            }
+        }
+
+        private void TryClaimLocalCacheType()
+        {
+            try
+            {
+                _keyManager.ClaimCurrentCacheType(AuthCacheType.Local);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowError(ex);
             }
         }
 
