@@ -8,12 +8,12 @@
     <owners>shuffle-c, sirAndros</owners>
     <summary>KeePass plugin to unlock database via Windows Hello</summary>
     <description>
-This plugin for [KeePass 2](https://keepass.info/) password manager is intended for fast authorization to a database after its first unlock using [Windows Hello technology](https://support.microsoft.com/en-us/help/17215/windows-10-what-is-hello).
+This plugin for [KeePass 2](https://keepass.info/) password manager is intended for fast authorization to a database after its first unlock with biometrics using [Windows Hello technology](https://support.microsoft.com/en-us/help/17215/windows-10-what-is-hello).
     </description>
     <packageSourceUrl>https://github.com/sirAndros/KeePassWinHello/tree/master/Chocolatey</packageSourceUrl>
     <projectUrl>https://keepass.info/plugins.html#winhello</projectUrl>
     <projectSourceUrl>https://github.com/sirAndros/KeePassWinHello</projectSourceUrl>
-    <tags>keepass plugin unlock winhello security password-manager</tags>
+    <tags>keepass plugin unlock winhello biometrics security password-manager</tags>
     <copyright>© AS &amp; AO</copyright>
     <licenseUrl>https://github.com/sirAndros/KeePassWinHello/blob/master/LICENSE</licenseUrl>
     <iconUrl>https://cdn.statically.io/gh/sirAndros/KeePassWinHello/896b8498c4b2789b17f6ebe7e913f6a211917549/src/Resources/KPWH_512x512.png</iconUrl>
