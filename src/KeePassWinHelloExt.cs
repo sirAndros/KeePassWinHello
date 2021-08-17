@@ -72,9 +72,16 @@ namespace KeePassWinHello
 
         private void OnPreFileClosing(object sender, FileClosingEventArgs e)
         {
-            var keyManager = _keyManagerProvider.ObtainKeyManager();
-            if (keyManager != null)
-                keyManager.OnDBClosing(sender, e);
+            try
+            {
+                var keyManager = _keyManagerProvider.ObtainKeyManager();
+                if (keyManager != null)
+                    keyManager.OnDBClosing(sender, e);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowError(ex);
+            }
         }
 
         private void OnWindowAdded(object sender, GwmWindowEventArgs e)
