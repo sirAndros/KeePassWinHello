@@ -362,13 +362,14 @@ namespace KeePassWinHello
             NgcGetDefaultDecryptionKeyName(_currentSID.Value, 0, 0, out localKey);
             persistentKey = _currentSID.Value + "//" + Domain + "/" + SubDomain + "/" + PersistentName;
 
+            // It's not expected to use persistent key if local key does not exist
             if (string.IsNullOrEmpty(localKey))
                 throw new AuthProviderIsUnavailableException("Windows Hello is not available.");
         }
 
         private static void EnsureWinHelloAvailability()
         {
-            var dummy = LocalKeyName;
+            var dummy = LocalKeyName; // throw an exception if not available
         }
 
         private static void DeletePersistentKey()
