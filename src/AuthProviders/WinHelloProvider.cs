@@ -60,6 +60,8 @@ namespace KeePassWinHello
                 {
                     case NTE_USER_CANCELLED:
                         throw new AuthProviderUserCancelledException();
+                    case NTE_NO_KEY:
+                        throw new AuthProviderKeyNotFoundException();
                     default:
                         throw new AuthProviderSystemErrorException(name, secStatus);
                 }
@@ -168,7 +170,7 @@ namespace KeePassWinHello
 
                 SafeNCryptKeyHandle ngcKeyHandle;
                 if (!TryOpenPersistentKey(out ngcKeyHandle))
-                    throw new AuthProviderInvalidKeyException("Persistent key does not exist.");
+                    throw new AuthProviderKeyNotFoundException("Persistent key does not exist.");
 
                 using (ngcKeyHandle)
                 {

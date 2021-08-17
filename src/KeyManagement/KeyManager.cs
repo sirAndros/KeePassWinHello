@@ -104,6 +104,27 @@ namespace KeePassWinHello
             }
         }
 
+        public void OnDBClosing(object sender, FileClosingEventArgs e)
+        {
+            if (e == null)
+            {
+                Debug.Fail("Event is null");
+                return;
+            }
+
+            if (SystemInformation.TerminalServerSession) // RDP
+                return;
+
+            if (e.Cancel || e.Database == null || e.Database.IOConnectionInfo == null)
+                return;
+
+            var databaseMasterKey = e.Database.MasterKey;
+            if (databaseMasterKey == null)
+                return;
+
+            Lock(IsDBLocking(e), e.Database.IOConnectionInfo.Path, databaseMasterKey);
+        }
+
         private void StopMonitorWarning()
         {
             if (_cancellationTokenSource != null)
@@ -140,51 +161,48 @@ namespace KeePassWinHello
                     CloseFormWithResult(keyPromptForm, DialogResult.OK);
                 }
             }
+            catch (AuthProviderKeyNotFoundException ex)
+            {
+                // It's expected not to throw exceptions
+                ClaimCurrentCacheType(AuthCacheType.Local);
+                ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
+                CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
+            }
             catch (AuthProviderUserCancelledException)
             {
                 CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
             }
         }
 
-        public void OnDBClosing(object sender, FileClosingEventArgs e)
+        private void Lock(bool isDbLocking, string dbPath, CompositeKey databaseMasterKey)
         {
-            if (e == null)
-            {
-                Debug.Fail("Event is null");
-                return;
-            }
-
-            if (e.Cancel || e.Database == null || e.Database.MasterKey == null || e.Database.IOConnectionInfo == null)
-                return;
-
-            if (SystemInformation.TerminalServerSession) // RDP
-                return;
-
             try
             {
-                string dbPath = e.Database.IOConnectionInfo.Path;
-                if (!IsDBLocking(e) && Settings.Instance.GetAuthCacheType() == AuthCacheType.Local)
+                if (!isDbLocking && Settings.Instance.GetAuthCacheType() == AuthCacheType.Local)
                 {
                     _keyStorage.Remove(dbPath);
                 }
                 else if (Settings.Instance.Enabled)
                 {
-                    _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(e.Database.MasterKey, _keyCipher));
+                    _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(databaseMasterKey, _keyCipher));
                 }
+            }
+            catch (AuthProviderKeyNotFoundException ex)
+            {
+                // It's expected not to throw exceptions
+                ClaimCurrentCacheType(AuthCacheType.Local);
+                ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
             }
             catch (AuthProviderInvalidKeyException ex)
             {
                 // It's expected not to throw exceptions
                 ClaimCurrentCacheType(AuthCacheType.Local);
-                ErrorHandler.ShowError(ex, "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
+                ErrorHandler.ShowError(ex,
+                    "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
             }
             catch (AuthProviderUserCancelledException)
             {
                 // it's OK
-            }
-            catch (Exception ex)
-            {
-                ErrorHandler.ShowError(ex);
             }
         }
 
@@ -217,12 +235,6 @@ namespace KeePassWinHello
 
             keyPromptForm.DialogResult = result;
             keyPromptForm.Close();
-        }
-
-        private static void ReOpenKeyPromptForm(MainForm mainWindow, IOConnectionInfo dbFile)
-        {
-            Action action = () => mainWindow.OpenDatabase(dbFile, null, false);
-            mainWindow.Invoke(action);
         }
 
         private bool IsKeyForDataBaseExist(string dbPath)
