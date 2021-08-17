@@ -204,10 +204,6 @@ namespace KeePassWinHello
             {
                 // it's OK
             }
-            catch (Exception ex)
-            {
-                ErrorHandler.ShowError(ex);
-            }
         }
 
         public void RevokeAll()
@@ -239,12 +235,6 @@ namespace KeePassWinHello
 
             keyPromptForm.DialogResult = result;
             keyPromptForm.Close();
-        }
-
-        private static void ReOpenKeyPromptForm(MainForm mainWindow, IOConnectionInfo dbFile)
-        {
-            Action action = () => mainWindow.OpenDatabase(dbFile, null, false);
-            mainWindow.Invoke(action);
         }
 
         private bool IsKeyForDataBaseExist(string dbPath)
