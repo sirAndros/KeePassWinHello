@@ -30,6 +30,16 @@ namespace KeePassWinHello
             {
                 return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
             }
+            catch (AuthProviderKeyNotFoundException ex)
+            {
+                if (authCacheType == AuthCacheType.Local)
+                    throw;
+
+                Settings.Instance.WinStorageEnabled = false;
+                authCacheType = Settings.Instance.GetAuthCacheType();
+                ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
+                return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
+            }
             catch (AuthProviderInvalidKeyException ex)
             {
                 if (authCacheType == AuthCacheType.Local)

@@ -123,11 +123,19 @@ namespace KeePassWinHello
                     {
                         using (AuthProviderUIContext.With(Settings.KeyCreationConfirmationMessage, this.Handle))
                         {
+                            if (SystemInformation.TerminalServerSession) // RDP
+                            {
+                                MessageBox.Show(AuthProviderUIContext.Current,
+                                    "Changing storage location setting on a remote session is not permitted",
+                                    Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                return;
+                            }
+
                             try
                             {
+                                settings.WinStorageEnabled = winKeyStorageCheckBox.Checked;
                                 var authCacheType = settings.GetAuthCacheType();
                                 _keyManager.ClaimCurrentCacheType(authCacheType);
-                                settings.WinStorageEnabled = winKeyStorageCheckBox.Checked;
                             }
                             catch (AuthProviderUserCancelledException)
                             {
@@ -135,15 +143,6 @@ namespace KeePassWinHello
                                 MessageBox.Show(AuthProviderUIContext.Current,
                                     "Creating persistent key for Credential Manager has been canceled",
                                     Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            }
-                            catch (AuthProviderIsUnavailableException ex)
-                            {
-                                if (SystemInformation.TerminalServerSession) // RDP
-                                    MessageBox.Show(AuthProviderUIContext.Current,
-                                        "Changing settings on a remote session is not permitted",
-                                        Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                else
-                                    ErrorHandler.ShowError(ex);
                             }
                             catch (Exception ex)
                             {
@@ -160,6 +159,7 @@ namespace KeePassWinHello
         {
             try
             {
+                Settings.Instance.WinStorageEnabled = false;
                 _keyManager.ClaimCurrentCacheType(AuthCacheType.Local);
             }
             catch (Exception ex)
