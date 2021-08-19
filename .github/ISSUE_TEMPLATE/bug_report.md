@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help us improve plugin
 
 ---
 
@@ -39,10 +39,11 @@ Please complete the following information:
 
 - PC Motherboard or laptop/tablet model
 - Used biometric sensors
+- TPM module info (`Win`+`R` => `tpm.msc`)
  
  **Plugin settings**
  
- - [ ] Is persistant mode enabled ("Store keys in Windows Credential Manager" checked)
+ - [ ] Is persistent mode enabled ("Store keys in Windows Credential Manager" checked)
  
  **KeePass settings and environment**
  
