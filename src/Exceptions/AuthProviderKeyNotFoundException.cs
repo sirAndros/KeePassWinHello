@@ -3,7 +3,7 @@
 namespace KeePassWinHello
 {
     [Serializable]
-    public class AuthProviderKeyNotFoundException : AuthProviderException
+    public class AuthProviderKeyNotFoundException : AuthProviderException // TODO: consider inherit from AuthProviderInvalidKeyException
     {
         public override bool IsPresentable { get { return true; } }
 
