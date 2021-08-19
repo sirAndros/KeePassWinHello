@@ -211,6 +211,10 @@ namespace KeePassWinHello
             ProcessStoredKeysVisibility(isEnabledCheckBox.Checked);
         }
 
+        private void linkToGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://github.com/sirAndros/KeePassWinHello#readme");
+        }
 
         #region Icons
         private void OnPaint_KeyCreateIconPanel(object sender, PaintEventArgs e)
