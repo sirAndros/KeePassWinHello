@@ -31,6 +31,7 @@ namespace KeePassWinHello
         private const int NTE_BAD_KEYSET = unchecked((int)0x80090016);
         private const int NTE_INVALID_HANDLE = unchecked((int)0x80090026);
         private const int TPM_20_E_HANDLE = unchecked((int)0x8028008B);
+        private const int TPM_20_E_SIZE = unchecked((int)0x80280095);
         private const int TPM_20_E_159 = unchecked((int)0x80280159);
         private const int ERROR_CANCELLED = unchecked((int)0x800704C7);
 
@@ -289,6 +290,7 @@ namespace KeePassWinHello
                     switch (ex.ErrorCode)
                     {
                         case TPM_20_E_HANDLE: // #68
+                        case TPM_20_E_SIZE:   // #77
                         case TPM_20_E_159:    // #42
                             if (i < Settings.MAX_RETRY_COUNT)
                                 break;
