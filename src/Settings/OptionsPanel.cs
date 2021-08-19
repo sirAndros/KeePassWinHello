@@ -84,59 +84,41 @@ namespace KeePassWinHello
         {
             bool isEnabled = isEnabledCheckBox.Checked;
             ProcessControlsVisibility(isEnabled);
+            ForceRevokeKeysState(!isEnabled);
         }
 
         private void WinKeyStorageCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            keyCreatePanel.Visible = winKeyStorageCheckBox.Checked && !Settings.Instance.WinStorageEnabled;
+            bool winStorageEnabled = Settings.Instance.WinStorageEnabled;
+            keyCreatePanel.Visible = winKeyStorageCheckBox.Checked && !winStorageEnabled;
+
+            bool shouldRemoveKeys = winStorageEnabled && !winKeyStorageCheckBox.Checked;
+            ForceRevokeKeysState(shouldRemoveKeys);
+        }
+
+        private void ForceRevokeKeysState(bool revoke)
+        {
+            btnRevokeAll.Checked = revoke;
+            ProcessStoredKeysVisibility(isEnabled: !revoke);
         }
 
         private void btnRevokeAll_CheckedChanged(object sender, EventArgs e)
         {
-            if (storedKeysInfoPanel.Visible)
-            {
-                bool isAvailable = _keyManager != null;
-                int keysCount = isAvailable ? _keyManager.KeysCount : 0;
-                bool savedKeysExists = keysCount > 0;
-
-                if (btnRevokeAll.Checked)
-                {
-                    storedKeysCountLabel.Text = String.Format("0 (-{0})", keysCount);
-                    storedKeysCountLabel.ForeColor = Color.Tomato;
-                    btnRevokeAll.BackColor = SystemColors.ButtonHighlight;
-                }
-                else
-                {
-                    storedKeysCountLabel.Text = keysCount.ToString();
-                    storedKeysCountLabel.ForeColor = SystemColors.ControlText;
-                    btnRevokeAll.BackColor = SystemColors.Control;
-                }
-            }
+            ProcessStoredKeysVisibility(isEnabledCheckBox.Checked);
         }
 
         private void SaveSettings(Settings settings)
         {
-            if (settings.Enabled != isEnabledCheckBox.Checked)
-            {
-                settings.Enabled = isEnabledCheckBox.Checked;
-                if (!isEnabledCheckBox.Checked)
-                {
-                    RevokeAllKeys();
-                }
-            }
+            settings.Enabled = isEnabledCheckBox.Checked;
 
             if (btnRevokeAll.Checked)
-            {
                 RevokeAllKeys();
-            }
 
             if (isEnabledCheckBox.Checked)
             {
                 var newInvalidatingTime = TimeSpan.FromMilliseconds(IndexToPeriod(validPeriodComboBox.SelectedIndex));
                 if (settings.InvalidatingTime != newInvalidatingTime)
-                {
                     settings.InvalidatingTime = newInvalidatingTime;
-                }
 
                 settings.RevokeOnCancel = revokeOnCancel.Checked;
 
@@ -212,10 +194,23 @@ namespace KeePassWinHello
             bool savedKeysExists = keysCount > 0;
 
             storedKeysInfoPanel.Visible = isAvailable;
-            btnRevokeAll.Enabled = savedKeysExists;
+            btnRevokeAll.Enabled = savedKeysExists && isEnabled;
             storedKeysInfoLabel.Enabled = savedKeysExists || isEnabled;
             storedKeysCountLabel.Enabled = savedKeysExists || isEnabled;
-            storedKeysCountLabel.Text = keysCount.ToString();
+
+            if (savedKeysExists && btnRevokeAll.Checked)
+            {
+                storedKeysCountLabel.Text = String.Format("0 (-{0})", keysCount);
+                storedKeysCountLabel.ForeColor = Color.Tomato;
+                btnRevokeAll.BackColor = SystemColors.ButtonHighlight;
+            }
+            else
+            {
+                storedKeysCountLabel.Text = keysCount.ToString();
+                storedKeysCountLabel.ForeColor = SystemColors.ControlText;
+                btnRevokeAll.BackColor = SystemColors.Control;
+                btnRevokeAll.Checked = false;
+            }
         }
 
         private void RevokeAllKeys()
