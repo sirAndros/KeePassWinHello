@@ -27,7 +27,7 @@
             this.storedKeysInfoPanel = new System.Windows.Forms.Panel();
             this.storedKeysInfoLabel = new System.Windows.Forms.Label();
             this.storedKeysCountLabel = new System.Windows.Forms.Label();
-            this.btnRevokeAll = new System.Windows.Forms.Button();
+            this.btnRevokeAll = new System.Windows.Forms.CheckBox();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
             this.validPeriodLabel = new System.Windows.Forms.Label();
             this.persistentStoragePanel = new System.Windows.Forms.Panel();
@@ -118,7 +118,7 @@
             this.invalidationPanel.Location = new System.Drawing.Point(0, 145);
             this.invalidationPanel.Margin = new System.Windows.Forms.Padding(4);
             this.invalidationPanel.Name = "invalidationPanel";
-            this.invalidationPanel.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
+            this.invalidationPanel.Padding = new System.Windows.Forms.Padding(0, 6, 5, 0);
             this.invalidationPanel.Size = new System.Drawing.Size(733, 34);
             this.invalidationPanel.TabIndex = 52;
             // 
@@ -129,10 +129,10 @@
             this.storedKeysInfoPanel.Controls.Add(this.storedKeysCountLabel);
             this.storedKeysInfoPanel.Controls.Add(this.btnRevokeAll);
             this.storedKeysInfoPanel.Dock = System.Windows.Forms.DockStyle.Right;
-            this.storedKeysInfoPanel.Location = new System.Drawing.Point(511, 6);
+            this.storedKeysInfoPanel.Location = new System.Drawing.Point(534, 6);
             this.storedKeysInfoPanel.Margin = new System.Windows.Forms.Padding(4);
             this.storedKeysInfoPanel.Name = "storedKeysInfoPanel";
-            this.storedKeysInfoPanel.Size = new System.Drawing.Size(222, 28);
+            this.storedKeysInfoPanel.Size = new System.Drawing.Size(194, 28);
             this.storedKeysInfoPanel.TabIndex = 46;
             // 
             // storedKeysInfoLabel
@@ -161,16 +161,17 @@
             // 
             // btnRevokeAll
             // 
+            this.btnRevokeAll.Appearance = System.Windows.Forms.Appearance.Button;
             this.btnRevokeAll.AutoSize = true;
             this.btnRevokeAll.Dock = System.Windows.Forms.DockStyle.Right;
             this.btnRevokeAll.Location = new System.Drawing.Point(110, 0);
             this.btnRevokeAll.Margin = new System.Windows.Forms.Padding(4);
             this.btnRevokeAll.Name = "btnRevokeAll";
-            this.btnRevokeAll.Size = new System.Drawing.Size(112, 28);
+            this.btnRevokeAll.Size = new System.Drawing.Size(84, 28);
             this.btnRevokeAll.TabIndex = 5;
             this.btnRevokeAll.Text = "Revoke all";
             this.btnRevokeAll.UseVisualStyleBackColor = true;
-            this.btnRevokeAll.Click += new System.EventHandler(this.BtnRevokeAll_Click);
+            this.btnRevokeAll.CheckedChanged += new System.EventHandler(this.btnRevokeAll_CheckedChanged);
             // 
             // validPeriodComboBox
             // 
@@ -382,7 +383,7 @@
         private System.Windows.Forms.Panel storedKeysInfoPanel;
         private System.Windows.Forms.Label storedKeysInfoLabel;
         private System.Windows.Forms.Label storedKeysCountLabel;
-        private System.Windows.Forms.Button btnRevokeAll;
+        private System.Windows.Forms.CheckBox btnRevokeAll;
         private System.Windows.Forms.CheckBox revokeOnCancel;
         private System.Windows.Forms.LinkLabel linkToGitHub;
         private System.Windows.Forms.Panel bottomPanel;

@@ -91,9 +91,27 @@ namespace KeePassWinHello
             keyCreatePanel.Visible = winKeyStorageCheckBox.Checked && !Settings.Instance.WinStorageEnabled;
         }
 
-        private void BtnRevokeAll_Click(object sender, EventArgs e)
+        private void btnRevokeAll_CheckedChanged(object sender, EventArgs e)
         {
-            RevokeAllKeys();
+            if (storedKeysInfoPanel.Visible)
+            {
+                bool isAvailable = _keyManager != null;
+                int keysCount = isAvailable ? _keyManager.KeysCount : 0;
+                bool savedKeysExists = keysCount > 0;
+
+                if (btnRevokeAll.Checked)
+                {
+                    storedKeysCountLabel.Text = String.Format("0 (-{0})", keysCount);
+                    storedKeysCountLabel.ForeColor = Color.Tomato;
+                    btnRevokeAll.BackColor = SystemColors.ButtonHighlight;
+                }
+                else
+                {
+                    storedKeysCountLabel.Text = keysCount.ToString();
+                    storedKeysCountLabel.ForeColor = SystemColors.ControlText;
+                    btnRevokeAll.BackColor = SystemColors.Control;
+                }
+            }
         }
 
         private void SaveSettings(Settings settings)
@@ -105,6 +123,11 @@ namespace KeePassWinHello
                 {
                     RevokeAllKeys();
                 }
+            }
+
+            if (btnRevokeAll.Checked)
+            {
+                RevokeAllKeys();
             }
 
             if (isEnabledCheckBox.Checked)
