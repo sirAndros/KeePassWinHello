@@ -71,6 +71,9 @@ Available settings:
 * Storage location: Choose where to hold encrypted master passwords - in the KeePass process memory (by default) or in the Windows Credential Manager.
 * Revoke all: Allows you to delete all stored keys.
 
+All changes will be applied only after `OK` button press.
+You can cancel the modifications using `Cancel` button instead.
+
 Notes
 -----
 
