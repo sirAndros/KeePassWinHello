@@ -27,7 +27,7 @@
             this.storedKeysInfoPanel = new System.Windows.Forms.Panel();
             this.storedKeysInfoLabel = new System.Windows.Forms.Label();
             this.storedKeysCountLabel = new System.Windows.Forms.Label();
-            this.btnRevokeAll = new System.Windows.Forms.CheckBox();
+            this.revokeAllCheckBox = new System.Windows.Forms.CheckBox();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
             this.validPeriodLabel = new System.Windows.Forms.Label();
             this.persistentStoragePanel = new System.Windows.Forms.Panel();
@@ -63,7 +63,6 @@
             this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for storing databases access keys while KeePass is" +
         " not running.\r\nRequires for KeePass to create persistent Windows Hello key.");
             this.winKeyStorageCheckBox.UseVisualStyleBackColor = true;
-            this.winKeyStorageCheckBox.CheckedChanged += new System.EventHandler(this.WinKeyStorageCheckBox_CheckedChanged);
             // 
             // revokeOnCancel
             // 
@@ -127,7 +126,7 @@
             this.storedKeysInfoPanel.AutoSize = true;
             this.storedKeysInfoPanel.Controls.Add(this.storedKeysInfoLabel);
             this.storedKeysInfoPanel.Controls.Add(this.storedKeysCountLabel);
-            this.storedKeysInfoPanel.Controls.Add(this.btnRevokeAll);
+            this.storedKeysInfoPanel.Controls.Add(this.revokeAllCheckBox);
             this.storedKeysInfoPanel.Dock = System.Windows.Forms.DockStyle.Right;
             this.storedKeysInfoPanel.Location = new System.Drawing.Point(534, 6);
             this.storedKeysInfoPanel.Margin = new System.Windows.Forms.Padding(4);
@@ -159,19 +158,19 @@
             this.storedKeysCountLabel.TabIndex = 47;
             this.storedKeysCountLabel.Text = "0";
             // 
-            // btnRevokeAll
+            // revokeAllCheckBox
             // 
-            this.btnRevokeAll.Appearance = System.Windows.Forms.Appearance.Button;
-            this.btnRevokeAll.AutoSize = true;
-            this.btnRevokeAll.Dock = System.Windows.Forms.DockStyle.Right;
-            this.btnRevokeAll.Location = new System.Drawing.Point(110, 0);
-            this.btnRevokeAll.Margin = new System.Windows.Forms.Padding(4);
-            this.btnRevokeAll.Name = "btnRevokeAll";
-            this.btnRevokeAll.Size = new System.Drawing.Size(84, 28);
-            this.btnRevokeAll.TabIndex = 5;
-            this.btnRevokeAll.Text = "Revoke all";
-            this.btnRevokeAll.UseVisualStyleBackColor = true;
-            this.btnRevokeAll.CheckedChanged += new System.EventHandler(this.btnRevokeAll_CheckedChanged);
+            this.revokeAllCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
+            this.revokeAllCheckBox.AutoSize = true;
+            this.revokeAllCheckBox.Dock = System.Windows.Forms.DockStyle.Right;
+            this.revokeAllCheckBox.Location = new System.Drawing.Point(110, 0);
+            this.revokeAllCheckBox.Margin = new System.Windows.Forms.Padding(4);
+            this.revokeAllCheckBox.Name = "revokeAllCheckBox";
+            this.revokeAllCheckBox.Size = new System.Drawing.Size(84, 28);
+            this.revokeAllCheckBox.TabIndex = 5;
+            this.revokeAllCheckBox.Text = "Revoke all";
+            this.revokeAllCheckBox.UseVisualStyleBackColor = true;
+            this.revokeAllCheckBox.CheckedChanged += new System.EventHandler(this.RevokeAll_CheckedChanged);
             // 
             // validPeriodComboBox
             // 
@@ -309,7 +308,6 @@
             this.isEnabledCheckBox.TabIndex = 1;
             this.isEnabledCheckBox.Text = "Use quick unlock via Windows Hello authorization if it is available";
             this.isEnabledCheckBox.UseVisualStyleBackColor = true;
-            this.isEnabledCheckBox.CheckedChanged += new System.EventHandler(this.isEnabledCheckBox_CheckedChanged);
             // 
             // linkToGitHub
             // 
@@ -383,7 +381,7 @@
         private System.Windows.Forms.Panel storedKeysInfoPanel;
         private System.Windows.Forms.Label storedKeysInfoLabel;
         private System.Windows.Forms.Label storedKeysCountLabel;
-        private System.Windows.Forms.CheckBox btnRevokeAll;
+        private System.Windows.Forms.CheckBox revokeAllCheckBox;
         private System.Windows.Forms.CheckBox revokeOnCancel;
         private System.Windows.Forms.LinkLabel linkToGitHub;
         private System.Windows.Forms.Panel bottomPanel;

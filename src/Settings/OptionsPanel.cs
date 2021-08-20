@@ -12,6 +12,7 @@ namespace KeePassWinHello
     {
         private readonly IKeyManager _keyManager;
         private bool _initialized;
+        private bool _wasKeyRemovingIntendedByUser;
 
         private OptionsPanel(IKeyManager keyManager)
         {
@@ -47,8 +48,14 @@ namespace KeePassWinHello
             bool isAvailable = _keyManager != null;
             bool isLocalSession = !SystemInformation.TerminalServerSession;
 
+            isEnabledCheckBox.CheckedChanged -= IsEnabledCheckBox_CheckedChanged;
+            winKeyStorageCheckBox.CheckedChanged -= WinKeyStorageCheckBox_CheckedChanged;
+
             LoadValuesFromSettings();
             ProcessControlsVisibility(isEnabled && isAvailable && isLocalSession);
+
+            isEnabledCheckBox.CheckedChanged += IsEnabledCheckBox_CheckedChanged;
+            winKeyStorageCheckBox.CheckedChanged += WinKeyStorageCheckBox_CheckedChanged;
 
             if (!isAvailable || !isLocalSession)
             {
@@ -80,38 +87,29 @@ namespace KeePassWinHello
             ParentForm.FormClosing -= OnClosing;
         }
 
-        private void isEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void IsEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             bool isEnabled = isEnabledCheckBox.Checked;
             ProcessControlsVisibility(isEnabled);
-            ForceRevokeKeysState(!isEnabled);
         }
 
         private void WinKeyStorageCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            bool winStorageEnabled = Settings.Instance.WinStorageEnabled;
-            keyCreatePanel.Visible = winKeyStorageCheckBox.Checked && !winStorageEnabled;
-
-            bool shouldRemoveKeys = winStorageEnabled && !winKeyStorageCheckBox.Checked;
-            ForceRevokeKeysState(shouldRemoveKeys);
+            keyCreatePanel.Visible = winKeyStorageCheckBox.Checked && !Settings.Instance.WinStorageEnabled;
+            ProcessStoredKeysVisibility();
         }
 
-        private void ForceRevokeKeysState(bool revoke)
+        private void RevokeAll_CheckedChanged(object sender, EventArgs e)
         {
-            btnRevokeAll.Checked = revoke;
-            ProcessStoredKeysVisibility(isEnabled: !revoke);
-        }
-
-        private void btnRevokeAll_CheckedChanged(object sender, EventArgs e)
-        {
-            ProcessStoredKeysVisibility(isEnabledCheckBox.Checked);
+            _wasKeyRemovingIntendedByUser = revokeAllCheckBox.Checked;
+            ProcessStoredKeysVisibility();
         }
 
         private void SaveSettings(Settings settings)
         {
             settings.Enabled = isEnabledCheckBox.Checked;
 
-            if (btnRevokeAll.Checked)
+            if (revokeAllCheckBox.Checked)
                 RevokeAllKeys();
 
             if (isEnabledCheckBox.Checked)
@@ -187,30 +185,48 @@ namespace KeePassWinHello
             ProcessStoredKeysVisibility(isEnabled);
         }
 
+        private void ProcessStoredKeysVisibility()
+        {
+            ProcessStoredKeysVisibility(isEnabledCheckBox.Checked);
+        }
+
         private void ProcessStoredKeysVisibility(bool isEnabled)
         {
             bool isAvailable = _keyManager != null;
             int keysCount = isAvailable ? _keyManager.KeysCount : 0;
             bool savedKeysExists = keysCount > 0;
 
+            bool shouldRemoveKeys = !isEnabled && Settings.Instance.Enabled
+                                 || !winKeyStorageCheckBox.Checked && Settings.Instance.WinStorageEnabled;
+
             storedKeysInfoPanel.Visible = isAvailable;
-            btnRevokeAll.Enabled = savedKeysExists && isEnabled;
+            revokeAllCheckBox.Enabled = savedKeysExists && !shouldRemoveKeys;
             storedKeysInfoLabel.Enabled = savedKeysExists || isEnabled;
             storedKeysCountLabel.Enabled = savedKeysExists || isEnabled;
 
-            if (savedKeysExists && btnRevokeAll.Checked)
+            revokeAllCheckBox.CheckedChanged -= RevokeAll_CheckedChanged;
+
+            if (savedKeysExists)
+            {
+                revokeAllCheckBox.Checked = _wasKeyRemovingIntendedByUser && revokeAllCheckBox.Checked
+                                         || shouldRemoveKeys;
+            }
+
+            if (savedKeysExists && revokeAllCheckBox.Checked)
             {
                 storedKeysCountLabel.Text = String.Format("0 (-{0})", keysCount);
                 storedKeysCountLabel.ForeColor = Color.Tomato;
-                btnRevokeAll.BackColor = SystemColors.ButtonHighlight;
+                revokeAllCheckBox.BackColor = SystemColors.ButtonHighlight;
             }
             else
             {
                 storedKeysCountLabel.Text = keysCount.ToString();
                 storedKeysCountLabel.ForeColor = SystemColors.ControlText;
-                btnRevokeAll.BackColor = SystemColors.Control;
-                btnRevokeAll.Checked = false;
+                revokeAllCheckBox.BackColor = SystemColors.Control;
+                revokeAllCheckBox.Checked = false;
             }
+
+            revokeAllCheckBox.CheckedChanged += RevokeAll_CheckedChanged;
         }
 
         private void RevokeAllKeys()
@@ -226,7 +242,7 @@ namespace KeePassWinHello
                     ErrorHandler.ShowError(ex);
                 }
             }
-            ProcessStoredKeysVisibility(isEnabledCheckBox.Checked);
+            ProcessStoredKeysVisibility();
         }
 
         private void linkToGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
