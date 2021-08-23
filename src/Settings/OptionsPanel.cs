@@ -247,7 +247,7 @@ namespace KeePassWinHello
                 if (intendedToDisablePlugin)
                     toolTipMsg = "The keys cannot be stored while the plugin is disabled";
                 else if (intendedToChangeStorage)
-                    toolTipMsg = "The keys cannot be transfered between the local (in-memory) and the persistent storages";
+                    toolTipMsg = "The keys cannot be transferred between the in-memory storage and the persistent one";
             }
             forceKeysRevokeToolTip.SetToolTip(storedKeysCountLabel, toolTipMsg);
         }

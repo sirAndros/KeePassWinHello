@@ -21,13 +21,13 @@
             this.keyStorageSettingsToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.winKeyStorageCheckBox = new System.Windows.Forms.CheckBox();
             this.revokeOnCancel = new System.Windows.Forms.CheckBox();
+            this.revokeAllCheckBox = new System.Windows.Forms.CheckBox();
             this.winHelloDisabledPanel = new System.Windows.Forms.Panel();
             this.winHelloDisabledLabel = new System.Windows.Forms.Label();
             this.invalidationPanel = new System.Windows.Forms.Panel();
             this.storedKeysInfoPanel = new System.Windows.Forms.Panel();
             this.storedKeysInfoLabel = new System.Windows.Forms.Label();
             this.storedKeysCountLabel = new System.Windows.Forms.Label();
-            this.revokeAllCheckBox = new System.Windows.Forms.CheckBox();
             this.validPeriodComboBox = new System.Windows.Forms.ComboBox();
             this.validPeriodLabel = new System.Windows.Forms.Label();
             this.persistentStoragePanel = new System.Windows.Forms.Panel();
@@ -81,6 +81,22 @@
             this.keyStorageSettingsToolTip.SetToolTip(this.revokeOnCancel, "If enabled, you\'ll need to manually enter the password next time you unlock DB if" +
         " the Windows Hello prompt was previously cancelled by a user");
             this.revokeOnCancel.UseVisualStyleBackColor = true;
+            // 
+            // revokeAllCheckBox
+            // 
+            this.revokeAllCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
+            this.revokeAllCheckBox.AutoSize = true;
+            this.revokeAllCheckBox.Dock = System.Windows.Forms.DockStyle.Right;
+            this.revokeAllCheckBox.Location = new System.Drawing.Point(110, 0);
+            this.revokeAllCheckBox.Margin = new System.Windows.Forms.Padding(4);
+            this.revokeAllCheckBox.Name = "revokeAllCheckBox";
+            this.revokeAllCheckBox.Size = new System.Drawing.Size(84, 28);
+            this.revokeAllCheckBox.TabIndex = 5;
+            this.revokeAllCheckBox.Text = "Revoke all";
+            this.keyStorageSettingsToolTip.SetToolTip(this.revokeAllCheckBox, "Toggles whether all stored keys would be removed upon confirmation with \"OK\" butt" +
+        "on");
+            this.revokeAllCheckBox.UseVisualStyleBackColor = true;
+            this.revokeAllCheckBox.CheckedChanged += new System.EventHandler(this.RevokeAll_CheckedChanged);
             // 
             // winHelloDisabledPanel
             // 
@@ -158,22 +174,6 @@
             this.storedKeysCountLabel.Size = new System.Drawing.Size(23, 23);
             this.storedKeysCountLabel.TabIndex = 47;
             this.storedKeysCountLabel.Text = "0";
-            // 
-            // revokeAllCheckBox
-            // 
-            this.revokeAllCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
-            this.revokeAllCheckBox.AutoSize = true;
-            this.revokeAllCheckBox.Dock = System.Windows.Forms.DockStyle.Right;
-            this.revokeAllCheckBox.Location = new System.Drawing.Point(110, 0);
-            this.revokeAllCheckBox.Margin = new System.Windows.Forms.Padding(4);
-            this.revokeAllCheckBox.Name = "revokeAllCheckBox";
-            this.revokeAllCheckBox.Size = new System.Drawing.Size(84, 28);
-            this.revokeAllCheckBox.TabIndex = 5;
-            this.revokeAllCheckBox.Text = "Revoke all";
-            this.keyStorageSettingsToolTip.SetToolTip(this.revokeAllCheckBox, "You can toggle this button to claim/withdraw intent to remove all stored keys on " +
-        "settings confirmation with \"OK\" button");
-            this.revokeAllCheckBox.UseVisualStyleBackColor = true;
-            this.revokeAllCheckBox.CheckedChanged += new System.EventHandler(this.RevokeAll_CheckedChanged);
             // 
             // validPeriodComboBox
             // 
