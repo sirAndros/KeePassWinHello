@@ -1,3 +1,4 @@
+[CmdletBinding()]
 param (
     [string] $ProjectDir = $null,
     [string] $TargetDir = $null,
