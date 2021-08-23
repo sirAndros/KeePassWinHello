@@ -79,7 +79,9 @@
       <DependentUpon>OptionsPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings\OptionsPanelCreation.cs" />
+    <Compile Include="Settings\OptionsPanelCreation.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Settings\Settings.cs" />
     <Compile Include="AuthProviders\WinHelloProvider.cs" />
     <Compile Include="KeePassWinHelloExt.cs" />
@@ -113,10 +115,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="PackPlugin" AfterTargets="PostBuildEvent" Condition="!($(DefineConstants.Contains('MONO')))">
-    <Exec Condition="'$(Configuration)' == 'Debug'" ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot; -Arg &quot;-SkipChoco&quot;" WorkingDirectory="$(ProjectDir).." />
+    <Exec Condition="'$(Configuration)' == 'Debug'" ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot; -SkipChoco" WorkingDirectory="$(ProjectDir).." />
     <Exec Condition="'$(Configuration)' == 'Release'" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot;" WorkingDirectory="$(ProjectDir).." />
   </Target>
   <Target Name="DeployForDebug" Condition="'$(Configuration)' == 'Debug'" AfterTargets="PackPlugin">
-    <Exec ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Deploy-Plugin.ps1&quot; -Arg &quot;-ForDebug&quot;" WorkingDirectory="$(ProjectDir).." />
+    <Message Importance="normal" Text="Copy artifacts to KeePass plugins directory." />
+    <Exec ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Deploy-Plugin.ps1&quot; -ForDebug -Verbose" WorkingDirectory="$(ProjectDir).." />
   </Target>
 </Project>

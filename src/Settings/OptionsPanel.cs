@@ -12,6 +12,25 @@ namespace KeePassWinHello
     {
         private readonly IKeyManager _keyManager;
         private bool _initialized;
+        private bool _wasKeyRemovingIntendedByUser;
+
+        private bool IsSettingsEnabled
+        {
+            get
+            {
+                bool isPluginEnabled = isEnabledCheckBox.Checked;
+                bool isLocalSession = !SystemInformation.TerminalServerSession;
+
+                return isPluginEnabled
+                    && IsStorageAvailable
+                    && isLocalSession;
+            }
+        }
+
+        private bool IsStorageAvailable
+        {
+            get { return _keyManager != null; }
+        }
 
         private OptionsPanel(IKeyManager keyManager)
         {
@@ -43,31 +62,22 @@ namespace KeePassWinHello
 
         private void InitializeControls()
         {
-            bool isEnabled = Settings.Instance.Enabled;
-            bool isAvailable = _keyManager != null;
-            bool isLocalSession = !SystemInformation.TerminalServerSession;
-
             LoadValuesFromSettings();
-            ProcessControlsVisibility(isEnabled && isAvailable && isLocalSession);
-
-            if (!isAvailable || !isLocalSession)
-            {
-                string disableReason = "Windows Hello is disabled on your system. Please activate it in the system settings.";
-                if (!isLocalSession)
-                    disableReason = "Windows Hello is not available on a remote desktop.";
-
-                isEnabledCheckBox.Enabled = false;
-                winHelloDisabledPanel.Visible = true;
-                winHelloDisabledLabel.Text = disableReason;
-            }
+            ProcessControlsVisibility();
         }
 
         private void LoadValuesFromSettings()
         {
+            isEnabledCheckBox.CheckedChanged -= IsEnabledCheckBox_CheckedChanged;
+            winKeyStorageCheckBox.CheckedChanged -= WinKeyStorageCheckBox_CheckedChanged;
+
             isEnabledCheckBox.Checked = Settings.Instance.Enabled;
             revokeOnCancel.Checked = Settings.Instance.RevokeOnCancel;
             winKeyStorageCheckBox.Checked = Settings.Instance.WinStorageEnabled;
             validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
+
+            isEnabledCheckBox.CheckedChanged += IsEnabledCheckBox_CheckedChanged;
+            winKeyStorageCheckBox.CheckedChanged += WinKeyStorageCheckBox_CheckedChanged;
         }
 
         private void OnClosing(object sender, FormClosingEventArgs e)
@@ -80,40 +90,35 @@ namespace KeePassWinHello
             ParentForm.FormClosing -= OnClosing;
         }
 
-        private void isEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void IsEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            bool isEnabled = isEnabledCheckBox.Checked;
-            ProcessControlsVisibility(isEnabled);
+            ProcessControlsVisibility();
         }
 
         private void WinKeyStorageCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             keyCreatePanel.Visible = winKeyStorageCheckBox.Checked && !Settings.Instance.WinStorageEnabled;
+            UpdateStoredKeysPanel();
         }
 
-        private void BtnRevokeAll_Click(object sender, EventArgs e)
+        private void RevokeAll_CheckedChanged(object sender, EventArgs e)
         {
-            RevokeAllKeys();
+            _wasKeyRemovingIntendedByUser = revokeAllCheckBox.Checked;
+            UpdateStoredKeysPanel();
         }
 
         private void SaveSettings(Settings settings)
         {
-            if (settings.Enabled != isEnabledCheckBox.Checked)
-            {
-                settings.Enabled = isEnabledCheckBox.Checked;
-                if (!isEnabledCheckBox.Checked)
-                {
-                    RevokeAllKeys();
-                }
-            }
+            settings.Enabled = isEnabledCheckBox.Checked;
+
+            if (revokeAllCheckBox.Checked)
+                RevokeAllKeys();
 
             if (isEnabledCheckBox.Checked)
             {
                 var newInvalidatingTime = TimeSpan.FromMilliseconds(IndexToPeriod(validPeriodComboBox.SelectedIndex));
                 if (settings.InvalidatingTime != newInvalidatingTime)
-                {
                     settings.InvalidatingTime = newInvalidatingTime;
-                }
 
                 settings.RevokeOnCancel = revokeOnCancel.Checked;
 
@@ -168,8 +173,10 @@ namespace KeePassWinHello
             }
         }
 
-        private void ProcessControlsVisibility(bool isEnabled)
+        private void ProcessControlsVisibility()
         {
+            bool isEnabled = IsSettingsEnabled;
+
             validPeriodLabel.Enabled = isEnabled;
             validPeriodComboBox.Enabled = isEnabled;
             revokeOnCancel.Enabled = isEnabled;
@@ -179,20 +186,70 @@ namespace KeePassWinHello
                                  && winKeyStorageCheckBox.Checked
                                  && !Settings.Instance.WinStorageEnabled;
 
-            ProcessStoredKeysVisibility(isEnabled);
+            bool isRemoteSession = SystemInformation.TerminalServerSession;
+            if (!IsStorageAvailable || isRemoteSession)
+            {
+                string disableReason = "Windows Hello is disabled on your system. Please activate it in the system settings.";
+                if (isRemoteSession)
+                    disableReason = "Windows Hello is not available on a remote desktop.";
+
+                isEnabledCheckBox.Enabled = false;
+                winHelloDisabledPanel.Visible = true;
+                winHelloDisabledLabel.Text = disableReason;
+            }
+
+            UpdateStoredKeysPanel();
         }
 
-        private void ProcessStoredKeysVisibility(bool isEnabled)
+        private void UpdateStoredKeysPanel()
         {
-            bool isAvailable = _keyManager != null;
+            bool isAvailable = IsStorageAvailable;
             int keysCount = isAvailable ? _keyManager.KeysCount : 0;
             bool savedKeysExists = keysCount > 0;
+            bool isSettingsEnabled = IsSettingsEnabled;
+
+            bool intendedToDisablePlugin = !isEnabledCheckBox.Checked && Settings.Instance.Enabled;
+            bool intendedToChangeStorage = winKeyStorageCheckBox.Checked != Settings.Instance.WinStorageEnabled;
+            bool shouldRemoveKeys = intendedToDisablePlugin || intendedToChangeStorage;
 
             storedKeysInfoPanel.Visible = isAvailable;
-            btnRevokeAll.Enabled = savedKeysExists;
-            storedKeysInfoLabel.Enabled = savedKeysExists || isEnabled;
-            storedKeysCountLabel.Enabled = savedKeysExists || isEnabled;
-            storedKeysCountLabel.Text = keysCount.ToString();
+            revokeAllCheckBox.Enabled = savedKeysExists && !shouldRemoveKeys;
+            storedKeysInfoLabel.Enabled = savedKeysExists || isSettingsEnabled;
+            storedKeysCountLabel.Enabled = savedKeysExists || isSettingsEnabled;
+
+            revokeAllCheckBox.CheckedChanged -= RevokeAll_CheckedChanged;
+
+            if (savedKeysExists)
+            {
+                revokeAllCheckBox.Checked = _wasKeyRemovingIntendedByUser && revokeAllCheckBox.Checked
+                                         || shouldRemoveKeys;
+            }
+
+            if (savedKeysExists && revokeAllCheckBox.Checked)
+            {
+                storedKeysCountLabel.Text = String.Format("0 (-{0})", keysCount);
+                storedKeysCountLabel.ForeColor = Color.Tomato;
+                revokeAllCheckBox.BackColor = SystemColors.ButtonHighlight;
+            }
+            else
+            {
+                storedKeysCountLabel.Text = keysCount.ToString();
+                storedKeysCountLabel.ForeColor = SystemColors.ControlText;
+                revokeAllCheckBox.BackColor = SystemColors.Control;
+                revokeAllCheckBox.Checked = false;
+            }
+
+            revokeAllCheckBox.CheckedChanged += RevokeAll_CheckedChanged;
+
+            string toolTipMsg = null;
+            if (savedKeysExists)
+            {
+                if (intendedToDisablePlugin)
+                    toolTipMsg = "The keys cannot be stored while the plugin is disabled";
+                else if (intendedToChangeStorage)
+                    toolTipMsg = "The keys cannot be transferred between the in-memory storage and the persistent one";
+            }
+            forceKeysRevokeToolTip.SetToolTip(storedKeysCountLabel, toolTipMsg);
         }
 
         private void RevokeAllKeys()
@@ -208,9 +265,13 @@ namespace KeePassWinHello
                     ErrorHandler.ShowError(ex);
                 }
             }
-            ProcessStoredKeysVisibility(isEnabledCheckBox.Checked);
+            UpdateStoredKeysPanel();
         }
 
+        private void linkToGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://github.com/sirAndros/KeePassWinHello#readme");
+        }
 
         #region Icons
         private void OnPaint_KeyCreateIconPanel(object sender, PaintEventArgs e)
