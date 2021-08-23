@@ -96,13 +96,13 @@ namespace KeePassWinHello
         private void WinKeyStorageCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             keyCreatePanel.Visible = winKeyStorageCheckBox.Checked && !Settings.Instance.WinStorageEnabled;
-            ProcessStoredKeysVisibility();
+            UpdateStoredKeysPanel();
         }
 
         private void RevokeAll_CheckedChanged(object sender, EventArgs e)
         {
             _wasKeyRemovingIntendedByUser = revokeAllCheckBox.Checked;
-            ProcessStoredKeysVisibility();
+            UpdateStoredKeysPanel();
         }
 
         private void SaveSettings(Settings settings)
@@ -182,15 +182,15 @@ namespace KeePassWinHello
                                  && winKeyStorageCheckBox.Checked
                                  && !Settings.Instance.WinStorageEnabled;
 
-            ProcessStoredKeysVisibility(isEnabled);
+            UpdateStoredKeysPanel(isEnabled);
         }
 
-        private void ProcessStoredKeysVisibility()
+        private void UpdateStoredKeysPanel()
         {
-            ProcessStoredKeysVisibility(isEnabledCheckBox.Checked);
+            UpdateStoredKeysPanel(isEnabledCheckBox.Checked);
         }
 
-        private void ProcessStoredKeysVisibility(bool isEnabled)
+        private void UpdateStoredKeysPanel(bool isEnabled)
         {
             bool isAvailable = _keyManager != null;
             int keysCount = isAvailable ? _keyManager.KeysCount : 0;
@@ -228,6 +228,16 @@ namespace KeePassWinHello
             }
 
             revokeAllCheckBox.CheckedChanged += RevokeAll_CheckedChanged;
+
+            string toolTipMsg = null;
+            if (savedKeysExists)
+            {
+                if (intendedToDisablePlugin)
+                    toolTipMsg = "The keys cannot be stored while the plugin is disabled";
+                else if (intendedToChangeStorage)
+                    toolTipMsg = "The keys cannot be transfered between the local (in-memory) and the persistent storages";
+            }
+            forceKeysRevokeToolTip.SetToolTip(storedKeysCountLabel, toolTipMsg);
         }
 
         private void RevokeAllKeys()
@@ -243,7 +253,7 @@ namespace KeePassWinHello
                     ErrorHandler.ShowError(ex);
                 }
             }
-            ProcessStoredKeysVisibility();
+            UpdateStoredKeysPanel();
         }
 
         private void linkToGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

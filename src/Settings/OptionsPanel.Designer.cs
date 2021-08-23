@@ -18,7 +18,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.winKeyStorageToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.keyStorageSettingsToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.winKeyStorageCheckBox = new System.Windows.Forms.CheckBox();
             this.revokeOnCancel = new System.Windows.Forms.CheckBox();
             this.winHelloDisabledPanel = new System.Windows.Forms.Panel();
@@ -40,6 +40,7 @@
             this.isEnabledCheckBox = new System.Windows.Forms.CheckBox();
             this.linkToGitHub = new System.Windows.Forms.LinkLabel();
             this.bottomPanel = new System.Windows.Forms.Panel();
+            this.forceKeysRevokeToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.winHelloDisabledPanel.SuspendLayout();
             this.invalidationPanel.SuspendLayout();
             this.storedKeysInfoPanel.SuspendLayout();
@@ -60,7 +61,7 @@
             this.winKeyStorageCheckBox.Size = new System.Drawing.Size(733, 33);
             this.winKeyStorageCheckBox.TabIndex = 3;
             this.winKeyStorageCheckBox.Text = "Store keys in the Windows Credential Manager";
-            this.winKeyStorageToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for storing databases access keys while KeePass is" +
+            this.keyStorageSettingsToolTip.SetToolTip(this.winKeyStorageCheckBox, "Use Windows Credential Manager for storing databases access keys while KeePass is" +
         " not running.\r\nRequires for KeePass to create persistent Windows Hello key.");
             this.winKeyStorageCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -77,7 +78,7 @@
             this.revokeOnCancel.Size = new System.Drawing.Size(733, 27);
             this.revokeOnCancel.TabIndex = 2;
             this.revokeOnCancel.Text = "Revoke current key in case Windows Hello prompt was cancelled";
-            this.winKeyStorageToolTip.SetToolTip(this.revokeOnCancel, "If enabled, you\'ll need to manually enter the password next time you unlock DB if" +
+            this.keyStorageSettingsToolTip.SetToolTip(this.revokeOnCancel, "If enabled, you\'ll need to manually enter the password next time you unlock DB if" +
         " the Windows Hello prompt was previously cancelled by a user");
             this.revokeOnCancel.UseVisualStyleBackColor = true;
             // 
@@ -169,6 +170,8 @@
             this.revokeAllCheckBox.Size = new System.Drawing.Size(84, 28);
             this.revokeAllCheckBox.TabIndex = 5;
             this.revokeAllCheckBox.Text = "Revoke all";
+            this.keyStorageSettingsToolTip.SetToolTip(this.revokeAllCheckBox, "You can toggle this button to claim/withdraw intent to remove all stored keys on " +
+        "settings confirmation with \"OK\" button");
             this.revokeAllCheckBox.UseVisualStyleBackColor = true;
             this.revokeAllCheckBox.CheckedChanged += new System.EventHandler(this.RevokeAll_CheckedChanged);
             // 
@@ -363,7 +366,7 @@
         }
 
         #endregion
-        private System.Windows.Forms.ToolTip winKeyStorageToolTip;
+        private System.Windows.Forms.ToolTip keyStorageSettingsToolTip;
         private System.Windows.Forms.Panel winHelloDisabledPanel;
         private System.Windows.Forms.Label winHelloDisabledLabel;
         private System.Windows.Forms.Panel invalidationPanel;
@@ -385,5 +388,6 @@
         private System.Windows.Forms.CheckBox revokeOnCancel;
         private System.Windows.Forms.LinkLabel linkToGitHub;
         private System.Windows.Forms.Panel bottomPanel;
+        private System.Windows.Forms.ToolTip forceKeysRevokeToolTip;
     }
 }
