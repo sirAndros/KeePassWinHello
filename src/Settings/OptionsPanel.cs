@@ -48,14 +48,8 @@ namespace KeePassWinHello
             bool isAvailable = _keyManager != null;
             bool isLocalSession = !SystemInformation.TerminalServerSession;
 
-            isEnabledCheckBox.CheckedChanged -= IsEnabledCheckBox_CheckedChanged;
-            winKeyStorageCheckBox.CheckedChanged -= WinKeyStorageCheckBox_CheckedChanged;
-
             LoadValuesFromSettings();
             ProcessControlsVisibility(isEnabled && isAvailable && isLocalSession);
-
-            isEnabledCheckBox.CheckedChanged += IsEnabledCheckBox_CheckedChanged;
-            winKeyStorageCheckBox.CheckedChanged += WinKeyStorageCheckBox_CheckedChanged;
 
             if (!isAvailable || !isLocalSession)
             {
@@ -71,10 +65,16 @@ namespace KeePassWinHello
 
         private void LoadValuesFromSettings()
         {
+            isEnabledCheckBox.CheckedChanged -= IsEnabledCheckBox_CheckedChanged;
+            winKeyStorageCheckBox.CheckedChanged -= WinKeyStorageCheckBox_CheckedChanged;
+
             isEnabledCheckBox.Checked = Settings.Instance.Enabled;
             revokeOnCancel.Checked = Settings.Instance.RevokeOnCancel;
             winKeyStorageCheckBox.Checked = Settings.Instance.WinStorageEnabled;
             validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
+
+            isEnabledCheckBox.CheckedChanged += IsEnabledCheckBox_CheckedChanged;
+            winKeyStorageCheckBox.CheckedChanged += WinKeyStorageCheckBox_CheckedChanged;
         }
 
         private void OnClosing(object sender, FormClosingEventArgs e)
@@ -196,8 +196,9 @@ namespace KeePassWinHello
             int keysCount = isAvailable ? _keyManager.KeysCount : 0;
             bool savedKeysExists = keysCount > 0;
 
-            bool shouldRemoveKeys = !isEnabled && Settings.Instance.Enabled
-                                 || !winKeyStorageCheckBox.Checked && Settings.Instance.WinStorageEnabled;
+            bool intendedToDisablePlugin = !isEnabled && Settings.Instance.Enabled;
+            bool intendedToChangeStorage = winKeyStorageCheckBox.Checked != Settings.Instance.WinStorageEnabled;
+            bool shouldRemoveKeys = intendedToDisablePlugin || intendedToChangeStorage;
 
             storedKeysInfoPanel.Visible = isAvailable;
             revokeAllCheckBox.Enabled = savedKeysExists && !shouldRemoveKeys;
