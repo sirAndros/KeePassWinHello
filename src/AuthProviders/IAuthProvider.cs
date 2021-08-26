@@ -23,7 +23,7 @@ namespace KeePassWinHello
 #if DEBUG
             var provider = new XorProvider(authCacheType);
 #else
-            var provider = WinHelloProvider.CreateInstance(authCacheType);
+            var provider = new WinHelloProvider(authCacheType);
 #endif
             if (UAC.IsCurrentProcessElevated)
                 return new WinHelloProviderForegroundDecorator(provider, keePassWindowHandle);
