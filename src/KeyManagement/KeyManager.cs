@@ -17,7 +17,7 @@ namespace KeePassWinHello
         int KeysCount { get; }
 
         void RevokeAll();
-        void ClaimCurrentCacheType(AuthCacheType authCacheType);
+        void SwitchCurrentCacheType(AuthCacheType authCacheType);
     }
 
     class KeyManager : IKeyManager, IDisposable
@@ -164,7 +164,7 @@ namespace KeePassWinHello
             catch (AuthProviderKeyNotFoundException ex)
             {
                 // It's expected not to throw exceptions
-                ClaimCurrentCacheType(AuthCacheType.Local);
+                SwitchCurrentCacheType(AuthCacheType.Local);
                 ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
                 CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
             }
@@ -190,13 +190,13 @@ namespace KeePassWinHello
             catch (AuthProviderKeyNotFoundException ex)
             {
                 // It's expected not to throw exceptions
-                ClaimCurrentCacheType(AuthCacheType.Local);
+                SwitchCurrentCacheType(AuthCacheType.Local);
                 ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
             }
             catch (AuthProviderInvalidKeyException ex)
             {
                 // It's expected not to throw exceptions
-                ClaimCurrentCacheType(AuthCacheType.Local);
+                SwitchCurrentCacheType(AuthCacheType.Local);
                 ErrorHandler.ShowError(ex,
                     "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
             }
@@ -211,7 +211,7 @@ namespace KeePassWinHello
             _keyStorage.Clear();
         }
 
-        public void ClaimCurrentCacheType(AuthCacheType authCacheType)
+        public void SwitchCurrentCacheType(AuthCacheType authCacheType)
         {
             _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
             _keyStorage.Clear();
@@ -265,7 +265,7 @@ namespace KeePassWinHello
             catch (AuthProviderInvalidKeyException)
             {
                 // The key might be compromised so we revoke all stored passwords
-                ClaimCurrentCacheType(AuthCacheType.Local);
+                SwitchCurrentCacheType(AuthCacheType.Local);
                 throw;
             }
             catch (AuthProviderUserCancelledException)

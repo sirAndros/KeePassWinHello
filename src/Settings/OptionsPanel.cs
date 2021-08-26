@@ -140,7 +140,7 @@ namespace KeePassWinHello
                             {
                                 settings.WinStorageEnabled = winKeyStorageCheckBox.Checked;
                                 var authCacheType = settings.GetAuthCacheType();
-                                _keyManager.ClaimCurrentCacheType(authCacheType);
+                                _keyManager.SwitchCurrentCacheType(authCacheType);
                             }
                             catch (AuthProviderUserCancelledException)
                             {
@@ -165,7 +165,7 @@ namespace KeePassWinHello
             try
             {
                 Settings.Instance.WinStorageEnabled = false;
-                _keyManager.ClaimCurrentCacheType(AuthCacheType.Local);
+                _keyManager.SwitchCurrentCacheType(AuthCacheType.Local);
             }
             catch (Exception ex)
             {
