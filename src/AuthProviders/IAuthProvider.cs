@@ -13,7 +13,7 @@ namespace KeePassWinHello
         byte[] Encrypt(byte[] data);
         byte[] PromptToDecrypt(byte[] data);
         void ClaimCurrentCacheType(AuthCacheType authCacheType);
-        AuthCacheType CurrentCacheType { get; }
+        AuthCacheType CurrentCacheType { get; set; }
     }
 
     static class AuthProviderFactory

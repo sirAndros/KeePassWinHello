@@ -13,12 +13,10 @@ namespace KeePassWinHello
             CurrentCacheType = authCacheType;
         }
 
-        public AuthCacheType CurrentCacheType { get; private set; } // TDB
+        public AuthCacheType CurrentCacheType { get; set; }
 
         public void ClaimCurrentCacheType(AuthCacheType newType)
         {
-            CurrentCacheType = newType;
-
             if (newType == AuthCacheType.Persistent)
             {
                 string message = "Default message for persistent auth type";
@@ -34,6 +32,8 @@ namespace KeePassWinHello
             {
                 MessageBox.Show(AuthProviderUIContext.Current, "Switched to local.", "Keys removed", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+
+            CurrentCacheType = newType;
         }
 
         public byte[] Encrypt(byte[] data)
