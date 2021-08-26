@@ -353,8 +353,14 @@ namespace KeePassWinHello
                     cbResult = new byte[data.Length * 2];
                     int pcbResult;
                     NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptDecrypt");
-                    // TODO: secure resize
-                    Array.Resize(ref cbResult, pcbResult);
+
+                    if (cbResult.Length > pcbResult)
+                    {
+                        var res = new byte[pcbResult];
+                        Array.Copy(cbResult, res, pcbResult);
+                        Array.Clear(cbResult, 0, cbResult.Length);
+                        cbResult = res;
+                    }
                 }
             }
 
