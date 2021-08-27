@@ -29,7 +29,7 @@ namespace KeePassWinHello
 
         private bool IsStorageAvailable
         {
-            get { return _keyManager != null; }
+            get { return _keyManager.IsAvailable(); }
         }
 
         private OptionsPanel(IKeyManager keyManager)
@@ -124,18 +124,10 @@ namespace KeePassWinHello
 
                 if (settings.WinStorageEnabled != winKeyStorageCheckBox.Checked)
                 {
-                    if (_keyManager != null)
+                    if (_keyManager.IsAvailable())
                     {
                         using (AuthProviderUIContext.With(Settings.KeyCreationConfirmationMessage, this.Handle))
                         {
-                            if (SystemInformation.TerminalServerSession) // RDP
-                            {
-                                MessageBox.Show(AuthProviderUIContext.Current,
-                                    "Changing storage location setting on a remote session is not permitted",
-                                    Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                return;
-                            }
-
                             try
                             {
                                 settings.WinStorageEnabled = winKeyStorageCheckBox.Checked;
@@ -144,23 +136,29 @@ namespace KeePassWinHello
                             }
                             catch (AuthProviderUserCancelledException)
                             {
-                                TryClaimLocalCacheType();
+                                TrySwitchToLocalCacheType();
                                 MessageBox.Show(AuthProviderUIContext.Current,
                                     "Creating persistent key for Credential Manager has been canceled",
                                     Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }
                             catch (Exception ex)
                             {
-                                TryClaimLocalCacheType();
+                                TrySwitchToLocalCacheType();
                                 ErrorHandler.ShowError(ex);
                             }
                         }
+                    }
+                    else if (SystemInformation.TerminalServerSession) // RDP
+                    {
+                        MessageBox.Show(AuthProviderUIContext.Current,
+                            "Changing storage location setting on a remote session is not permitted",
+                            Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
             }
         }
 
-        private void TryClaimLocalCacheType()
+        private void TrySwitchToLocalCacheType()
         {
             try
             {
@@ -254,17 +252,15 @@ namespace KeePassWinHello
 
         private void RevokeAllKeys()
         {
-            if (_keyManager != null)
+            try
             {
-                try
-                {
-                    _keyManager.RevokeAll();
-                }
-                catch (Exception ex)
-                {
-                    ErrorHandler.ShowError(ex);
-                }
+                _keyManager.RevokeAll();
             }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowError(ex);
+            }
+
             UpdateStoredKeysPanel();
         }
 

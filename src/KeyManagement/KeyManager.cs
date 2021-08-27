@@ -18,6 +18,7 @@ namespace KeePassWinHello
 
         void RevokeAll();
         void SwitchCurrentCacheType(AuthCacheType authCacheType);
+        bool IsAvailable();
     }
 
     class KeyManager : IKeyManager, IDisposable
@@ -38,7 +39,39 @@ namespace KeePassWinHello
         {
             _keePassMainWindowHandle = windowHandle;
             _keyCipher = new KeyCipher(windowHandle);
-            _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
+            _keyStorage = KeyStorageFactory.Create();
+
+            TryInit();
+        }
+
+        public bool IsAvailable()
+        {
+            try
+            {
+                var authCacheType = _keyCipher.AuthProvider.CurrentCacheType;
+                Debug.Assert(authCacheType == Settings.Instance.GetAuthCacheType());
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void TryInit()
+        {
+            try
+            {
+                if (_keyCipher.AuthProvider.CurrentCacheType != Settings.Instance.GetAuthCacheType())
+                {
+                    // todo: something unexpected, messagebox
+                    SwitchCurrentCacheType(AuthCacheType.Local);
+                }
+            }
+            catch (AuthProviderException ex)
+            {
+                HandleAuthProviderException(ex);
+            }
         }
 
         public void OnKeyPrompt(KeyPromptForm keyPromptForm, MainForm mainWindow)
@@ -161,16 +194,17 @@ namespace KeePassWinHello
                     CloseFormWithResult(keyPromptForm, DialogResult.OK);
                 }
             }
-            catch (AuthProviderKeyNotFoundException ex)
-            {
-                // It's expected not to throw exceptions
-                SwitchCurrentCacheType(AuthCacheType.Local);
-                ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
-                CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
-            }
             catch (AuthProviderUserCancelledException)
             {
+                if (Settings.Instance.RevokeOnCancel)
+                    _keyStorage.Remove(dbPath);
+
                 CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
+            }
+            catch (AuthProviderException ex)
+            {
+                if (!HandleAuthProviderException(ex))
+                    throw;
             }
         }
 
@@ -187,23 +221,43 @@ namespace KeePassWinHello
                     _keyStorage.AddOrUpdate(dbPath, ProtectedKey.Create(databaseMasterKey, _keyCipher));
                 }
             }
-            catch (AuthProviderKeyNotFoundException ex)
+            catch (AuthProviderException ex)
+            {
+                if (!HandleAuthProviderException(ex))
+                    throw;
+            }
+        }
+
+        private bool HandleAuthProviderException(AuthProviderException ex)
+        {
+            if (ex is AuthProviderKeyNotFoundException)
             {
                 // It's expected not to throw exceptions
                 SwitchCurrentCacheType(AuthCacheType.Local);
                 ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
             }
-            catch (AuthProviderInvalidKeyException ex)
+            else if (ex is AuthProviderInvalidKeyException)
             {
+                // The key might be compromised so we revoke all stored passwords
                 // It's expected not to throw exceptions
                 SwitchCurrentCacheType(AuthCacheType.Local);
                 ErrorHandler.ShowError(ex,
                     "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
             }
-            catch (AuthProviderUserCancelledException)
+            else if (ex is AuthProviderUserCancelledException)
             {
                 // it's OK
             }
+            else if (ex is AuthProviderIsUnavailableException)
+            {
+                // it's OK
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public void RevokeAll()
@@ -215,7 +269,7 @@ namespace KeePassWinHello
         {
             _keyCipher.AuthProvider.ClaimCurrentCacheType(authCacheType);
             _keyStorage.Clear();
-            _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
+            _keyStorage = KeyStorageFactory.Create(authCacheType);
             if (authCacheType == AuthCacheType.Local)
                 Settings.Instance.WinStorageEnabled = false;
             // todo migrate
@@ -254,31 +308,10 @@ namespace KeePassWinHello
             if (!_keyStorage.TryGetValue(dbPath, out encryptedData))
                 return false;
 
-            try
-            {
-                using (AuthProviderUIContext.With(Settings.DecryptConfirmationMessage, _keePassMainWindowHandle))
-                {
-                    compositeKey = encryptedData.GetCompositeKey(_keyCipher);
-                    return true;
-                }
-            }
-            catch (AuthProviderInvalidKeyException)
-            {
-                // The key might be compromised so we revoke all stored passwords
-                SwitchCurrentCacheType(AuthCacheType.Local);
-                throw;
-            }
-            catch (AuthProviderUserCancelledException)
-            {
-                if (Settings.Instance.RevokeOnCancel)
-                    _keyStorage.Remove(dbPath);
-                throw;
-            }
-            catch (Exception)
-            {
-                _keyStorage.Remove(dbPath);
-                throw;
-            }
+            using (AuthProviderUIContext.With(Settings.DecryptConfirmationMessage, _keePassMainWindowHandle))
+                compositeKey = encryptedData.GetCompositeKey(_keyCipher);
+
+            return true;
         }
 
         private static void SetCompositeKey(KeyPromptForm keyPromptForm, CompositeKey compositeKey)

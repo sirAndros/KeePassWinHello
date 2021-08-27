@@ -18,8 +18,9 @@ namespace KeePassWinHello
 
     static class AuthProviderFactory
     {
-        public static IAuthProvider GetInstance(IntPtr keePassWindowHandle, AuthCacheType authCacheType)
+        public static IAuthProvider Create(IntPtr keePassWindowHandle)
         {
+            var authCacheType = Settings.Instance.GetAuthCacheType();
 #if DEBUG
             var provider = new XorProvider(authCacheType);
 #else

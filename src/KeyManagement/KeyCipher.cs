@@ -20,36 +20,7 @@ namespace KeePassWinHello
             _randomSeedBits = 256;
             _encryptionIV = new byte[16];
             _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
-            _cryptProvider = GetAuthProvider(keePassWindowHandle);
-        }
-
-        private static IAuthProvider GetAuthProvider(IntPtr keePassWindowHandle)
-        {
-            var authCacheType = Settings.Instance.GetAuthCacheType();
-            try
-            {
-                return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
-            }
-            catch (AuthProviderKeyNotFoundException ex)
-            {
-                if (authCacheType == AuthCacheType.Local)
-                    throw;
-
-                Settings.Instance.WinStorageEnabled = false;
-                authCacheType = Settings.Instance.GetAuthCacheType();
-                ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
-                return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
-            }
-            catch (AuthProviderInvalidKeyException ex)
-            {
-                if (authCacheType == AuthCacheType.Local)
-                    throw;
-
-                Settings.Instance.WinStorageEnabled = false;
-                authCacheType = Settings.Instance.GetAuthCacheType();
-                ErrorHandler.ShowError(ex, "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
-                return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
-            }
+            _cryptProvider = AuthProviderFactory.Create(keePassWindowHandle);
         }
 
         public IAuthProvider AuthProvider { get { return _cryptProvider; } }
