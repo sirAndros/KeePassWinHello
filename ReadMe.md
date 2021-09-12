@@ -74,6 +74,21 @@ Available settings:
 All changes will be applied only after `OK` button press.
 You can cancel the modifications using `Cancel` button instead.
 
+Security Notice
+---------------
+
+As you should never approve any process elevation (run as admin) if you don't trust application (because otherwise they can do almost anything), you should never sign WinHello prompt if you did not request it, especially if you using the persistent storage.
+In both cases your passwords and PC are in danger.
+
+Our plugin prompts you to authorize Windows Hello only in following cases:
+
+* You prompted to decrypt KeePass database.
+* You change the local (in-memory) storage to the persistent one.
+* If one of operations above failed due to known recoverable internal Windows Hello problem we could retry prompt with appropriate message.
+_Warning: if action being requested by you was actually succeeded this can be phishing "retry" and you should also cancel it if you not sure._
+
+If you see unintended Windows Hello prompt you should better cancel it as you cancel unintended UAC dialog.
+
 Notes
 -----
 
