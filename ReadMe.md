@@ -77,17 +77,17 @@ You can cancel the modifications using `Cancel` button instead.
 Security Notice
 ---------------
 
-As you should never approve any process elevation (run as admin) if you don't trust application (because otherwise they can do almost anything), you should never sign WinHello prompt if you did not request it, especially if you using the persistent storage.
-In both cases your passwords and PC are in danger.
+As you should never approve any process elevation (run as admin) if you don't trust an application (because otherwise they can do almost anything), you should never sign Windows Hello prompt if you did not request it, especially when using the persistent storage.
+In those cases your both passwords and PC are at risk.
 
-Our plugin prompts you to authorize Windows Hello only in following cases:
+Our plugin prompts you to authorize Windows Hello only in the following cases:
 
 * You prompted to decrypt KeePass database.
-* You change the local (in-memory) storage to the persistent one.
-* If one of operations above failed due to known recoverable internal Windows Hello problem we could retry prompt with appropriate message.
-_Warning: if action being requested by you was actually succeeded this can be phishing "retry" and you should also cancel it if you not sure._
+* You changed the in-memory storage to the persistent one.
+* If one of the operations above failed due to a known recoverable internal Windows Hello problem we could retry the prompt with an appropriate message.
+_Warning: if an action being requested by you was actually succeeded, this one can be phishing "retry" and you should also cancel it if you're not sure._
 
-If you see unintended Windows Hello prompt you should better cancel it as you cancel unintended UAC dialog.
+So it works like a rule of thumb: just like you cancel an unintended UAC dialog, you should cancel an unintended Windows Hello prompt.
 
 Notes
 -----
