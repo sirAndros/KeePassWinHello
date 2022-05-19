@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -100,6 +100,18 @@ namespace KeePassWinHello
 
         [DllImport("ncrypt.dll", CharSet = CharSet.Unicode)]
         private static extern SECURITY_STATUS NCryptSetProperty(SafeNCryptHandle hObject, string pszProperty, [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput, int cbInput, CngPropertyOptions dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetDesktopWindow();
+
+        [DllImport("user32.dll")]
+        private static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool BringWindowToTop(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetActiveWindow(IntPtr hWnd);
 
         [DllImport("ncrypt.dll")]
         private static extern SECURITY_STATUS NCryptEncrypt(SafeNCryptKeyHandle hKey,
@@ -355,6 +367,13 @@ namespace KeePassWinHello
                     NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptDecrypt");
                     // TODO: secure resize
                     Array.Resize(ref cbResult, pcbResult);
+
+                    var parentWindowHandle = AuthProviderUIContext.Current.ParentWindowHandle;
+                    if (parentWindowHandle != IntPtr.Zero && !IsIconic(parentWindowHandle))
+                    {
+                        BringWindowToTop(parentWindowHandle);
+                        SetActiveWindow(parentWindowHandle);
+                    }
                 }
             }
 
@@ -474,7 +493,7 @@ namespace KeePassWinHello
             var uiContext = AuthProviderUIContext.Current;
             if (uiContext != null)
             {
-                IntPtr parentWindowHandle = uiContext.ParentWindowHandle;
+                IntPtr parentWindowHandle = GetDesktopWindow();
                 if (parentWindowHandle != IntPtr.Zero)
                 {
                     byte[] handle = BitConverter.GetBytes(IntPtr.Size == 8 ? parentWindowHandle.ToInt64() : parentWindowHandle.ToInt32());
