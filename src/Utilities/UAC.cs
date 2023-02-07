@@ -68,7 +68,14 @@ namespace KeePassWinHello
             {
                 using (RegistryKey uacKey = Registry.LocalMachine.OpenSubKey(uacRegistryKey, false))
                 {
-                    return uacKey.GetValue(uacRegistryValue).Equals(1);
+                    int mode = 0;
+                    if (uacKey != null)
+                    {
+                        var value = uacKey.GetValue(uacRegistryValue);
+                        if (value != null)
+                            Int32.TryParse(value, out mode);
+                    }
+                    return mode > 0;
                 }
             }
         }
