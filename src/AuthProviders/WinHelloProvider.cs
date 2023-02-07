@@ -34,6 +34,7 @@ namespace KeePassWinHello
         private const int TPM_20_E_SIZE = unchecked((int)0x80280095);
         private const int TPM_20_E_159 = unchecked((int)0x80280159);
         private const int ERROR_CANCELLED = unchecked((int)0x800704C7);
+        private const int WINBIO_E_DATA_PROTECTION_FAILURE = unchecked((int)0x80098046); // The biometric service could not decrypt the data.
 
         [StructLayout(LayoutKind.Sequential)]
         struct SECURITY_STATUS
@@ -289,9 +290,10 @@ namespace KeePassWinHello
                 {
                     switch (ex.ErrorCode)
                     {
-                        case TPM_20_E_HANDLE: // #68
-                        case TPM_20_E_SIZE:   // #77
-                        case TPM_20_E_159:    // #42
+                        case TPM_20_E_HANDLE:                  // #68
+                        case TPM_20_E_SIZE:                    // #77
+                        case TPM_20_E_159:                     // #42
+                        case WINBIO_E_DATA_PROTECTION_FAILURE: // #93
                             if (i < Settings.MAX_RETRY_COUNT)
                                 break;
                             throw;
