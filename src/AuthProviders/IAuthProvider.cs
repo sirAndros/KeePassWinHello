@@ -13,17 +13,18 @@ namespace KeePassWinHello
         byte[] Encrypt(byte[] data);
         byte[] PromptToDecrypt(byte[] data);
         void ClaimCurrentCacheType(AuthCacheType authCacheType);
-        AuthCacheType CurrentCacheType { get; }
+        AuthCacheType CurrentCacheType { get; set; }
     }
 
     static class AuthProviderFactory
     {
-        public static IAuthProvider GetInstance(IntPtr keePassWindowHandle, AuthCacheType authCacheType)
+        public static IAuthProvider Create(IntPtr keePassWindowHandle)
         {
+            var authCacheType = Settings.Instance.GetAuthCacheType();
 #if DEBUG
             var provider = new XorProvider(authCacheType);
 #else
-            var provider = WinHelloProvider.CreateInstance(authCacheType);
+            var provider = new WinHelloProvider(authCacheType);
 #endif
             if (UAC.IsCurrentProcessElevated)
                 return new WinHelloProviderForegroundDecorator(provider, keePassWindowHandle);

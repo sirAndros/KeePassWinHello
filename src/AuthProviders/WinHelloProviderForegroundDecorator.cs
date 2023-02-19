@@ -20,10 +20,8 @@ namespace KeePassWinHello
 
         public AuthCacheType CurrentCacheType
         {
-            get
-            {
-                return _winHelloProvider.CurrentCacheType;
-            }
+            get { return _winHelloProvider.CurrentCacheType; }
+            set { _winHelloProvider.CurrentCacheType = value; }
         }
 
         public void ClaimCurrentCacheType(AuthCacheType newType)

@@ -16,12 +16,17 @@ namespace KeePassWinHello
 
     static class KeyStorageFactory
     {
-        public static IKeyStorage Create(IAuthProvider authProvider)
+        public static IKeyStorage Create(AuthCacheType authCacheType)
         {
-            if (Settings.Instance.WinStorageEnabled && authProvider.CurrentCacheType == AuthCacheType.Persistent)
+            if (authCacheType == AuthCacheType.Persistent)
                 return new KeyWindowsStorage();
 
             return new KeyMemoryStorage();
+        }
+
+        public static IKeyStorage Create()
+        {
+            return Create(Settings.Instance.GetAuthCacheType());
         }
     }
 }

@@ -124,14 +124,14 @@ namespace KeePassWinHello
         #endregion
 
         private static readonly Lazy<string> _currentSID = new Lazy<string>(WindowsIdentity.GetCurrent().User.ToString);
-
         private static readonly object _mutex = new object();
-        private static WeakReference _instance;
 
         private const string Domain = Settings.ProductName;
         private const string SubDomain = "";
         private const string PersistentName = Settings.ProductName;
         private const string InvalidatedKeyMessage = "Persistent key has not met integrity requirements. It might be caused by a spoofing attack. Try to recreate the key.";
+
+        private AuthCacheType _currentCacheType;
 
         private static string LocalKeyName
         {
@@ -155,99 +155,45 @@ namespace KeePassWinHello
 
         private string CurrentKeyName
         {
-            get { return CurrentCacheType == AuthCacheType.Local ? LocalKeyName : PersistentKeyName; }
+            get { return _currentCacheType == AuthCacheType.Local ? LocalKeyName : PersistentKeyName; }
         }
 
-        private WinHelloProvider(AuthCacheType authCacheType)
+        public WinHelloProvider(AuthCacheType authCacheType)
         {
-            CurrentCacheType = authCacheType;
-
-            if (authCacheType == AuthCacheType.Local)
-            {
-                DeletePersistentKey();
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(authCacheType == AuthCacheType.Persistent);
-
-                SafeNCryptKeyHandle ngcKeyHandle;
-                if (!TryOpenPersistentKey(out ngcKeyHandle))
-                    throw new AuthProviderKeyNotFoundException("Persistent key does not exist.");
-
-                using (ngcKeyHandle)
-                {
-                    if (!VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                    {
-                        ngcKeyHandle.Close();
-                        DeletePersistentKey();
-                        throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
-                    }
-                }
-            }
+            _currentCacheType = authCacheType;
         }
 
-        public AuthCacheType CurrentCacheType { get; private set; }
-
-        public static WinHelloProvider CreateInstance(AuthCacheType authCacheType)
+        public AuthCacheType CurrentCacheType
         {
-            EnsureWinHelloAvailability();
-
-            lock (_mutex)
-            {
-                WinHelloProvider winHelloProvider = null;
-                if (_instance != null && (winHelloProvider = _instance.Target as WinHelloProvider) != null)
-                {
-                    if (winHelloProvider.CurrentCacheType == authCacheType)
-                        return winHelloProvider;
-                    else
-                        throw new AuthProviderException("Incompatible cache type with existing instance.");
-                }
-
-                winHelloProvider = new WinHelloProvider(authCacheType);
-                _instance = new WeakReference(winHelloProvider);
-
-                return winHelloProvider;
-            }
+            get { return EnsureKeyAvailability(_currentCacheType); }
+            set { _currentCacheType = EnsureKeyAvailability(value); }
         }
 
         public void ClaimCurrentCacheType(AuthCacheType authCacheType)
         {
-            if (CurrentCacheType == authCacheType)
-                return;
-
             lock (_mutex)
             {
-                if (authCacheType == AuthCacheType.Local)
+                try
                 {
-                    DeletePersistentKey();
+                    CurrentCacheType = authCacheType;
                 }
-                else
+                catch (AuthProviderKeyNotFoundException)
                 {
                     Debug.Assert(authCacheType == AuthCacheType.Persistent);
-
-                    SafeNCryptKeyHandle ngcKeyHandle;
-                    if (TryOpenPersistentKey(out ngcKeyHandle))
-                    {
-                        try
-                        {
-                            if (!VerifyPersistentKeyIntegrity(ngcKeyHandle))
-                                throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
-                            ngcKeyHandle.Dispose();
-                        }
-                        catch
-                        {
-                            ngcKeyHandle.Dispose();
-                            DeletePersistentKey();
-                            throw;
-                        }
-                    }
-                    else
-                    {
-                        CreatePersistentKey(false).Dispose();
-                    }
+                    CreatePersistentKey(false).Dispose();
+                    _currentCacheType = authCacheType;
                 }
-
-                CurrentCacheType = authCacheType;
+                catch (AuthProviderInvalidKeyException)
+                {
+                    Debug.Assert(authCacheType == AuthCacheType.Persistent);
+                    CreatePersistentKey(true).Dispose();
+                    _currentCacheType = authCacheType;
+                }
+                finally
+                {
+                    if (authCacheType == AuthCacheType.Local)
+                        DeletePersistentKey();
+                }
             }
         }
 
@@ -257,7 +203,8 @@ namespace KeePassWinHello
             {
                 try
                 {
-                    return Encrypt(data, retry: i > 0);
+                    var verifyIntegrity = _currentCacheType == AuthCacheType.Persistent;
+                    return Encrypt(data, CurrentKeyName, verifyIntegrity);
                 }
                 catch (AuthProviderSystemErrorException ex)
                 {
@@ -284,7 +231,8 @@ namespace KeePassWinHello
             {
                 try
                 {
-                    return PromptToDecrypt(data, retry: i > 0);
+                    var verifyIntegrity = _currentCacheType == AuthCacheType.Persistent;
+                    return PromptToDecrypt(data, CurrentKeyName, verifyIntegrity, retry: i > 0);
                 }
                 catch (AuthProviderSystemErrorException ex)
                 {
@@ -306,7 +254,7 @@ namespace KeePassWinHello
             }
         }
 
-        private byte[] Encrypt(byte[] data, bool retry)
+        private static byte[] Encrypt(byte[] data, string keyName, bool verifyIntegrity)
         {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
@@ -314,10 +262,10 @@ namespace KeePassWinHello
             using (ngcProviderHandle)
             {
                 SafeNCryptKeyHandle ngcKeyHandle;
-                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, CurrentKeyName, 0, CngKeyOpenOptions.Silent).ThrowOnError("NCryptOpenKey");
+                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, keyName, 0, CngKeyOpenOptions.Silent).ThrowOnError("NCryptOpenKey");
                 using (ngcKeyHandle)
                 {
-                    if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
+                    if (verifyIntegrity && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
                         throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
 
                     int pcbResult;
@@ -325,14 +273,14 @@ namespace KeePassWinHello
 
                     cbResult = new byte[pcbResult];
                     NCryptEncrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptEncrypt");
-                    System.Diagnostics.Debug.Assert(cbResult.Length == pcbResult);
+                    Debug.Assert(cbResult.Length == pcbResult);
                 }
             }
 
             return cbResult;
         }
 
-        private byte[] PromptToDecrypt(byte[] data, bool retry)
+        private static byte[] PromptToDecrypt(byte[] data, string keyName, bool verifyIntegrity, bool retry)
         {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
@@ -340,10 +288,10 @@ namespace KeePassWinHello
             using (ngcProviderHandle)
             {
                 SafeNCryptKeyHandle ngcKeyHandle;
-                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, CurrentKeyName, 0, CngKeyOpenOptions.None).ThrowOnError("NCryptOpenKey");
+                NCryptOpenKey(ngcProviderHandle, out ngcKeyHandle, keyName, 0, CngKeyOpenOptions.None).ThrowOnError("NCryptOpenKey");
                 using (ngcKeyHandle)
                 {
-                    if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
+                    if (verifyIntegrity && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
                         throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
 
                     ApplyUIContext(ngcKeyHandle, retry);
@@ -355,12 +303,45 @@ namespace KeePassWinHello
                     cbResult = new byte[data.Length * 2];
                     int pcbResult;
                     NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptDecrypt");
-                    // TODO: secure resize
-                    Array.Resize(ref cbResult, pcbResult);
+
+                    if (cbResult.Length > pcbResult)
+                    {
+                        var res = new byte[pcbResult];
+                        Array.Copy(cbResult, res, pcbResult);
+                        Array.Clear(cbResult, 0, cbResult.Length);
+                        cbResult = res;
+                    }
                 }
             }
 
             return cbResult;
+        }
+
+        private static AuthCacheType EnsureKeyAvailability(AuthCacheType authCacheType)
+        {
+            EnsureWinHelloAvailability();
+
+            if (authCacheType == AuthCacheType.Persistent) lock (_mutex)
+            {
+                SafeNCryptKeyHandle ngcKeyHandle;
+                if (!TryOpenPersistentKey(out ngcKeyHandle))
+                    throw new AuthProviderKeyNotFoundException("Persistent key does not exist.");
+
+                using (ngcKeyHandle)
+                {
+                    if (!VerifyPersistentKeyIntegrity(ngcKeyHandle))
+                        throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
+                }
+            }
+            else if (authCacheType != AuthCacheType.Local)
+                throw new NotSupportedException("Unknown cache type: " + authCacheType);
+
+            return authCacheType;
+        }
+
+        private static void EnsureWinHelloAvailability()
+        {
+            var dummy = LocalKeyName; // throw an exception if not available
         }
 
         private static void RetrieveKeys(out string localKey, out string persistentKey)
@@ -371,11 +352,6 @@ namespace KeePassWinHello
             // It's not expected to use persistent key if local key does not exist
             if (string.IsNullOrEmpty(localKey))
                 throw new AuthProviderIsUnavailableException("Windows Hello is not available.");
-        }
-
-        private static void EnsureWinHelloAvailability()
-        {
-            var dummy = LocalKeyName; // throw an exception if not available
         }
 
         private static void DeletePersistentKey()
@@ -425,10 +401,8 @@ namespace KeePassWinHello
             {
                 NCryptGetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED, ref cacheType, sizeof(int), out pcbResult, CngPropertyOptions.None).ThrowOnError("NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED");
             }
-            if (cacheType != NCRYPT_NGC_CACHE_TYPE_PROPERTY_AUTH_MANDATORY_FLAG)
-                return false;
 
-            return true;
+            return cacheType == NCRYPT_NGC_CACHE_TYPE_PROPERTY_AUTH_MANDATORY_FLAG;
         }
 
         private static SafeNCryptKeyHandle CreatePersistentKey(bool overwriteExisting)
