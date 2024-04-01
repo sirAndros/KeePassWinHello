@@ -14,7 +14,7 @@ namespace KeePassWinHello
         {
             _mainDesktop = mainDesktop;
             _cancellationTokenSource = new CancellationTokenSource();
-            _thread = new Thread(MonitorWarning)
+            _thread = new Thread(() => MonitorWarning(_cancellationTokenSource.Token))
             {
                 Name = "WarningSuppressorThread",
                 IsBackground = true,
@@ -27,11 +27,11 @@ namespace KeePassWinHello
             return new KeePassWarningSuppresser(mainDesktop);
         }
 
-        private void MonitorWarning()
+        private void MonitorWarning(CancellationToken token)
         {
             WinAPI.SetThreadDesktop(_mainDesktop);
 
-            while (!_cancellationTokenSource.Token.IsCancellationRequested)
+            while (!token.IsCancellationRequested)
             {
                 const string MsgBoxClass = "#32770";
                 try
