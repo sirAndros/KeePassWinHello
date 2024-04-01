@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Windows.Forms;
 using KeePassLib.Cryptography;
 using KeePassLib.Cryptography.Cipher;
 using KeePassLib.Security;
@@ -15,12 +16,12 @@ namespace KeePassWinHello
         private readonly ICipherEngine _cipherEngine;
         private readonly IAuthProvider _cryptProvider;
 
-        public KeyCipher(IntPtr keePassWindowHandle)
+        public KeyCipher(IWin32Window parentWindow)
         {
             _randomSeedBits = 256;
             _encryptionIV = new byte[16];
             _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
-            _cryptProvider = GetAuthProvider(keePassWindowHandle);
+            _cryptProvider = GetAuthProvider(parentWindow.Handle);
         }
 
         private static IAuthProvider GetAuthProvider(IntPtr keePassWindowHandle)

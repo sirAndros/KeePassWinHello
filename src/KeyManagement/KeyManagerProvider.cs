@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 using KeePass.Plugins;
 using KeePassWinHello.Utilities;
 
@@ -17,9 +18,9 @@ namespace KeePassWinHello
             _host = host;
         }
 
-        public KeyManager ObtainKeyManager()
+        public KeyManager ObtainKeyManager(IWin32Window parentWindow)
         {
-            TryInitKeyManager();
+            TryInitKeyManager(parentWindow);
             return _keyManager; // Can be null
         }
 
@@ -36,7 +37,7 @@ namespace KeePassWinHello
             }
         }
 
-        private void TryInitKeyManager()
+        private void TryInitKeyManager(IWin32Window parentWindow)
         {
             lock (_initMutex)
             {
@@ -45,7 +46,7 @@ namespace KeePassWinHello
 
                 try
                 {
-                    _keyManager = new KeyManager(_host.MainWindow.Handle);
+                    _keyManager = new KeyManager(parentWindow);
                     _wasUnavailable = false;
                 }
                 catch (AuthProviderIsUnavailableException)

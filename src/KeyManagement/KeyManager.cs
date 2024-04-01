@@ -34,14 +34,14 @@ namespace KeePassWinHello
 
         public int  KeysCount   { get { return _keyStorage.Count; } }
 
-        public KeyManager(IntPtr windowHandle)
+        public KeyManager(IWin32Window parentWindow)
         {
-            _keePassMainWindowHandle = windowHandle;
-            _keyCipher = new KeyCipher(windowHandle);
+            _keePassMainWindowHandle = parentWindow.Handle;
+            _keyCipher = new KeyCipher(parentWindow);
             _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
         }
 
-        public void OnKeyPrompt(KeyPromptForm keyPromptForm, MainForm mainWindow)
+        public void OnKeyPrompt(KeyPromptForm keyPromptForm)
         {
             if (!Settings.Instance.Enabled)
                 return;
@@ -129,9 +129,12 @@ namespace KeePassWinHello
         {
             if (_cancellationTokenSource != null)
             {
+                using (_cancellationTokenSource)
+                {
                 _cancellationTokenSource.Cancel();
                 _cancellationTokenSource = null;
             }
+        }
         }
 
         private void MonitorWarning(CancellationToken token)
