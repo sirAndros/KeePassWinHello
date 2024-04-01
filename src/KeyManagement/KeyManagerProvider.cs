@@ -18,9 +18,9 @@ namespace KeePassWinHello
             _host = host;
         }
 
-        public KeyManager ObtainKeyManager(IWin32Window parentWindow)
+        public KeyManager ObtainKeyManager()
         {
-            TryInitKeyManager(parentWindow);
+            TryInitKeyManager();
             return _keyManager; // Can be null
         }
 
@@ -37,7 +37,7 @@ namespace KeePassWinHello
             }
         }
 
-        private void TryInitKeyManager(IWin32Window parentWindow)
+        private void TryInitKeyManager()
         {
             lock (_initMutex)
             {
@@ -48,7 +48,7 @@ namespace KeePassWinHello
 
                 try
                 {
-                    _keyManager = new KeyManager(parentWindow);
+                    _keyManager = new KeyManager();
                     _wasUnavailable = false;
                 }
                 catch (AuthProviderIsUnavailableException)

@@ -76,7 +76,7 @@ namespace KeePassWinHello
         {
             try
             {
-                var keyManager = _keyManagerProvider.ObtainKeyManager(_host.MainWindow);
+                var keyManager = _keyManagerProvider.ObtainKeyManager();
                 if (keyManager != null)
                     keyManager.OnDBClosing(sender, e);
             }
@@ -93,7 +93,7 @@ namespace KeePassWinHello
                 var keyPromptForm = e.Form as KeyPromptForm;
                 if (keyPromptForm != null)
                 {
-                    var keyManager = _keyManagerProvider.ObtainKeyManager(keyPromptForm);
+                    var keyManager = _keyManagerProvider.ObtainKeyManager();
                     if (keyManager != null)
                     {
                         lock (_unlockMutex)
@@ -105,7 +105,7 @@ namespace KeePassWinHello
                 var optionsForm = e.Form as OptionsForm;
                 if (optionsForm != null)
                 {
-                    var keyManager = _keyManagerProvider.ObtainKeyManager(optionsForm);
+                    var keyManager = _keyManagerProvider.ObtainKeyManager();
                     OptionsPanel.OnOptionsLoad(optionsForm, keyManager);
                     return;
                 }

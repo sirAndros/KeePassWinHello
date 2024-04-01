@@ -16,20 +16,20 @@ namespace KeePassWinHello
         private readonly ICipherEngine _cipherEngine;
         private readonly IAuthProvider _cryptProvider;
 
-        public KeyCipher(IWin32Window parentWindow)
+        public KeyCipher()
         {
             _randomSeedBits = 256;
             _encryptionIV = new byte[16];
-            _cryptProvider = GetAuthProvider(parentWindow.Handle);
+            _cryptProvider = GetAuthProvider();
             _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
         }
 
-        private static IAuthProvider GetAuthProvider(IntPtr keePassWindowHandle)
+        private static IAuthProvider GetAuthProvider()
         {
             var authCacheType = Settings.Instance.GetAuthCacheType();
             try
             {
-                return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
+                return AuthProviderFactory.GetInstance(authCacheType);
             }
             catch (AuthProviderKeyNotFoundException ex)
             {
@@ -39,7 +39,7 @@ namespace KeePassWinHello
                 Settings.Instance.WinStorageEnabled = false;
                 authCacheType = Settings.Instance.GetAuthCacheType();
                 ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
-                return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
+                return AuthProviderFactory.GetInstance(authCacheType);
             }
             catch (AuthProviderInvalidKeyException ex)
             {
@@ -49,7 +49,7 @@ namespace KeePassWinHello
                 Settings.Instance.WinStorageEnabled = false;
                 authCacheType = Settings.Instance.GetAuthCacheType();
                 ErrorHandler.ShowError(ex, "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
-                return AuthProviderFactory.GetInstance(keePassWindowHandle, authCacheType);
+                return AuthProviderFactory.GetInstance(authCacheType);
             }
         }
 

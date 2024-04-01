@@ -30,9 +30,10 @@ namespace KeePassWinHello
 
         public int KeysCount { get { return _keyStorage.Count; } }
 
-        public KeyManager(IWin32Window parentWindow)
+        public KeyManager()
         {
             _keyCipher = new KeyCipher(parentWindow);
+            _keyCipher = new KeyCipher();
             _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
         }
 

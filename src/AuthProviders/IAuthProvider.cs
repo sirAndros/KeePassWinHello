@@ -18,7 +18,7 @@ namespace KeePassWinHello
 
     static class AuthProviderFactory
     {
-        public static IAuthProvider GetInstance(IntPtr keePassWindowHandle, AuthCacheType authCacheType)
+        public static IAuthProvider GetInstance(AuthCacheType authCacheType)
         {
 #if DUMMY_PROVIDER
             var provider = new XorProvider(authCacheType);
@@ -26,7 +26,7 @@ namespace KeePassWinHello
             var provider = WinHelloProvider.CreateInstance(authCacheType);
 #endif
             if (UAC.IsCurrentProcessElevated)
-                return new WinHelloProviderForegroundDecorator(provider, keePassWindowHandle);
+                return new WinHelloProviderForegroundDecorator(provider);
             else
                 return provider;
         }
