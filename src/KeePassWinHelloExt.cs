@@ -13,7 +13,6 @@ namespace KeePassWinHello
     {
         private IPluginHost _host;
         private KeyManagerProvider _keyManagerProvider;
-        private HDESK _mainDesktop;
         private readonly object _unlockMutex = new Object();
 
         public override Image SmallIcon
@@ -48,10 +47,10 @@ namespace KeePassWinHello
 
             Settings.Instance.Initialize(host.CustomConfig);
 
-            _host = host;
-            _keyManagerProvider = new KeyManagerProvider(host);
-            _mainDesktop = WinAPI.GetThreadDesktop(WinAPI.GetCurrentThreadId());
+            var mainDesktop = WinAPI.GetThreadDesktop(WinAPI.GetCurrentThreadId());
+            _keyManagerProvider = new KeyManagerProvider(mainDesktop);
 
+            _host = host;
             _host.MainWindow.FileClosingPre += OnPreFileClosing;
             GlobalWindowManager.WindowAdded += OnWindowAdded;
 
@@ -97,7 +96,7 @@ namespace KeePassWinHello
                     if (keyManager != null)
                     {
                         lock (_unlockMutex)
-                            keyManager.OnKeyPrompt(keyPromptForm, _mainDesktop);
+                            keyManager.OnKeyPrompt(keyPromptForm);
                         return; 
                     }
                 }

@@ -22,6 +22,7 @@ namespace KeePassWinHello
     {
         private IKeyStorage _keyStorage;
         private readonly KeyCipher _keyCipher;
+        private readonly HDESK _mainDesktop;
         private const int NoChanges = -777;
         private int _masterKeyTries = NoChanges;
         private IDisposable _warningSuppresser;
@@ -30,14 +31,14 @@ namespace KeePassWinHello
 
         public int KeysCount { get { return _keyStorage.Count; } }
 
-        public KeyManager()
+        public KeyManager(HDESK mainDesktop)
         {
-            _keyCipher = new KeyCipher(parentWindow);
+            _mainDesktop = mainDesktop;
             _keyCipher = new KeyCipher();
             _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
         }
 
-        public void OnKeyPrompt(KeyPromptForm keyPromptForm, HDESK mainDesktop)
+        public void OnKeyPrompt(KeyPromptForm keyPromptForm)
         {
             if (!Settings.Instance.Enabled)
                 return;
@@ -63,7 +64,7 @@ namespace KeePassWinHello
             if (keyPromptForm.SecureDesktopMode)
             {
                 if (IsKeyForDataBaseExist(dbPath))
-                    RestartPromptOnMainDesktopAndSuppressWarning(keyPromptForm, mainDesktop);
+                    RestartPromptOnMainDesktopAndSuppressWarning(keyPromptForm);
             }
             else
             {
@@ -73,11 +74,11 @@ namespace KeePassWinHello
             }
         }
 
-        private void RestartPromptOnMainDesktopAndSuppressWarning(KeyPromptForm keyPromptForm, HDESK mainDesktop)
+        private void RestartPromptOnMainDesktopAndSuppressWarning(KeyPromptForm keyPromptForm)
         {
             IDisposable warningSuppresser = null;
             if (Volatile.Read(ref _warningSuppresser) == null)
-                warningSuppresser = KeePassWarningSuppresser.SuppressAllWarningWindows(mainDesktop);
+                warningSuppresser = KeePassWarningSuppresser.SuppressAllWarningWindows(_mainDesktop);
 
             try
             {
