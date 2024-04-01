@@ -25,15 +25,19 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		DebugDummy|Any CPU = DebugDummy|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6A249FA1-3F87-4C81-8D31-6BDF62308F48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6A249FA1-3F87-4C81-8D31-6BDF62308F48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A249FA1-3F87-4C81-8D31-6BDF62308F48}.DebugDummy|Any CPU.ActiveCfg = Debug|Any CPU
 		{6A249FA1-3F87-4C81-8D31-6BDF62308F48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A249FA1-3F87-4C81-8D31-6BDF62308F48}.Release|Any CPU.Build.0 = Release|Any CPU
 		{04F6B0AF-A8EE-4A6E-AD4F-45F714724D24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{04F6B0AF-A8EE-4A6E-AD4F-45F714724D24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04F6B0AF-A8EE-4A6E-AD4F-45F714724D24}.DebugDummy|Any CPU.ActiveCfg = DebugDummy|Any CPU
+		{04F6B0AF-A8EE-4A6E-AD4F-45F714724D24}.DebugDummy|Any CPU.Build.0 = DebugDummy|Any CPU
 		{04F6B0AF-A8EE-4A6E-AD4F-45F714724D24}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04F6B0AF-A8EE-4A6E-AD4F-45F714724D24}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

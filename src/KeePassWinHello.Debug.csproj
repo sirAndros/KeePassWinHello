@@ -5,6 +5,9 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <DefaultNamespace>KeePassWinHello</DefaultNamespace>
     <AssemblyName>KeePassWinHello</AssemblyName>
+
+    <Configurations>Debug;Release;DebugDummy</Configurations>
+    <DefineConstants Condition="'$(Configuration)'=='DebugDummy'">$(DefineConstants);DUMMY_PROVIDER</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

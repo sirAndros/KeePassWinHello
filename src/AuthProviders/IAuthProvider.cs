@@ -20,7 +20,7 @@ namespace KeePassWinHello
     {
         public static IAuthProvider GetInstance(IntPtr keePassWindowHandle, AuthCacheType authCacheType)
         {
-#if DEBUG
+#if DUMMY_PROVIDER
             var provider = new XorProvider(authCacheType);
 #else
             var provider = WinHelloProvider.CreateInstance(authCacheType);
