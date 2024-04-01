@@ -7,13 +7,15 @@ namespace KeePassWinHello
     class WinHelloProviderForegroundDecorator : IAuthProvider
     {
         private readonly IAuthProvider _winHelloProvider;
+        private readonly UIContextManager _uiContextManager;
 
-        public WinHelloProviderForegroundDecorator(IAuthProvider provider)
+        public WinHelloProviderForegroundDecorator(IAuthProvider provider, UIContextManager uiContextManager)
         {
             if (provider == null)
                 throw new ArgumentNullException("provider");
 
             _winHelloProvider = provider;
+            _uiContextManager = uiContextManager;
         }
 
         public AuthCacheType CurrentCacheType
@@ -59,7 +61,7 @@ namespace KeePassWinHello
         {
             try
             {
-                var keePassWindowHandle = AuthProviderUIContext.Current.ParentWindowHandle; //should not be null
+                var keePassWindowHandle = _uiContextManager.CurrentContext.ParentWindowHandle; //should not be null
                 Win32Window.From(keePassWindowHandle).EnsureForeground();
             }
             catch (Exception ex)

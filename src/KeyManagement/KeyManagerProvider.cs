@@ -6,14 +6,16 @@ namespace KeePassWinHello
     class KeyManagerProvider : IDisposable
     {
         private readonly object _initMutex = new Object();
+        private readonly UIContextManager _uiContextManager;
 
         private KeyManager _keyManager;
         private bool? _wasUnavailable = null;
         private HDESK _mainDesktop;
 
-        public KeyManagerProvider(HDESK mainDesktop)
+        public KeyManagerProvider(HDESK mainDesktop, UIContextManager uiContextManager)
         {
             _mainDesktop = mainDesktop;
+            _uiContextManager = uiContextManager;
         }
 
         public KeyManager ObtainKeyManager()
@@ -46,7 +48,9 @@ namespace KeePassWinHello
 
                 try
                 {
-                    _keyManager = new KeyManager(_mainDesktop);
+                    var authProvider = GetAuthProvider();
+                    var keyCipher = new KeyCipher(authProvider);
+                    _keyManager = new KeyManager(_mainDesktop, _uiContextManager, keyCipher);
                     _wasUnavailable = false;
                 }
                 catch (AuthProviderIsUnavailableException)
@@ -56,8 +60,37 @@ namespace KeePassWinHello
                 catch (Exception ex)
                 {
                     _wasUnavailable = false;
-                    ErrorHandler.ShowError(ex);
+                    _uiContextManager.CurrentContext.ShowError(ex);
                 }
+            }
+        }
+
+        private IAuthProvider GetAuthProvider()
+        {
+            var authCacheType = Settings.Instance.GetAuthCacheType();
+            try
+            {
+                return AuthProviderFactory.GetInstance(authCacheType, _uiContextManager);
+            }
+            catch (AuthProviderKeyNotFoundException ex)
+            {
+                if (authCacheType == AuthCacheType.Local)
+                    throw;
+
+                Settings.Instance.WinStorageEnabled = false;
+                authCacheType = Settings.Instance.GetAuthCacheType();
+                _uiContextManager.CurrentContext.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
+                return AuthProviderFactory.GetInstance(authCacheType, _uiContextManager);
+            }
+            catch (AuthProviderInvalidKeyException ex)
+            {
+                if (authCacheType == AuthCacheType.Local)
+                    throw;
+
+                Settings.Instance.WinStorageEnabled = false;
+                authCacheType = Settings.Instance.GetAuthCacheType();
+                _uiContextManager.CurrentContext.ShowError(ex, "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
+                return AuthProviderFactory.GetInstance(authCacheType, _uiContextManager);
             }
         }
     }

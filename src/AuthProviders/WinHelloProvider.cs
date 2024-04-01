@@ -133,6 +133,8 @@ namespace KeePassWinHello
         private const string PersistentName = Settings.ProductName;
         private const string InvalidatedKeyMessage = "Persistent key has not met integrity requirements. It might be caused by a spoofing attack. Try to recreate the key.";
 
+        private readonly UIContextManager _uiContextManager;
+
         private static string LocalKeyName
         {
             get
@@ -158,9 +160,10 @@ namespace KeePassWinHello
             get { return CurrentCacheType == AuthCacheType.Local ? LocalKeyName : PersistentKeyName; }
         }
 
-        private WinHelloProvider(AuthCacheType authCacheType)
+        private WinHelloProvider(AuthCacheType authCacheType, UIContextManager uiContextManager)
         {
             CurrentCacheType = authCacheType;
+            _uiContextManager = uiContextManager;
 
             if (authCacheType == AuthCacheType.Local)
             {
@@ -188,7 +191,7 @@ namespace KeePassWinHello
 
         public AuthCacheType CurrentCacheType { get; private set; }
 
-        public static WinHelloProvider CreateInstance(AuthCacheType authCacheType)
+        public static WinHelloProvider CreateInstance(AuthCacheType authCacheType, UIContextManager uiContextManager)
         {
             EnsureWinHelloAvailability();
 
@@ -203,7 +206,7 @@ namespace KeePassWinHello
                         throw new AuthProviderException("Incompatible cache type with existing instance.");
                 }
 
-                winHelloProvider = new WinHelloProvider(authCacheType);
+                winHelloProvider = new WinHelloProvider(authCacheType, uiContextManager);
                 _instance = new WeakReference(winHelloProvider);
 
                 return winHelloProvider;
@@ -434,7 +437,7 @@ namespace KeePassWinHello
             return true;
         }
 
-        private static SafeNCryptKeyHandle CreatePersistentKey(bool overwriteExisting)
+        private SafeNCryptKeyHandle CreatePersistentKey(bool overwriteExisting)
         {
             SafeNCryptProviderHandle ngcProviderHandle;
 
@@ -474,9 +477,9 @@ namespace KeePassWinHello
             return ngcKeyHandle;
         }
 
-        private static void ApplyUIContext(SafeNCryptKeyHandle ngcKeyHandle, bool retryMessage = false)
+        private void ApplyUIContext(SafeNCryptKeyHandle ngcKeyHandle, bool retryMessage = false)
         {
-            var uiContext = AuthProviderUIContext.Current;
+            var uiContext = _uiContextManager.CurrentContext;
             if (uiContext != null)
             {
                 IntPtr parentWindowHandle = uiContext.ParentWindowHandle;

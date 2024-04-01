@@ -23,6 +23,8 @@ namespace KeePassWinHello
         private IKeyStorage _keyStorage;
         private readonly KeyCipher _keyCipher;
         private readonly HDESK _mainDesktop;
+        private readonly UIContextManager _uiContextManager;
+
         private const int NoChanges = -777;
         private int _masterKeyTries = NoChanges;
         private IDisposable _warningSuppresser;
@@ -31,10 +33,11 @@ namespace KeePassWinHello
 
         public int KeysCount { get { return _keyStorage.Count; } }
 
-        public KeyManager(HDESK mainDesktop)
+        public KeyManager(HDESK mainDesktop, UIContextManager uiContextManager, KeyCipher keyCipher)
         {
             _mainDesktop = mainDesktop;
-            _keyCipher = new KeyCipher();
+            _uiContextManager = uiContextManager;
+            _keyCipher = keyCipher;
             _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
         }
 
@@ -47,7 +50,7 @@ namespace KeePassWinHello
             {
                 if (!_notifiedAboutRdp)
                 {
-                    MessageBox.Show(AuthProviderUIContext.Current,
+                    MessageBox.Show(_uiContextManager.CurrentContext,
                         "Windows Hello is not available for a remote session. Unfortunately, you are forced to enter database using default authorization.\n" +
                         "The key will be kept in case you prompt to enter without using RDP. The usual key retention settings are being applied.",
                         Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -148,7 +151,7 @@ namespace KeePassWinHello
             try
             {
                 CompositeKey compositeKey;
-                if (ExtractCompositeKey(dbPath, keyPromptForm.Handle, out compositeKey))
+                if (ExtractCompositeKey(dbPath, keyPromptForm, out compositeKey))
                 {
                     SetCompositeKey(keyPromptForm, compositeKey);
                     CloseFormWithResult(keyPromptForm, DialogResult.OK);
@@ -158,7 +161,7 @@ namespace KeePassWinHello
             {
                 // It's expected not to throw exceptions
                 ClaimCurrentCacheType(AuthCacheType.Local);
-                ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
+                _uiContextManager.CurrentContext.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
                 CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
             }
             catch (AuthProviderUserCancelledException)
@@ -184,13 +187,13 @@ namespace KeePassWinHello
             {
                 // It's expected not to throw exceptions
                 ClaimCurrentCacheType(AuthCacheType.Local);
-                ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
+                _uiContextManager.CurrentContext.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
             }
             catch (AuthProviderInvalidKeyException ex)
             {
                 // It's expected not to throw exceptions
                 ClaimCurrentCacheType(AuthCacheType.Local);
-                ErrorHandler.ShowError(ex,
+                _uiContextManager.CurrentContext.ShowError(ex,
                     "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
             }
             catch (AuthProviderUserCancelledException)
@@ -236,7 +239,7 @@ namespace KeePassWinHello
                 && _keyStorage.ContainsKey(dbPath);
         }
 
-        private bool ExtractCompositeKey(string dbPath, IntPtr keePassWindowHandle, out CompositeKey compositeKey)
+        private bool ExtractCompositeKey(string dbPath, IWin32Window keePassWindow, out CompositeKey compositeKey)
         {
             compositeKey = null;
 
@@ -249,7 +252,7 @@ namespace KeePassWinHello
 
             try
             {
-                using (AuthProviderUIContext.With(Settings.DecryptConfirmationMessage, keePassWindowHandle))
+                using (_uiContextManager.PushContext(Settings.DecryptConfirmationMessage, keePassWindow))
                 {
                     compositeKey = encryptedData.GetCompositeKey(_keyCipher);
                     return true;

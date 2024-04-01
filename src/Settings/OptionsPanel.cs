@@ -11,6 +11,7 @@ namespace KeePassWinHello
     public partial class OptionsPanel : UserControl
     {
         private readonly IKeyManager _keyManager;
+        private readonly UIContextManager _uiContextManager;
         private bool _initialized;
         private bool _wasKeyRemovingIntendedByUser;
 
@@ -32,11 +33,12 @@ namespace KeePassWinHello
             get { return _keyManager != null; }
         }
 
-        private OptionsPanel(IKeyManager keyManager)
+        private OptionsPanel(IKeyManager keyManager, UIContextManager uiContextManager)
         {
             InitializeComponent();
 
             _keyManager = keyManager;
+            _uiContextManager = uiContextManager;
             uacIcoPanel.Paint += OnPaint_ElevatedIconPanel;
             keyCreateIcoPanel.Paint += OnPaint_KeyCreateIconPanel;
         }
@@ -126,11 +128,11 @@ namespace KeePassWinHello
                 {
                     if (_keyManager != null)
                     {
-                        using (AuthProviderUIContext.With(Settings.KeyCreationConfirmationMessage, this.Handle))
+                        using (_uiContextManager.PushContext(Settings.KeyCreationConfirmationMessage, this))
                         {
                             if (SystemInformation.TerminalServerSession) // RDP
                             {
-                                MessageBox.Show(AuthProviderUIContext.Current,
+                                MessageBox.Show(_uiContextManager.CurrentContext,
                                     "Changing storage location setting on a remote session is not permitted",
                                     Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
                                 return;
@@ -145,14 +147,14 @@ namespace KeePassWinHello
                             catch (AuthProviderUserCancelledException)
                             {
                                 TryClaimLocalCacheType();
-                                MessageBox.Show(AuthProviderUIContext.Current,
+                                MessageBox.Show(_uiContextManager.CurrentContext,
                                     "Creating persistent key for Credential Manager has been canceled",
                                     Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }
                             catch (Exception ex)
                             {
                                 TryClaimLocalCacheType();
-                                ErrorHandler.ShowError(ex);
+                                _uiContextManager.CurrentContext.ShowError(ex);
                             }
                         }
                     }
@@ -169,7 +171,7 @@ namespace KeePassWinHello
             }
             catch (Exception ex)
             {
-                ErrorHandler.ShowError(ex);
+                _uiContextManager.CurrentContext.ShowError(ex);
             }
         }
 
@@ -262,7 +264,7 @@ namespace KeePassWinHello
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandler.ShowError(ex);
+                    _uiContextManager.CurrentContext.ShowError(ex);
                 }
             }
             UpdateStoredKeysPanel();

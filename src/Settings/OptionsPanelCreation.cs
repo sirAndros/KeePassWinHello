@@ -12,12 +12,12 @@ namespace KeePassWinHello
 {
     partial class OptionsPanel
     {
-        internal static void OnOptionsLoad(OptionsForm optionsForm, IKeyManager keyManager)
+        internal static void OnOptionsLoad(OptionsForm optionsForm, IKeyManager keyManager, UIContextManager uiContextManager)
         {
-            AddTab(GetTabControl(optionsForm), GetTabsImageList(optionsForm), keyManager);
+            AddTab(GetTabControl(optionsForm), GetTabsImageList(optionsForm), keyManager, uiContextManager);
         }
 
-        private static void AddTab(TabControl tabMain, ImageList imageList, IKeyManager keyManager)
+        private static void AddTab(TabControl tabMain, ImageList imageList, IKeyManager keyManager, UIContextManager uiContextManager)
         {
             Debug.Assert(tabMain != null);
             if (tabMain == null)
@@ -37,7 +37,7 @@ namespace KeePassWinHello
 
             const string iconKey = "KPWH_icon";
             imageList.Images.Add(iconKey, Properties.Resources.KPWH);
-            var optionsPanel = new OptionsPanel(keyManager);
+            var optionsPanel = new OptionsPanel(keyManager, uiContextManager);
 
             var newTab = new TabPage(Settings.OptionsTabName)
             {

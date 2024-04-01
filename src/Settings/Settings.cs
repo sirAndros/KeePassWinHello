@@ -19,6 +19,7 @@ namespace KeePassWinHello
 
         private static Lazy<Settings> _instance = new Lazy<Settings>(() => new Settings(), true);
         private AceCustomConfig _customConfig;
+        private UIContextManager _uiContextManager;
 
         private void UpgradeConfig()
         {
@@ -52,7 +53,7 @@ namespace KeePassWinHello
             }
             catch (Exception ex)
             {
-                ErrorHandler.ShowError(ex, "Can not upgrade plugin settings");
+                _uiContextManager.CurrentContext.ShowError(ex, "Can not upgrade plugin settings");
             }
         }
 
@@ -70,7 +71,7 @@ namespace KeePassWinHello
             return version;
         }
 
-        public void Initialize(AceCustomConfig customConfig)
+        public void Initialize(AceCustomConfig customConfig, UIContextManager uiContextManager)
         {
             if (customConfig == null)
                 throw new ArgumentNullException("customConfig");
@@ -78,6 +79,7 @@ namespace KeePassWinHello
                 throw new InvalidOperationException("Settings have initialized already");
 
             _customConfig = customConfig;
+            _uiContextManager = uiContextManager;
 
             UpgradeConfigSafe();
         }
