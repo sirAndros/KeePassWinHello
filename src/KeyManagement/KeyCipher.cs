@@ -20,8 +20,8 @@ namespace KeePassWinHello
         {
             _randomSeedBits = 256;
             _encryptionIV = new byte[16];
-            _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
             _cryptProvider = GetAuthProvider(parentWindow.Handle);
+            _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
         }
 
         private static IAuthProvider GetAuthProvider(IntPtr keePassWindowHandle)

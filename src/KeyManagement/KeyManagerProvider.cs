@@ -44,6 +44,8 @@ namespace KeePassWinHello
                 if (_wasUnavailable == false)
                     return;
 
+                Dispose(); //always init with actual parent window
+
                 try
                 {
                     _keyManager = new KeyManager(parentWindow);

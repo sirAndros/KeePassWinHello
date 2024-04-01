@@ -68,4 +68,35 @@ namespace KeePassWinHello
             return Value;
         }
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct HDESK
+    {
+        public IntPtr Value;
+
+        public HDESK(IntPtr handle)
+        {
+            Value = handle;
+        }
+
+        public bool IsValid
+        {
+            get
+            {
+                return Value != IntPtr.Zero;
+            }
+        }
+
+        public IntPtr ThrowOnError(string debugInfo = "", params int[] ignoredErrors)
+        {
+            if (!IsValid)
+            {
+                int errorCode = Marshal.GetLastWin32Error();
+                if (ignoredErrors == null || !ignoredErrors.Contains(errorCode))
+                    throw new EnviromentErrorException(debugInfo, errorCode);
+            }
+
+            return Value;
+        }
+    }
 }

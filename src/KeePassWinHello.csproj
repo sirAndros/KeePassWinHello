@@ -72,6 +72,7 @@
     <Compile Include="KeyManagement\Storage\KeyMemoryStorage.cs" />
     <Compile Include="KeyManagement\ProtectedKey.cs" />
     <Compile Include="KeyManagement\Storage\KeyWindowsStorage.cs" />
+    <Compile Include="KeyManagement\KeePassWarningSuppresser.cs" />
     <Compile Include="Settings\OptionsPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -88,6 +89,7 @@
     <Compile Include="AuthProviders\XorProvider.cs" />
     <Compile Include="Utilities\Win32Window.cs" />
     <Compile Include="Utilities\UAC.cs" />
+    <Compile Include="Utilities\WinAPI.cs" />
     <Compile Include="Utilities\WinAPIResultExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
