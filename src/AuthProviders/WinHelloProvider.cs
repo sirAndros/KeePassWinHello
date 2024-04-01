@@ -365,6 +365,9 @@ namespace KeePassWinHello
 
         private static void RetrieveKeys(out string localKey, out string persistentKey)
         {
+            if (Environment.OSVersion.Version.Major < 10)
+                throw new AuthProviderIsUnavailableException("Windows Hello is not available.");
+
             NgcGetDefaultDecryptionKeyName(_currentSID.Value, 0, 0, out localKey);
             persistentKey = _currentSID.Value + "//" + Domain + "/" + SubDomain + "/" + PersistentName;
 
