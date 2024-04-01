@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using KeePassWinHello;
 
@@ -9,8 +8,7 @@ using KeePassWinHello;
 [assembly: AssemblyCompany("AS & AO")]
 [assembly: AssemblyProduct("KeePass Plugin")]
 [assembly: AssemblyCopyright("© AS & AO")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+[assembly: AssemblyCulture("en-US")]
 
 [assembly: ComVisible(false)]
 

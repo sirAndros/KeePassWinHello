@@ -94,6 +94,13 @@ Notes
 
 No sensitive information including master passwords for databases are stored by the plugin in a plain text. A database key is encrypted and decrypted using Windows Hello API in order to unlock the database.
 
+Development
+-----------
+
+Create junction/copy folder with KeePass.exe to root of the repository as folder named "lib".
+Debug "KeePassWinHello.Debug" project with "Linked KeePass" launch profile.
+If you add some file - don't forget to add it to `KeePassWinHello.csproj`, otherwise it won't be included in plgx on publish.
+
 Credits
 -------
 
