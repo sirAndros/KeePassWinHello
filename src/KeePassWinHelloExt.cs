@@ -47,13 +47,13 @@ namespace KeePassWinHello
             if (_host != null) { Debug.Assert(false); Terminate(); }
             if (host == null) { return false; }
 
-            _uiContextManager = new UIContextManager();
-            _uiContext = _uiContextManager.PushContext("TBD", host.MainWindow);
+            var mainDesktop = WinAPI.GetThreadDesktop(WinAPI.GetCurrentThreadId());
+            _uiContextManager = new UIContextManager(mainDesktop);
+            _uiContext = _uiContextManager.PushContext("KeePass: Main Window", host.MainWindow);
 
             Settings.Instance.Initialize(host.CustomConfig, _uiContextManager);
 
-            var mainDesktop = WinAPI.GetThreadDesktop(WinAPI.GetCurrentThreadId());
-            _keyManagerProvider = new KeyManagerProvider(mainDesktop, _uiContextManager);
+            _keyManagerProvider = new KeyManagerProvider(_uiContextManager);
 
             _host = host;
             _host.MainWindow.FileClosingPre += OnPreFileClosing;

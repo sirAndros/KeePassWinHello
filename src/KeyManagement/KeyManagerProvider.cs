@@ -10,11 +10,9 @@ namespace KeePassWinHello
 
         private KeyManager _keyManager;
         private bool? _wasUnavailable = null;
-        private HDESK _mainDesktop;
 
-        public KeyManagerProvider(HDESK mainDesktop, UIContextManager uiContextManager)
+        public KeyManagerProvider(UIContextManager uiContextManager)
         {
-            _mainDesktop = mainDesktop;
             _uiContextManager = uiContextManager;
         }
 
@@ -50,7 +48,7 @@ namespace KeePassWinHello
                 {
                     var authProvider = GetAuthProvider();
                     var keyCipher = new KeyCipher(authProvider);
-                    _keyManager = new KeyManager(_mainDesktop, _uiContextManager, keyCipher);
+                    _keyManager = new KeyManager(_uiContextManager, keyCipher);
                     _wasUnavailable = false;
                 }
                 catch (AuthProviderIsUnavailableException)

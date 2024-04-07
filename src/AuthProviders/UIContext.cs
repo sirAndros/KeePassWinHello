@@ -8,11 +8,11 @@ namespace KeePassWinHello
     internal sealed class UIContext : IWin32Window
     {
         public string Message { get; private set; }
-        public IntPtr ParentWindowHandle { get; private set; }
+        public HWND ParentWindowHandle { get; private set; }
 
-        IntPtr IWin32Window.Handle { get { return ParentWindowHandle; } }
+        IntPtr IWin32Window.Handle { get { return ParentWindowHandle.Value; } }
 
-        public UIContext(string message, IntPtr windowHandle)
+        public UIContext(string message, HWND windowHandle)
         {
             Message = message;
             ParentWindowHandle = windowHandle;
@@ -23,6 +23,12 @@ namespace KeePassWinHello
     {
         private readonly LinkedList<UIContext> _contexts = new LinkedList<UIContext>();
         private readonly object _lock = new object();
+        private readonly HDESK _mainDesktop;
+
+        public UIContextManager(HDESK mainDesktop)
+        {
+            _mainDesktop = mainDesktop;
+        }
 
         public UIContext CurrentContext
         {
@@ -36,9 +42,11 @@ namespace KeePassWinHello
             }
         }
 
+        public HDESK MainDesktop { get { return _mainDesktop; } }
+
         public IDisposable PushContext(string message, IWin32Window parentWindow)
         {
-            var context = new UIContext(message, parentWindow.Handle);
+            var context = new UIContext(message, new HWND(parentWindow.Handle));
             _contexts.AddFirst(context);
             return new Disposer(this, context);
         }
@@ -56,7 +64,8 @@ namespace KeePassWinHello
 
             public void Dispose()
             {
-                Debug.Assert(_contextManager._contexts.Remove(_context));
+                bool removed = _contextManager._contexts.Remove(_context);
+                Debug.Assert(removed);
             }
         }
     }

@@ -22,7 +22,6 @@ namespace KeePassWinHello
     {
         private IKeyStorage _keyStorage;
         private readonly KeyCipher _keyCipher;
-        private readonly HDESK _mainDesktop;
         private readonly UIContextManager _uiContextManager;
 
         private const int NoChanges = -777;
@@ -33,9 +32,8 @@ namespace KeePassWinHello
 
         public int KeysCount { get { return _keyStorage.Count; } }
 
-        public KeyManager(HDESK mainDesktop, UIContextManager uiContextManager, KeyCipher keyCipher)
+        public KeyManager(UIContextManager uiContextManager, KeyCipher keyCipher)
         {
-            _mainDesktop = mainDesktop;
             _uiContextManager = uiContextManager;
             _keyCipher = keyCipher;
             _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
@@ -81,7 +79,7 @@ namespace KeePassWinHello
         {
             IDisposable warningSuppresser = null;
             if (Volatile.Read(ref _warningSuppresser) == null)
-                warningSuppresser = KeePassWarningSuppresser.SuppressAllWarningWindows(_mainDesktop);
+                warningSuppresser = KeePassWarningSuppresser.SuppressAllWarningWindows(_uiContextManager);
 
             try
             {

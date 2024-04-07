@@ -92,7 +92,7 @@ namespace KeePassWinHello
             return new Win32Window(hwnd.Value);
         }
 
-        private static Win32Window GetOrNull(HWND hwnd)
+        public static Win32Window GetOrNull(HWND hwnd)
         {
             if (hwnd.IsValid)
                 return new Win32Window(hwnd.Value);
