@@ -1,3 +1,4 @@
+[CmdletBinding()]
 param (
     [string] $ProjectDir = $null,
     [string] $OutputFileNameBase = 'KeePassWinHelloPlugin',
@@ -27,6 +28,7 @@ $sources = "$ProjectDir\src"
 $versionFile = "$ProjectDir\keepass.version"
 $assInfoPath = "$sources\Properties\AssemblyInfo.cs"
 
+Write-Host "Updating plugin version from assembly version..."
 if (!$Version) {
     $Version = (Select-String -Pattern "AssemblyVersion\s*\(\s*['`"]($versionPattern)['`"]\s*\)" -Path $assInfoPath).Matches[0].Groups[1].Value
 }
@@ -34,6 +36,7 @@ if (!$Version) {
 
 
 if (!$SkipRepack) {
+    Write-Host "Creating plgx..."
     $tempDirName = $OutputFileNameBase
     $packingSourcesFolder = "$OutputDir\$tempDirName"
     if (Test-Path $packingSourcesFolder) {
@@ -64,6 +67,8 @@ if (!$SkipRepack) {
 }
 
 if (!$SkipChoco) {
+    Write-Host "Packing for Chocolatey..."
+
     $outputFile = "$OutputDir\$OutputFileNameBase.plgx"
     $chocoDir = "$ProjectDir\Chocolatey"
     $chocoInstallScriptFile = "$chocoDir\tools\ChocolateyInstall.ps1"

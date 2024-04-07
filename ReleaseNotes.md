@@ -1,16 +1,16 @@
-# [KeePassWinHello 3.2](https://github.com/sirAndros/KeePassWinHello/releases/tag/v3.2)
+# [KeePassWinHello 3.3](https://github.com/sirAndros/KeePassWinHello/releases/tag/v3.3)
 
 Fixed following issues:
 
-* [#42](https://github.com/sirAndros/KeePassWinHello/issues/42) - Handle inner TPM error;
-* [#51](https://github.com/sirAndros/KeePassWinHello/issues/51) - Fallback to default unlock on remote desktop (Windows Hello is not available for remote sessions);
-* [#56](https://github.com/sirAndros/KeePassWinHello/issues/56) - Access denied for `AllowSetForegroundWindow`;
-* [#60](https://github.com/sirAndros/KeePassWinHello/issues/60) - Fallback to using local key if the persistent one is absent;
-* [#63](https://github.com/sirAndros/KeePassWinHello/issues/63) - Address `NTE_INVALID_HANDLE` error;
-* [#68](https://github.com/sirAndros/KeePassWinHello/issues/68) - Fix TPM issue related to hibernation;
-* [#69](https://github.com/sirAndros/KeePassWinHello/issues/69) - Address `NTE_BAD_KEYSET` error;
-* [#71](https://github.com/sirAndros/KeePassWinHello/issues/71) - Address `NTE_BAD_DATA` error;
-* [#72](https://github.com/sirAndros/KeePassWinHello/issues/72) - Handle inner `NCryptEncrypt` error;
-* [#77](https://github.com/sirAndros/KeePassWinHello/issues/77) - Address `TPM_20_E_SIZE` error;
+- Force keys revoking confirmation: now all settings able to be approved by "OK" or canceled.
+- Show visually when keys will be removed.
+- fix [#93](https://github.com/sirAndros/KeePassWinHello/issues/93) - retry `WINBIO_E_DATA_PROTECTION_FAILURE`
+- fix [#92](https://github.com/sirAndros/KeePassWinHello/issues/92) - force set non-secure desktop to find and close warning from KeePass related to escaping from a secure desktop to make it possible to prompt WinHello (it can't be run on secure desktop)
+- fix [#97](https://github.com/sirAndros/KeePassWinHello/issues/97) - fix accessing a main KeePass window handle from different thread
+- fix [#48](https://github.com/sirAndros/KeePassWinHello/issues/48) - using nearest keepass window as parent to attach (instead of main window)
+- fix [#54](https://github.com/sirAndros/KeePassWinHello/issues/54) - using nearest keepass window as parent to attach (instead of main window)
 
-And also simplified bugs reporting through dedicated button in error message dialog.
+- *lower probability of [#25](https://github.com/sirAndros/KeePassWinHello/issues/25): Windows Hello Prompt Hidden*
+- *lower probability of [#86](https://github.com/sirAndros/KeePassWinHello/issues/86): Windows Hello window not in focus when KeePass opened through a shortcut*
+
+Also check out the security notice: https://github.com/sirAndros/KeePassWinHello/tree/b168c5a0847ff6192ea08e92dd3cc9bf458b2ef3?tab=readme-ov-file#security-notice
