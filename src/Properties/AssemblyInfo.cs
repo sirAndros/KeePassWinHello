@@ -14,4 +14,4 @@ using KeePassWinHello;
 
 [assembly: Guid("188C8835-26A4-4224-A5C9-4CE964A6A3DB")]
 
-[assembly: AssemblyVersion("3.3.0")]
+[assembly: AssemblyVersion("3.3.1")]

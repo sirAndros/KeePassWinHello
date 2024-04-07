@@ -62,7 +62,7 @@
     <Compile Include="Exceptions\AuthProviderSystemErrorException.cs" />
     <Compile Include="Exceptions\AuthProviderException.cs" />
     <Compile Include="AuthProviders\IAuthProvider.cs" />
-    <Compile Include="AuthProviders\AuthProviderUIContext.cs" />
+    <Compile Include="AuthProviders\UIContext.cs" />
     <Compile Include="AuthProviders\WinHelloProviderForegroundDecorator.cs" />
     <Compile Include="Exceptions\EnviromentErrorException.cs" />
     <Compile Include="Exceptions\KeePassWinHelloException.cs" />
