@@ -47,9 +47,10 @@ namespace KeePassWinHello
 
             Settings.Instance.Initialize(host.CustomConfig);
 
-            _host = host;
-            _keyManagerProvider = new KeyManagerProvider(host);
+            var mainDesktop = WinAPI.GetThreadDesktop(WinAPI.GetCurrentThreadId());
+            _keyManagerProvider = new KeyManagerProvider(mainDesktop);
 
+            _host = host;
             _host.MainWindow.FileClosingPre += OnPreFileClosing;
             GlobalWindowManager.WindowAdded += OnWindowAdded;
 
@@ -95,7 +96,7 @@ namespace KeePassWinHello
                     if (keyManager != null)
                     {
                         lock (_unlockMutex)
-                            keyManager.OnKeyPrompt(keyPromptForm, _host.MainWindow);
+                            keyManager.OnKeyPrompt(keyPromptForm);
                         return; 
                     }
                 }

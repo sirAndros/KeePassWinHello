@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>5</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <DefaultNamespace>KeePassWinHello</DefaultNamespace>
+    <AssemblyName>KeePassWinHello</AssemblyName>
+
+    <Configurations>Debug;Release;DebugDummy</Configurations>
+    <DefineConstants Condition="'$(Configuration)'=='DebugDummy'">$(DefineConstants);DUMMY_PROVIDER</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="KeePass">
+      <HintPath>..\lib\KeePass.exe</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Settings\OptionsPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Settings\OptionsPanel.Designer.cs">
+      <DependentUpon>OptionsPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Settings\OptionsPanelCreation.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <CustomToolNamespace>KeePassWinHello</CustomToolNamespace>
+      <LogicalName>KeePassWinHello.Properties.Resources.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Settings\OptionsPanel.resx">
+      <DependentUpon>OptionsPanel.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\KPWH.ico" />
+    <Content Include="Resources\KPWH_16x16.png" />
+    <Content Include="Resources\KPWH_32x32.png" />
+    <Content Include="Resources\KPWH_512x512.png" />
+  </ItemGroup>
+
+  <Target Name="PackPlugin" AfterTargets="PostBuildEvent" Condition="!($(DefineConstants.Contains('MONO')))">
+    <Exec Condition="'$(Configuration)' == 'Debug'" ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot; -SkipChoco" WorkingDirectory="$(ProjectDir).." />
+    <Exec Condition="'$(Configuration)' == 'Release'" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Pack-Plugin.ps1&quot;" WorkingDirectory="$(ProjectDir).." />
+  </Target>
+  <Target Name="DeployForDebug" Condition="'$(Configuration)' == 'Debug'" AfterTargets="PackPlugin">
+    <Message Importance="normal" Text="Copy artifacts to KeePass plugins directory." />
+    <PropertyGroup>
+      <OutDirFullPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\$(OutputPath)'))</OutDirFullPath>
+    </PropertyGroup>
+    <Exec ContinueOnError="true" Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\Deploy-Plugin.ps1&quot; -ForDebug -Verbose -SourceDir $(OutDirFullPath)" WorkingDirectory="$(ProjectDir).." />
+  </Target>
+</Project>

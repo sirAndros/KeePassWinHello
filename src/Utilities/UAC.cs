@@ -73,7 +73,7 @@ namespace KeePassWinHello
                     {
                         var value = uacKey.GetValue(uacRegistryValue);
                         if (value != null)
-                            Int32.TryParse(value, out mode);
+                            Int32.TryParse(value.ToString(), out mode);
                     }
                     return mode > 0;
                 }

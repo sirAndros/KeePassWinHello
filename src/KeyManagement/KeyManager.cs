@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using KeePass.Forms;
 using KeePassLib.Keys;
@@ -24,24 +22,23 @@ namespace KeePassWinHello
     {
         private IKeyStorage _keyStorage;
         private readonly KeyCipher _keyCipher;
-        private readonly IntPtr _keePassMainWindowHandle;
-
+        private readonly HDESK _mainDesktop;
         private const int NoChanges = -777;
         private int _masterKeyTries = NoChanges;
-        private CancellationTokenSource _cancellationTokenSource;
+        private IDisposable _warningSuppresser;
 
         private bool _notifiedAboutRdp = false;
 
-        public int  KeysCount   { get { return _keyStorage.Count; } }
+        public int KeysCount { get { return _keyStorage.Count; } }
 
-        public KeyManager(IntPtr windowHandle)
+        public KeyManager(HDESK mainDesktop)
         {
-            _keePassMainWindowHandle = windowHandle;
-            _keyCipher = new KeyCipher(windowHandle);
+            _mainDesktop = mainDesktop;
+            _keyCipher = new KeyCipher();
             _keyStorage = KeyStorageFactory.Create(_keyCipher.AuthProvider);
         }
 
-        public void OnKeyPrompt(KeyPromptForm keyPromptForm, MainForm mainWindow)
+        public void OnKeyPrompt(KeyPromptForm keyPromptForm)
         {
             if (!Settings.Instance.Enabled)
                 return;
@@ -67,40 +64,55 @@ namespace KeePassWinHello
             if (keyPromptForm.SecureDesktopMode)
             {
                 if (IsKeyForDataBaseExist(dbPath))
-                {
-                    if (_cancellationTokenSource == null)
-                        _cancellationTokenSource = new CancellationTokenSource();
-
-                    Task.Factory.StartNew(() => MonitorWarning(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
-
-                    try
-                    {
-                        int masterKeyTries = KeePass.Program.Config.Security.MasterKeyTries;
-                        Interlocked.Exchange(ref _masterKeyTries, masterKeyTries);
-                        KeePass.Program.Config.Security.MasterKeyTries = ++masterKeyTries;
-                        KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = false;
-                        SetCompositeKey(keyPromptForm, new CompositeKey());
-                        CloseFormWithResult(keyPromptForm, DialogResult.OK);
-                    }
-                    catch
-                    {
-                        StopMonitorWarning();
-                        throw;
-                    }
-                }
+                    RestartPromptOnMainDesktopAndSuppressWarning(keyPromptForm);
             }
             else
             {
                 StopMonitorWarning();
-
-                int oldTriesValue = Interlocked.Exchange(ref _masterKeyTries, NoChanges);
-                if (oldTriesValue != NoChanges)
-                {
-                    KeePass.Program.Config.Security.MasterKeyTries = oldTriesValue;
-                    KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = true;
-                }
-
+                RestoreSecureDesktopSettings();
                 Unlock(keyPromptForm, dbPath);
+            }
+        }
+
+        private void RestartPromptOnMainDesktopAndSuppressWarning(KeyPromptForm keyPromptForm)
+        {
+            IDisposable warningSuppresser = null;
+            if (Volatile.Read(ref _warningSuppresser) == null)
+                warningSuppresser = KeePassWarningSuppresser.SuppressAllWarningWindows(_mainDesktop);
+
+            try
+            {
+                RestartPromptOnMainDesktop(keyPromptForm);
+
+                //continue supression until the next prompt appears
+                if (Interlocked.CompareExchange(ref _warningSuppresser, warningSuppresser, null) == null)
+                    warningSuppresser = null;
+            }
+            finally
+            {
+                if (warningSuppresser != null)
+                    warningSuppresser.Dispose();
+            }
+        }
+
+        private void RestartPromptOnMainDesktop(KeyPromptForm keyPromptForm)
+        {
+            int masterKeyTries = KeePass.Program.Config.Security.MasterKeyTries;
+            Interlocked.Exchange(ref _masterKeyTries, masterKeyTries);
+            KeePass.Program.Config.Security.MasterKeyTries = ++masterKeyTries;
+            KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = false;
+
+            SetCompositeKey(keyPromptForm, new CompositeKey());
+            CloseFormWithResult(keyPromptForm, DialogResult.OK);
+        }
+
+        private void RestoreSecureDesktopSettings()
+        {
+            int oldTriesValue = Interlocked.Exchange(ref _masterKeyTries, NoChanges);
+            if (oldTriesValue != NoChanges)
+            {
+                KeePass.Program.Config.Security.MasterKeyTries = oldTriesValue;
+                KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = true;
             }
         }
 
@@ -127,27 +139,8 @@ namespace KeePassWinHello
 
         private void StopMonitorWarning()
         {
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource = null;
-            }
-        }
-
-        private void MonitorWarning(CancellationToken token)
-        {
-            while (!token.IsCancellationRequested)
-            {
-                const string MsgBoxClass = "#32770";
-                var msgBox = Win32Window.Find(MsgBoxClass, "KeePass");
-                // todo close only with "invalid key" message
-                if (msgBox != null)
-                {
-                    msgBox.Close();
-                    break;
-                }
-                Thread.Sleep(10);
-            }
+            using (_warningSuppresser)
+                _warningSuppresser = null;
         }
 
         private void Unlock(KeyPromptForm keyPromptForm, string dbPath)
@@ -155,7 +148,7 @@ namespace KeePassWinHello
             try
             {
                 CompositeKey compositeKey;
-                if (ExtractCompositeKey(dbPath, out compositeKey))
+                if (ExtractCompositeKey(dbPath, keyPromptForm.Handle, out compositeKey))
                 {
                     SetCompositeKey(keyPromptForm, compositeKey);
                     CloseFormWithResult(keyPromptForm, DialogResult.OK);
@@ -223,8 +216,8 @@ namespace KeePassWinHello
 
         public void Dispose()
         {
-            if (_cancellationTokenSource != null)
-                _cancellationTokenSource.Dispose();
+            if (_warningSuppresser != null)
+                _warningSuppresser.Dispose();
         }
 
         private static void CloseFormWithResult(KeyPromptForm keyPromptForm, DialogResult result)
@@ -243,7 +236,7 @@ namespace KeePassWinHello
                 && _keyStorage.ContainsKey(dbPath);
         }
 
-        private bool ExtractCompositeKey(string dbPath, out CompositeKey compositeKey)
+        private bool ExtractCompositeKey(string dbPath, IntPtr keePassWindowHandle, out CompositeKey compositeKey)
         {
             compositeKey = null;
 
@@ -256,7 +249,7 @@ namespace KeePassWinHello
 
             try
             {
-                using (AuthProviderUIContext.With(Settings.DecryptConfirmationMessage, _keePassMainWindowHandle))
+                using (AuthProviderUIContext.With(Settings.DecryptConfirmationMessage, keePassWindowHandle))
                 {
                     compositeKey = encryptedData.GetCompositeKey(_keyCipher);
                     return true;

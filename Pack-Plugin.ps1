@@ -42,7 +42,7 @@ if (!$SkipRepack) {
     New-Item $packingSourcesFolder -Type Directory > $null
     
     
-    $excludedItems = '.*', '*.sln', 'bin', 'obj', '*.user', '*.ps1', '*.plgx', '*.md', $tempDirName, 'Screenshots'
+    $excludedItems = '.*', '*.sln', 'bin', 'obj', '*.user', '*.ps1', '*.plgx', '*.md', '*.Debug.csproj', 'launchSettings.json', $tempDirName, 'Screenshots'
     Get-ChildItem $sources | 
         Where-Object   { $i=$_; $res=$true; $excludedItems | ForEach-Object { $i -notlike $_ } | ForEach-Object { $res = $_ -and $res }; $res } |
         ForEach-Object { Copy-Item $_.FullName $packingSourcesFolder -Recurse }

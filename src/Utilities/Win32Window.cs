@@ -207,8 +207,7 @@ namespace KeePassWinHello
         }
 
 
-
-        static class WinAPI
+        private static class WinAPI
         {
             private const string User32 = "User32.dll";
 

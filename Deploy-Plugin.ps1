@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param (
     [string] $ProjectDir = $null,
+    [string] $SourceDir = $null,
     [string] $TargetDir = $null,
     [switch] $ForDebug
 )
@@ -17,13 +18,19 @@ if (!$TargetDir) {
     $TargetDir = Join-Path $keePassDir 'Plugins'
 }
 
+Write-Output $SourceDir
+
+if (!$SourceDir) {
+    $binOutDir = 'src\bin\Debug\net48'
+    $SourceDir = Join-Path $ProjectDir $binOutDir
+}
+
 $packageOutDir = 'releases'
-$binOutDir = 'src\bin\Debug'
 
 if ($ForDebug) {
     Join-Path $ProjectDir $packageOutDir | Get-ChildItem -Filter '*.plgx' | ForEach-Object { Join-Path $TargetDir $_.Name | Get-ChildItem -ErrorAction SilentlyContinue | Remove-Item }
-    Join-Path $ProjectDir $binOutDir | Get-ChildItem -Filter '*.dll' | Copy-Item -Destination $TargetDir -Force
+    Get-ChildItem $SourceDir -Filter '*.dll' | Copy-Item -Destination $TargetDir -Force
 } else {
-    Join-Path $ProjectDir $binOutDir | Get-ChildItem -Filter  '*.dll' | ForEach-Object { Join-Path $TargetDir $_.Name | Get-ChildItem -ErrorAction SilentlyContinue | Remove-Item }
+    Get-ChildItem $SourceDir -Filter '*.dll' | ForEach-Object { Join-Path $TargetDir $_.Name | Get-ChildItem -ErrorAction SilentlyContinue | Remove-Item }
     Join-Path $ProjectDir $packageOutDir | Get-ChildItem -Filter '*.plgx' | Copy-Item -Destination $TargetDir -Force
 }

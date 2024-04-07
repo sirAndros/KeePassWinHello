@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "KeePassWinHello.Debug": {
+      "commandName": "Project"
+    },
+    "Linked KeePass": {
+      "commandName": "Executable",
+      "executablePath": "..\\lib\\KeePass.exe",
+      "workingDirectory": "..\\lib"
+    }
+  }
+}

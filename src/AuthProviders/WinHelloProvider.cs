@@ -375,6 +375,9 @@ namespace KeePassWinHello
 
         private static void EnsureWinHelloAvailability()
         {
+            var osVerson = WinAPI.GetOsVersion();
+            if (osVerson.Major < 10)
+                throw new AuthProviderIsUnavailableException("Windows Hello is not available.");
             var dummy = LocalKeyName; // throw an exception if not available
         }
 

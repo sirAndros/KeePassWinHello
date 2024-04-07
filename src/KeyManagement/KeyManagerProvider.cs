@@ -1,5 +1,4 @@
 ﻿using System;
-using KeePass.Plugins;
 using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
@@ -7,14 +6,14 @@ namespace KeePassWinHello
     class KeyManagerProvider : IDisposable
     {
         private readonly object _initMutex = new Object();
-        private readonly IPluginHost _host;
 
         private KeyManager _keyManager;
         private bool? _wasUnavailable = null;
+        private HDESK _mainDesktop;
 
-        public KeyManagerProvider(IPluginHost host)
+        public KeyManagerProvider(HDESK mainDesktop)
         {
-            _host = host;
+            _mainDesktop = mainDesktop;
         }
 
         public KeyManager ObtainKeyManager()
@@ -43,9 +42,11 @@ namespace KeePassWinHello
                 if (_wasUnavailable == false)
                     return;
 
+                Dispose(); //always init with actual parent window
+
                 try
                 {
-                    _keyManager = new KeyManager(_host.MainWindow.Handle);
+                    _keyManager = new KeyManager(_mainDesktop);
                     _wasUnavailable = false;
                 }
                 catch (AuthProviderIsUnavailableException)
