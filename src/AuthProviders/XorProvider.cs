@@ -8,9 +8,12 @@ namespace KeePassWinHello
     {
         private const byte _entropy = 42;
 
-        public XorProvider(AuthCacheType authCacheType)
+        private readonly UIContextManager _uiContextManager;
+
+        public XorProvider(AuthCacheType authCacheType, UIContextManager uiContextManager)
         {
             CurrentCacheType = authCacheType;
+            _uiContextManager = uiContextManager;
         }
 
         public AuthCacheType CurrentCacheType { get; private set; } // TDB
@@ -22,8 +25,8 @@ namespace KeePassWinHello
             if (newType == AuthCacheType.Persistent)
             {
                 string message = "Default message for persistent auth type";
-                var uiContext = AuthProviderUIContext.Current;
-                if (uiContext != null)
+                var uiContext = _uiContextManager.CurrentContext;
+                if (uiContext != null && !String.IsNullOrEmpty(uiContext.Message))
                     message = uiContext.Message;
 
                 var dlgRslt = MessageBox.Show(uiContext, message, "Test cache type change", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
@@ -32,7 +35,7 @@ namespace KeePassWinHello
             }
             else
             {
-                MessageBox.Show(AuthProviderUIContext.Current, "Switched to local.", "Keys removed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(_uiContextManager.CurrentContext, "Switched to local.", "Keys removed", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -44,8 +47,8 @@ namespace KeePassWinHello
         public byte[] PromptToDecrypt(byte[] data)
         {
             string message = "Default message for encrypt";
-            var uiContext = AuthProviderUIContext.Current;
-            if (uiContext != null)
+            var uiContext = _uiContextManager.CurrentContext;
+            if (uiContext != null && !String.IsNullOrEmpty(uiContext.Message))
                 message = uiContext.Message;
 
             var dlgRslt = MessageBox.Show(uiContext, message, "Windows Security", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);

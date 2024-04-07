@@ -13,6 +13,8 @@ namespace KeePassWinHello
     {
         private IPluginHost _host;
         private KeyManagerProvider _keyManagerProvider;
+        private UIContextManager _uiContextManager;
+        private IDisposable _uiContext;
         private readonly object _unlockMutex = new Object();
 
         public override Image SmallIcon
@@ -45,10 +47,13 @@ namespace KeePassWinHello
             if (_host != null) { Debug.Assert(false); Terminate(); }
             if (host == null) { return false; }
 
-            Settings.Instance.Initialize(host.CustomConfig);
-
             var mainDesktop = WinAPI.GetThreadDesktop(WinAPI.GetCurrentThreadId());
-            _keyManagerProvider = new KeyManagerProvider(mainDesktop);
+            _uiContextManager = new UIContextManager(mainDesktop);
+            _uiContext = _uiContextManager.PushContext("KeePass: Main Window", host.MainWindow);
+
+            Settings.Instance.Initialize(host.CustomConfig, _uiContextManager);
+
+            _keyManagerProvider = new KeyManagerProvider(_uiContextManager);
 
             _host = host;
             _host.MainWindow.FileClosingPre += OnPreFileClosing;
@@ -68,6 +73,10 @@ namespace KeePassWinHello
             _keyManagerProvider.Dispose();
             _keyManagerProvider = null;
 
+            _uiContext.Dispose();
+            _uiContext = null;
+            _uiContextManager = null;
+
             _host = null;
         }
 
@@ -81,7 +90,7 @@ namespace KeePassWinHello
             }
             catch (Exception ex)
             {
-                ErrorHandler.ShowError(ex);
+                _uiContextManager.CurrentContext.ShowError(ex);
             }
         }
 
@@ -95,9 +104,12 @@ namespace KeePassWinHello
                     var keyManager = _keyManagerProvider.ObtainKeyManager();
                     if (keyManager != null)
                     {
-                        lock (_unlockMutex)
-                            keyManager.OnKeyPrompt(keyPromptForm);
-                        return; 
+                        using (_uiContextManager.PushContext("Unlocking a database", keyPromptForm))
+                        {
+                            lock (_unlockMutex)
+                                keyManager.OnKeyPrompt(keyPromptForm);
+                            return;
+                        }
                     }
                 }
 
@@ -105,13 +117,16 @@ namespace KeePassWinHello
                 if (optionsForm != null)
                 {
                     var keyManager = _keyManagerProvider.ObtainKeyManager();
-                    OptionsPanel.OnOptionsLoad(optionsForm, keyManager);
-                    return;
+                    using (_uiContextManager.PushContext("Modifying KeePass settings", optionsForm))
+                    {
+                        OptionsPanel.OnOptionsLoad(optionsForm, keyManager, _uiContextManager);
+                        return;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandler.ShowError(ex);
+                _uiContextManager.CurrentContext.ShowError(ex);
             }
         }
     }

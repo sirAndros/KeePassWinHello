@@ -22,9 +22,9 @@ namespace KeePassWinHello
             _thread.Start();
         }
 
-        public static IDisposable SuppressAllWarningWindows(HDESK mainDesktop)
+        public static IDisposable SuppressAllWarningWindows(UIContextManager uiContextManager)
         {
-            return new KeePassWarningSuppresser(mainDesktop);
+            return new KeePassWarningSuppresser(uiContextManager.MainDesktop);
         }
 
         private void MonitorWarning(CancellationToken token)

@@ -1,56 +1,24 @@
-﻿using System;
-using System.IO;
-using System.Windows.Forms;
+﻿using System.IO;
 using KeePassLib.Cryptography;
 using KeePassLib.Cryptography.Cipher;
 using KeePassLib.Security;
 using KeePassLib.Utility;
-using KeePassWinHello.Utilities;
 
 namespace KeePassWinHello
 {
-    class KeyCipher
+    internal sealed class KeyCipher
     {
         private readonly uint _randomSeedBits;
         private readonly byte[] _encryptionIV;
         private readonly ICipherEngine _cipherEngine;
         private readonly IAuthProvider _cryptProvider;
 
-        public KeyCipher()
+        public KeyCipher(IAuthProvider cryptProvider)
         {
             _randomSeedBits = 256;
             _encryptionIV = new byte[16];
-            _cryptProvider = GetAuthProvider();
+            _cryptProvider = cryptProvider;
             _cipherEngine = CipherPool.GlobalPool.GetCipher(StandardAesEngine.AesUuid);
-        }
-
-        private static IAuthProvider GetAuthProvider()
-        {
-            var authCacheType = Settings.Instance.GetAuthCacheType();
-            try
-            {
-                return AuthProviderFactory.GetInstance(authCacheType);
-            }
-            catch (AuthProviderKeyNotFoundException ex)
-            {
-                if (authCacheType == AuthCacheType.Local)
-                    throw;
-
-                Settings.Instance.WinStorageEnabled = false;
-                authCacheType = Settings.Instance.GetAuthCacheType();
-                ErrorHandler.ShowError(ex, "Credential Manager storage has been turned off. Use Options dialog to turn it on.");
-                return AuthProviderFactory.GetInstance(authCacheType);
-            }
-            catch (AuthProviderInvalidKeyException ex)
-            {
-                if (authCacheType == AuthCacheType.Local)
-                    throw;
-
-                Settings.Instance.WinStorageEnabled = false;
-                authCacheType = Settings.Instance.GetAuthCacheType();
-                ErrorHandler.ShowError(ex, "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
-                return AuthProviderFactory.GetInstance(authCacheType);
-            }
         }
 
         public IAuthProvider AuthProvider { get { return _cryptProvider; } }

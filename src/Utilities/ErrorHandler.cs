@@ -8,7 +8,7 @@ namespace KeePassWinHello.Utilities
 {
     internal static class ErrorHandler
     {
-        public static DialogResult ShowError(Exception ex, string description = null)
+        public static DialogResult ShowError(this UIContext uiContext, Exception ex, string description = null)
         {
             string message = ex.Message;
             var messageType = MessageBoxIcon.Warning;
@@ -37,7 +37,7 @@ namespace KeePassWinHello.Utilities
                 message = description + Environment.NewLine + message;
 
             //todo TaskDialog
-            return MessageBox.Show(AuthProviderUIContext.Current, message, Settings.ProductName, MessageBoxButtons.OK, messageType,
+            return MessageBox.Show(uiContext, message, Settings.ProductName, MessageBoxButtons.OK, messageType,
                     MessageBoxDefaultButton.Button1, 0, bugReportUrl, "Report the issue");
         }
     }
