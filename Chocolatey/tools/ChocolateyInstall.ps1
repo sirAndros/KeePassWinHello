@@ -1,4 +1,4 @@
-# powershell v2 compatibility
+﻿# powershell v2 compatibility
 $psVer = $PSVersionTable.PSVersion.Major
 if ($psver -ge 3) {
     function Get-ChildItemDir { Get-ChildItem -Directory $args }
@@ -9,13 +9,13 @@ if ($psver -ge 3) {
 $packageName = 'keepass-plugin-winhello'
 $keePassDisplayName = 'KeePass Password Safe'
 
-Write-Verbose "Searching $env:ChocolateyBinRoot..."
+Write-Verbose "Searching $keePassDisplayName install location..."
 $installPath = Get-AppInstallLocation "^$keePassDisplayName"
 
 if (!$installPath) {
-    Write-Verbose "Searching $env:ChocolateyBinRoot for portable install..."
     $binRoot = Get-BinRoot
     $portPath = Join-Path $binRoot "keepass"
+    Write-Verbose "Searching '$portPath' for portable install..."
     $installPath = Get-ChildItemDir $portPath* -ErrorAction SilentlyContinue
 }
 if (!$installPath) {
@@ -33,12 +33,12 @@ Write-Verbose "`t...found."
 
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 $source = "$toolsDir\..\plugin"
-    
+
 Write-Verbose "Copy plugin files into Plugins dir"
 Copy-Item -Path "$source\*" -Destination $pluginPath -Recurse -Force
 
 if ( Get-Process -Name "KeePass" -ErrorAction SilentlyContinue ) {
-    Write-Warning "$keePassDisplayName is currently running. Plugin will be available at next restart of KeePass process." 
+    Write-Warning "$keePassDisplayName is currently running. Plugin will be available at next restart of KeePass process."
 } else {
     Write-Host "$packageName will be loaded the next time KeePass is started."
     Write-Host "Please note this plugin may require additional configuration. Look for a new entry in KeePass' Tools>Options"

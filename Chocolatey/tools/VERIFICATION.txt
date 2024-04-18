@@ -1,4 +1,4 @@
-VERIFICATION
+﻿VERIFICATION
 Verification is intended to assist the Chocolatey moderators and community
 in verifying that this package's contents are trustworthy.
  
@@ -15,7 +15,7 @@ and than can be verified by doing the following:
 
 3. The checksum must match the following:
 
-   checksum: CC3DECD67857D11031690F06A35C3CD555EED70F77806D909AE8E5E9A66F5E64
+   checksum: DBA05C22536F217D6A758F5F030556067CA68EFF0BE61680CD9B6C19A8C6135C
    checksum type: SHA256
 
 Likewise, the plugin installed from this package is identical and so must

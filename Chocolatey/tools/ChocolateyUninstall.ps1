@@ -15,13 +15,13 @@ if (Get-Process -Name "KeePass" -ErrorAction SilentlyContinue) {
     throw "$($keePassDisplayName) is running. Please save any opened databases and close $($keePassDisplayName) before attempting to uninstall KeePass plugins."
 }
 
-Write-Verbose "Searching $env:ChocolateyBinRoot..."
+Write-Verbose "Searching $keePassDisplayName install location..."
 $installPath = Get-AppInstallLocation "^$keePassDisplayName"
 
 if (!$installPath) {
-    Write-Verbose "Searching $env:ChocolateyBinRoot for portable install..."
     $binRoot = Get-BinRoot
     $portPath = Join-Path $binRoot "keepass"
+    Write-Verbose "Searching '$portPath' for portable install..."
     $installPath = Get-ChildItemDir $portPath* -ErrorAction SilentlyContinue
 }
 if (!$installPath) {
