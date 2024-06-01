@@ -6,12 +6,38 @@ if ($psver -ge 3) {
     function Get-ChildItemDir { Get-ChildItem $args }
 }
 
+function GetInstallDirFromRegistry {
+    # used code from Get-AppInstallLocation
+    param (
+        [string] $AppNamePattern
+    )
+
+    function strip($path) { if ($path.EndsWith('\')) { return $path -replace '.$' } else { $path } }
+    function is_dir( $path ) { $path -and (Get-Item $path -ea 0).PsIsContainer -eq $true }
+
+    Write-Verbose "Trying Uninstall key property 'InstallLocation'"
+    $location = $key.InstallLocation
+    if (is_dir $location) { return strip $location }
+
+    Write-Verbose "Trying Uninstall key property 'UninstallString'"
+    $location = $key.UninstallString
+    if ($location) { $location = $location.Replace('"', '') | Split-Path }
+    if (is_dir $location) { return strip $location }
+
+    Write-Verbose "Trying Uninstall key property 'DisplayIcon'"
+    $location = $key.DisplayIcon
+    if ($location) { $location = Split-Path $location }
+    if (is_dir $location) { return strip $location }
+}
+
 $packageName = 'keepass-plugin-winhello'
 $keePassDisplayName = 'KeePass Password Safe'
 
 Write-Verbose "Searching $keePassDisplayName install location..."
-$installPath = Get-AppInstallLocation "^$keePassDisplayName"
-
+$installPath = Get-AppInstallLocation "^$keePassDisplayName" #regex
+if (!$installPath) {
+    $installPath = GetInstallDirFromRegistry "$keePassDisplayName*" #wildcard pattern for '-like' inside Get-UninstallRegistryKey
+}
 if (!$installPath) {
     $binRoot = Get-BinRoot
     $portPath = Join-Path $binRoot "keepass"
