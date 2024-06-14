@@ -56,7 +56,14 @@ choco install keepass-plugin-winhello
 Key storage
 -----------
 
-By default this plugin holds an encrypted master password in memory and removes it upon KeePass closing. In order to be able to unlock your database via Windows Hello authentication in between KeePass launches you may check "Store keys in the Windows Credential Manager" on in the Options dialog. This will prompts you for creating a persistent key signed with your biometry via Windows Hello. The key is used to encrypt master passwords for securely storing them in the Windows Credential Manager.
+By default, this plugin holds an encrypted master password in memory and removes it upon KeePass closing.
+In this scenario, the plugin asks Windows to issue a disposable encryption key in its security subsystem (NGC) and then uses it by name to encrypt and decrypt all parts of the composite keys of databases.
+The plugin gets and stores only an ID of this key and the encrypted data itself. Encryption and decryption are performed by Windows with a WinHello prompt.
+
+In order to unlock your database via Windows Hello authentication between KeePass launches, you may check "Store keys in the Windows Credential Manager" in the Options dialog.
+This will prompt you to create a persistent key signed with your biometry via Windows Hello.
+The key is used to encrypt master passwords for securely storing them in the Windows Credential Manager.
+In this scenario, the key has a constant name based on the current user ID, and the plugin does **not** store in memory either the key name or the encrypted data.
 
 Options
 -------
