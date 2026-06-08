@@ -24,10 +24,12 @@ namespace KeePassWinHello
         private readonly LinkedList<UIContext> _contexts = new LinkedList<UIContext>();
         private readonly object _lock = new object();
         private readonly HDESK _mainDesktop;
+        private readonly IWin32Window _mainWindow;
 
-        public UIContextManager(HDESK mainDesktop)
+        public UIContextManager(HDESK mainDesktop, IWin32Window mainWindow)
         {
             _mainDesktop = mainDesktop;
+            _mainWindow = mainWindow;
         }
 
         public UIContext CurrentContext
@@ -43,6 +45,7 @@ namespace KeePassWinHello
         }
 
         public HDESK MainDesktop { get { return _mainDesktop; } }
+        public HWND MainWindowHandle { get { return new HWND(_mainWindow.Handle); } }
 
         public IDisposable PushContext(string message, IWin32Window parentWindow)
         {

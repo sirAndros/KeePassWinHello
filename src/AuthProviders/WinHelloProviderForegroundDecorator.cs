@@ -61,8 +61,10 @@ namespace KeePassWinHello
         {
             try
             {
-                var keePassWindowHandle = _uiContextManager.CurrentContext.ParentWindowHandle; //should not be null
-                Win32Window.GetOrNull(keePassWindowHandle).EnsureForeground();
+                var keePassWindowHandle = _uiContextManager.MainWindowHandle;
+                var keePassWindow = Win32Window.GetOrNull(keePassWindowHandle);
+                if (keePassWindow != null)
+                    keePassWindow.EnsureForeground();
             }
             catch (Exception ex)
             {

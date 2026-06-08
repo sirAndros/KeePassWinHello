@@ -48,7 +48,7 @@ namespace KeePassWinHello
             if (host == null) { return false; }
 
             var mainDesktop = WinAPI.GetThreadDesktop(WinAPI.GetCurrentThreadId());
-            _uiContextManager = new UIContextManager(mainDesktop);
+            _uiContextManager = new UIContextManager(mainDesktop, host.MainWindow);
             _uiContext = _uiContextManager.PushContext("KeePass: Main Window", host.MainWindow);
 
             Settings.Instance.Initialize(host.CustomConfig, _uiContextManager);
