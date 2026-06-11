@@ -80,6 +80,8 @@ Security Notice
 As you should never approve any process elevation (run as admin) if you don't trust an application (because otherwise they can do almost anything), you should never sign Windows Hello prompt if you did not request it, especially when using the persistent storage.
 In those cases your both passwords and PC are at risk.
 
+Quick unlock is not account recovery. Keep your KeePass master password, key files, and recovery info safe.
+
 Our plugin prompts you to authorize Windows Hello only in the following cases:
 
 * You prompted to decrypt KeePass database.

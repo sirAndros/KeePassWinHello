@@ -41,6 +41,7 @@ namespace KeePassWinHello
             _uiContextManager = uiContextManager;
             uacIcoPanel.Paint += OnPaint_ElevatedIconPanel;
             keyCreateIcoPanel.Paint += OnPaint_KeyCreateIconPanel;
+            recoveryNoticeIcoPanel.Paint += OnPaint_KeyCreateIconPanel;
         }
 
         protected override void OnLoad(EventArgs e)

@@ -37,6 +37,9 @@
             this.isNotElevatedPanel = new System.Windows.Forms.Panel();
             this.uacIcoPanel = new System.Windows.Forms.Panel();
             this.isNotElevatedLabel = new System.Windows.Forms.Label();
+            this.recoveryNoticePanel = new System.Windows.Forms.Panel();
+            this.recoveryNoticeIcoPanel = new System.Windows.Forms.Panel();
+            this.recoveryNoticeLabel = new System.Windows.Forms.Label();
             this.isEnabledCheckBox = new System.Windows.Forms.CheckBox();
             this.linkToGitHub = new System.Windows.Forms.LinkLabel();
             this.bottomPanel = new System.Windows.Forms.Panel();
@@ -47,6 +50,7 @@
             this.persistentStoragePanel.SuspendLayout();
             this.keyCreatePanel.SuspendLayout();
             this.isNotElevatedPanel.SuspendLayout();
+            this.recoveryNoticePanel.SuspendLayout();
             this.bottomPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -71,7 +75,7 @@
             this.revokeOnCancel.Checked = true;
             this.revokeOnCancel.CheckState = System.Windows.Forms.CheckState.Checked;
             this.revokeOnCancel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.revokeOnCancel.Location = new System.Drawing.Point(0, 27);
+            this.revokeOnCancel.Location = new System.Drawing.Point(0, 72);
             this.revokeOnCancel.Margin = new System.Windows.Forms.Padding(4);
             this.revokeOnCancel.Name = "revokeOnCancel";
             this.revokeOnCancel.Padding = new System.Windows.Forms.Padding(7, 6, 0, 0);
@@ -131,7 +135,7 @@
             this.invalidationPanel.Controls.Add(this.validPeriodComboBox);
             this.invalidationPanel.Controls.Add(this.validPeriodLabel);
             this.invalidationPanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.invalidationPanel.Location = new System.Drawing.Point(0, 145);
+            this.invalidationPanel.Location = new System.Drawing.Point(0, 190);
             this.invalidationPanel.Margin = new System.Windows.Forms.Padding(4);
             this.invalidationPanel.Name = "invalidationPanel";
             this.invalidationPanel.Padding = new System.Windows.Forms.Padding(0, 6, 5, 0);
@@ -220,7 +224,7 @@
             this.persistentStoragePanel.Controls.Add(this.isNotElevatedPanel);
             this.persistentStoragePanel.Controls.Add(this.winKeyStorageCheckBox);
             this.persistentStoragePanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.persistentStoragePanel.Location = new System.Drawing.Point(0, 54);
+            this.persistentStoragePanel.Location = new System.Drawing.Point(0, 99);
             this.persistentStoragePanel.Margin = new System.Windows.Forms.Padding(4);
             this.persistentStoragePanel.Name = "persistentStoragePanel";
             this.persistentStoragePanel.Size = new System.Drawing.Size(733, 91);
@@ -296,7 +300,45 @@
             this.isNotElevatedLabel.Size = new System.Drawing.Size(398, 17);
             this.isNotElevatedLabel.TabIndex = 38;
             this.isNotElevatedLabel.Text = "Requires for KeePass process to be running as Administrator.";
-            // 
+            //
+            // recoveryNoticePanel
+            //
+            this.recoveryNoticePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(217)))), ((int)(((byte)(254)))));
+            this.recoveryNoticePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.recoveryNoticePanel.Controls.Add(this.recoveryNoticeIcoPanel);
+            this.recoveryNoticePanel.Controls.Add(this.recoveryNoticeLabel);
+            this.recoveryNoticePanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.recoveryNoticePanel.ForeColor = System.Drawing.SystemColors.ScrollBar;
+            this.recoveryNoticePanel.Location = new System.Drawing.Point(0, 27);
+            this.recoveryNoticePanel.Margin = new System.Windows.Forms.Padding(4);
+            this.recoveryNoticePanel.Name = "recoveryNoticePanel";
+            this.recoveryNoticePanel.Size = new System.Drawing.Size(733, 45);
+            this.recoveryNoticePanel.TabIndex = 56;
+            //
+            // recoveryNoticeIcoPanel
+            //
+            this.recoveryNoticeIcoPanel.Location = new System.Drawing.Point(4, 12);
+            this.recoveryNoticeIcoPanel.Margin = new System.Windows.Forms.Padding(4);
+            this.recoveryNoticeIcoPanel.Name = "recoveryNoticeIcoPanel";
+            this.recoveryNoticeIcoPanel.Size = new System.Drawing.Size(21, 20);
+            this.recoveryNoticeIcoPanel.TabIndex = 42;
+            //
+            // recoveryNoticeLabel
+            //
+            this.recoveryNoticeLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.recoveryNoticeLabel.BackColor = System.Drawing.Color.Transparent;
+            this.recoveryNoticeLabel.ForeColor = System.Drawing.SystemColors.InfoText;
+            this.recoveryNoticeLabel.Location = new System.Drawing.Point(32, 4);
+            this.recoveryNoticeLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.recoveryNoticeLabel.Name = "recoveryNoticeLabel";
+            this.recoveryNoticeLabel.Size = new System.Drawing.Size(694, 37);
+            this.recoveryNoticeLabel.TabIndex = 38;
+            this.recoveryNoticeLabel.Text = "Quick unlock is not account recovery. Keep your KeePass master password, key file" +
+    "s, and recovery info safe.";
+            this.recoveryNoticeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            //
             // isEnabledCheckBox
             // 
             this.isEnabledCheckBox.AutoSize = true;
@@ -342,6 +384,7 @@
             this.Controls.Add(this.invalidationPanel);
             this.Controls.Add(this.persistentStoragePanel);
             this.Controls.Add(this.revokeOnCancel);
+            this.Controls.Add(this.recoveryNoticePanel);
             this.Controls.Add(this.isEnabledCheckBox);
             this.Controls.Add(this.winHelloDisabledPanel);
             this.Margin = new System.Windows.Forms.Padding(4);
@@ -358,6 +401,8 @@
             this.keyCreatePanel.PerformLayout();
             this.isNotElevatedPanel.ResumeLayout(false);
             this.isNotElevatedPanel.PerformLayout();
+            this.recoveryNoticePanel.ResumeLayout(false);
+            this.recoveryNoticePanel.PerformLayout();
             this.bottomPanel.ResumeLayout(false);
             this.bottomPanel.PerformLayout();
             this.ResumeLayout(false);
@@ -381,6 +426,9 @@
         private System.Windows.Forms.Panel keyCreatePanel;
         private System.Windows.Forms.Panel keyCreateIcoPanel;
         private System.Windows.Forms.Label keyCreateLabel;
+        private System.Windows.Forms.Panel recoveryNoticePanel;
+        private System.Windows.Forms.Panel recoveryNoticeIcoPanel;
+        private System.Windows.Forms.Label recoveryNoticeLabel;
         private System.Windows.Forms.Panel storedKeysInfoPanel;
         private System.Windows.Forms.Label storedKeysInfoLabel;
         private System.Windows.Forms.Label storedKeysCountLabel;
