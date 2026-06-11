@@ -33,6 +33,7 @@ namespace KeePassWinHello
         private const int TPM_20_E_HANDLE = unchecked((int)0x8028008B);
         private const int TPM_20_E_SIZE = unchecked((int)0x80280095);
         private const int TPM_20_E_159 = unchecked((int)0x80280159);
+        private const int HRESULT_FROM_WIN32_WAIT_TIMEOUT = unchecked((int)0x80070102);
         private const int ERROR_CANCELLED = unchecked((int)0x800704C7);
         private const int WINBIO_E_DATA_PROTECTION_FAILURE = unchecked((int)0x80098046); // The biometric service could not decrypt the data.
 
@@ -471,7 +472,10 @@ namespace KeePassWinHello
 
                 ApplyUIContext(ngcKeyHandle);
 
-                NCryptFinalizeKey(ngcKeyHandle, 0).ThrowOnError("NCryptFinalizeKey");
+                var finalizeStatus = NCryptFinalizeKey(ngcKeyHandle, 0);
+                if (finalizeStatus.secStatus == HRESULT_FROM_WIN32_WAIT_TIMEOUT)
+                    throw new AuthProviderUserCancelledException();
+                finalizeStatus.ThrowOnError("NCryptFinalizeKey");
             }
 
             return ngcKeyHandle;
