@@ -184,7 +184,6 @@
             "Never",
             "1 Minute",
             "5 Minutes",
-            "10 Minutes",
             "15 Minutes",
             "30 Minutes",
             "1 Hour",

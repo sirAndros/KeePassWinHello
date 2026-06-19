@@ -397,17 +397,16 @@ namespace KeePassWinHello
                 case 0: return VALID_UNLIMITED;
                 case 1: return VALID_1MINUTE;
                 case 2: return VALID_5MINUTES;
-                case 3: return VALID_10MINUTES;
-                case 4: return VALID_15MINUTES;
-                case 5: return VALID_30MINUTES;
-                case 6: return VALID_1HOUR;
-                case 7: return VALID_2HOURS;
-                case 8: return VALID_6HOURS;
-                case 9: return VALID_12HOURS;
-                case 10: return VALID_1DAY;
-                case 11: return VALID_3DAYS;
-                case 12: return VALID_7DAYS;
-                case 13: return VALID_MONTH;
+                case 3: return VALID_15MINUTES;
+                case 4: return VALID_30MINUTES;
+                case 5: return VALID_1HOUR;
+                case 6: return VALID_2HOURS;
+                case 7: return VALID_6HOURS;
+                case 8: return VALID_12HOURS;
+                case 9: return VALID_1DAY;
+                case 10: return VALID_3DAYS;
+                case 11: return VALID_7DAYS;
+                case 12: return VALID_MONTH;
                 default: return VALID_DEFAULT;
             }
         }
@@ -420,17 +419,17 @@ namespace KeePassWinHello
                 case VALID_1MINUTE: return 1;
                 case VALID_5MINUTES: return 2;
                 case VALID_10MINUTES: return 3;
-                case VALID_15MINUTES: return 4;
-                case VALID_30MINUTES: return 5;
-                case VALID_1HOUR: return 6;
-                case VALID_2HOURS: return 7;
-                case VALID_6HOURS: return 8;
-                case VALID_12HOURS: return 9;
-                case VALID_1DAY: return 10;
-                case VALID_3DAYS: return 11;
-                case VALID_7DAYS: return 12;
-                case VALID_MONTH: return 13;
-                default: return 10;
+                case VALID_15MINUTES: return 3;
+                case VALID_30MINUTES: return 4;
+                case VALID_1HOUR: return 5;
+                case VALID_2HOURS: return 6;
+                case VALID_6HOURS: return 7;
+                case VALID_12HOURS: return 8;
+                case VALID_1DAY: return 9;
+                case VALID_3DAYS: return 10;
+                case VALID_7DAYS: return 11;
+                case VALID_MONTH: return 12;
+                default: return 9;
             }
         }
 
