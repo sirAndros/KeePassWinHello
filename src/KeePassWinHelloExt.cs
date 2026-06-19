@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
+using System.Windows.Forms;
 using KeePass.Forms;
 using KeePass.Plugins;
 using KeePass.UI;
@@ -113,6 +114,13 @@ namespace KeePassWinHello
                     }
                 }
 
+                var autoTypeCtxForm = e.Form as AutoTypeCtxForm;
+                if (autoTypeCtxForm != null)
+                {
+                    BringAutoTypeSelectionToFront(autoTypeCtxForm);
+                    return;
+                }
+
                 var optionsForm = e.Form as OptionsForm;
                 if (optionsForm != null)
                 {
@@ -127,6 +135,45 @@ namespace KeePassWinHello
             catch (Exception ex)
             {
                 _uiContextManager.CurrentContext.ShowError(ex);
+            }
+        }
+
+        private static void BringAutoTypeSelectionToFront(AutoTypeCtxForm autoTypeCtxForm)
+        {
+            try
+            {
+                autoTypeCtxForm.BeginInvoke(new MethodInvoker(delegate
+                {
+                    try
+                    {
+                        if (autoTypeCtxForm.IsDisposed)
+                            return;
+
+                        var window = Win32Window.From(autoTypeCtxForm.Handle);
+                        if (window != null)
+                            window.EnsureForeground();
+
+                        bool topMost = autoTypeCtxForm.TopMost;
+                        try
+                        {
+                            autoTypeCtxForm.TopMost = true;
+                            autoTypeCtxForm.BringToFront();
+                            autoTypeCtxForm.Activate();
+                        }
+                        finally
+                        {
+                            autoTypeCtxForm.TopMost = topMost;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Fail(ex.Message);
+                    }
+                }));
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail(ex.Message);
             }
         }
     }
