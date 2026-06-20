@@ -34,6 +34,7 @@ namespace KeePassWinHello
         private const int TPM_20_E_SIZE = unchecked((int)0x80280095);
         private const int TPM_20_E_159 = unchecked((int)0x80280159);
         private const int ERROR_CANCELLED = unchecked((int)0x800704C7);
+        private const int HRESULT_FROM_WIN32_ERROR_INVALID_STATE = unchecked((int)0x8007139F);
         private const int WINBIO_E_DATA_PROTECTION_FAILURE = unchecked((int)0x80098046); // The biometric service could not decrypt the data.
 
         [StructLayout(LayoutKind.Sequential)]
@@ -391,7 +392,12 @@ namespace KeePassWinHello
             {
                 using (ngcKeyHandle)
                 {
-                    NCryptDeleteKey(ngcKeyHandle, 0).ThrowOnError("NCryptDeleteKey");
+                    SECURITY_STATUS status = NCryptDeleteKey(ngcKeyHandle, 0);
+                    // Let callers finish revoking Credential Manager blobs when the NGC resource is already unusable.
+                    if (status.secStatus == HRESULT_FROM_WIN32_ERROR_INVALID_STATE)
+                        return;
+
+                    status.ThrowOnError("NCryptDeleteKey");
                     ngcKeyHandle.SetHandleAsInvalid();
                 }
             }
