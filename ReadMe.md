@@ -8,7 +8,7 @@ Quick unlock with Windows Hello for KeePass 2
 
 
 
-This plugin for [KeePass 2][KeePass] password manager is intended for fast authorization with pin or biometrics to a database after its first unlock using [Windows Hello technology][WinHello].
+This plugin for [KeePass 2][KeePass] password manager is intended for fast authorization with Windows Hello to a database after its first unlock using [Windows Hello technology][WinHello].
 
 [KeePass]: https://keepass.info/
 [WinHello]: https://support.microsoft.com/en-us/help/17215/windows-10-what-is-hello
@@ -56,7 +56,9 @@ choco install keepass-plugin-winhello
 Key storage
 -----------
 
-By default this plugin holds an encrypted master password in memory and removes it upon KeePass closing. In order to be able to unlock your database via Windows Hello authentication in between KeePass launches you may check "Store keys in the Windows Credential Manager" on in the Options dialog. This will prompts you for creating a persistent key signed with your biometry via Windows Hello. The key is used to encrypt master passwords for securely storing them in the Windows Credential Manager.
+By default this plugin holds an encrypted master password in memory and removes it upon KeePass closing. In order to be able to unlock your database via Windows Hello authentication in between KeePass launches you may check "Store keys in the Windows Credential Manager" on in the Options dialog. This will prompts you for creating a persistent key protected by Windows Hello. The key is used to encrypt master passwords for securely storing them in the Windows Credential Manager.
+
+Windows controls which Windows Hello gestures can authorize a prompt. Depending on the user's Windows configuration this can include a PIN, fingerprint, face recognition, or another configured Hello method. KeePassWinHello asks Windows Hello to require user verification, but it cannot enforce a biometric-only prompt or disable the Windows PIN fallback for this plugin alone.
 
 Options
 -------
@@ -79,6 +81,8 @@ Security Notice
 
 As you should never approve any process elevation (run as admin) if you don't trust an application (because otherwise they can do almost anything), you should never sign Windows Hello prompt if you did not request it, especially when using the persistent storage.
 In those cases your both passwords and PC are at risk.
+
+Windows Hello policy and available sign-in methods are managed by Windows. If you do not want a PIN to authorize Windows Hello prompts, change the Windows Hello configuration or organizational policy for the Windows account; the plugin cannot override those choices per prompt.
 
 Our plugin prompts you to authorize Windows Hello only in the following cases:
 
