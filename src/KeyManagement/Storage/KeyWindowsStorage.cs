@@ -10,6 +10,7 @@ namespace KeePassWinHello
     internal class KeyWindowsStorage : IKeyStorage
     {
         #region Credential Manager API
+        private const int ERROR_NOT_ENOUGH_MEMORY = 0x8;
         private const int ERROR_NOT_FOUND = 0x490;
 
         private const int CRED_TYPE_GENERIC = 0x1;
@@ -96,7 +97,21 @@ namespace KeePassWinHello
                     Marshal.Copy(data, 0, ncred.CredentialBlob, data.Length);
                     ncred.CredentialBlobSize = (uint)data.Length;
 
-                    CredWrite(ref ncred, 0).ThrowOnError("CredWrite");
+                    try
+                    {
+                        CredWrite(ref ncred, 0).ThrowOnError("CredWrite");
+                    }
+                    catch (EnviromentErrorException ex)
+                    {
+                        if (ex.ErrorCode != ERROR_NOT_ENOUGH_MEMORY)
+                            throw;
+
+                        throw new KeyStorageException(
+                            "Windows Credential Manager reported that there was not enough memory to store this database key (CredWrite error 0x8)." +
+                            Environment.NewLine +
+                            "The database was locked, but the key was not saved for Windows Hello unlock. KeePass may ask for the regular master key next time.",
+                            ex);
+                    }
                 }
                 finally
                 {
