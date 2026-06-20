@@ -15,6 +15,25 @@ namespace KeePassWinHello
         private bool _initialized;
         private bool _wasKeyRemovingIntendedByUser;
 
+        internal sealed class DatabaseItem
+        {
+            public string Path { get; private set; }
+            public string DisplayName { get; private set; }
+
+            public DatabaseItem(string path, string displayName)
+            {
+                Path = path;
+                DisplayName = displayName;
+            }
+
+            public override string ToString()
+            {
+                return DisplayName;
+            }
+        }
+
+        private readonly IList<DatabaseItem> _databaseItems;
+
         private bool IsSettingsEnabled
         {
             get
@@ -33,12 +52,13 @@ namespace KeePassWinHello
             get { return _keyManager != null; }
         }
 
-        private OptionsPanel(IKeyManager keyManager, UIContextManager uiContextManager)
+        private OptionsPanel(IKeyManager keyManager, UIContextManager uiContextManager, IList<DatabaseItem> databaseItems)
         {
             InitializeComponent();
 
             _keyManager = keyManager;
             _uiContextManager = uiContextManager;
+            _databaseItems = databaseItems ?? new List<DatabaseItem>();
             uacIcoPanel.Paint += OnPaint_ElevatedIconPanel;
             keyCreateIcoPanel.Paint += OnPaint_KeyCreateIconPanel;
         }
@@ -72,14 +92,26 @@ namespace KeePassWinHello
         {
             isEnabledCheckBox.CheckedChanged -= IsEnabledCheckBox_CheckedChanged;
             winKeyStorageCheckBox.CheckedChanged -= WinKeyStorageCheckBox_CheckedChanged;
+            limitToSelectedDatabasesCheckBox.CheckedChanged -= LimitToSelectedDatabasesCheckBox_CheckedChanged;
+            databaseSelectionList.ItemCheck -= DatabaseSelectionList_ItemCheck;
 
             isEnabledCheckBox.Checked = Settings.Instance.Enabled;
             revokeOnCancel.Checked = Settings.Instance.RevokeOnCancel;
             winKeyStorageCheckBox.Checked = Settings.Instance.WinStorageEnabled;
             validPeriodComboBox.SelectedIndex = PeriodToIndex(Settings.Instance.InvalidatingTime);
+            limitToSelectedDatabasesCheckBox.Checked = Settings.Instance.LimitToSelectedDatabases;
+
+            databaseSelectionList.Items.Clear();
+            foreach (DatabaseItem databaseItem in _databaseItems)
+            {
+                databaseSelectionList.Items.Add(databaseItem,
+                    Settings.Instance.IsDatabaseSelected(databaseItem.Path));
+            }
 
             isEnabledCheckBox.CheckedChanged += IsEnabledCheckBox_CheckedChanged;
             winKeyStorageCheckBox.CheckedChanged += WinKeyStorageCheckBox_CheckedChanged;
+            limitToSelectedDatabasesCheckBox.CheckedChanged += LimitToSelectedDatabasesCheckBox_CheckedChanged;
+            databaseSelectionList.ItemCheck += DatabaseSelectionList_ItemCheck;
         }
 
         private void OnClosing(object sender, FormClosingEventArgs e)
@@ -87,7 +119,11 @@ namespace KeePassWinHello
             if (ParentForm.DialogResult == DialogResult.OK)
             {
                 Settings settings = Settings.Instance;
-                SaveSettings(settings);
+                if (!SaveSettings(settings))
+                {
+                    e.Cancel = true;
+                    return;
+                }
             }
             ParentForm.FormClosing -= OnClosing;
         }
@@ -103,18 +139,33 @@ namespace KeePassWinHello
             UpdateStoredKeysPanel();
         }
 
+        private void LimitToSelectedDatabasesCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            ProcessControlsVisibility();
+        }
+
+        private void DatabaseSelectionList_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            BeginInvoke(new MethodInvoker(UpdateStoredKeysPanel));
+        }
+
         private void RevokeAll_CheckedChanged(object sender, EventArgs e)
         {
             _wasKeyRemovingIntendedByUser = revokeAllCheckBox.Checked;
             UpdateStoredKeysPanel();
         }
 
-        private void SaveSettings(Settings settings)
+        private bool SaveSettings(Settings settings)
         {
+            bool databasePolicyChanged = IsDatabasePolicyChanged();
+            if ((revokeAllCheckBox.Checked || databasePolicyChanged) && !RevokeAllKeys())
+                return false;
+
             settings.Enabled = isEnabledCheckBox.Checked;
 
-            if (revokeAllCheckBox.Checked)
-                RevokeAllKeys();
+            if (databasePolicyChanged)
+                settings.SetSelectedDatabases(GetSelectedDatabasePaths(), GetDisplayedDatabasePaths());
+            settings.LimitToSelectedDatabases = limitToSelectedDatabasesCheckBox.Checked;
 
             if (isEnabledCheckBox.Checked)
             {
@@ -135,7 +186,7 @@ namespace KeePassWinHello
                                 MessageBox.Show(_uiContextManager.CurrentContext,
                                     "Changing storage location setting on a remote session is not permitted",
                                     Settings.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                return;
+                                return true;
                             }
 
                             try
@@ -160,6 +211,8 @@ namespace KeePassWinHello
                     }
                 }
             }
+
+            return true;
         }
 
         private void TryClaimLocalCacheType()
@@ -183,6 +236,9 @@ namespace KeePassWinHello
             validPeriodComboBox.Enabled = isEnabled;
             revokeOnCancel.Enabled = isEnabled;
             winKeyStorageCheckBox.Enabled = isEnabled;
+
+            limitToSelectedDatabasesCheckBox.Enabled = isEnabled;
+            databaseSelectionList.Enabled = isEnabled && limitToSelectedDatabasesCheckBox.Checked;
 
             keyCreatePanel.Visible = isEnabled
                                  && winKeyStorageCheckBox.Checked
@@ -212,7 +268,8 @@ namespace KeePassWinHello
 
             bool intendedToDisablePlugin = !isEnabledCheckBox.Checked && Settings.Instance.Enabled;
             bool intendedToChangeStorage = winKeyStorageCheckBox.Checked != Settings.Instance.WinStorageEnabled;
-            bool shouldRemoveKeys = intendedToDisablePlugin || intendedToChangeStorage;
+            bool intendedToChangeDatabasePolicy = IsDatabasePolicyChanged();
+            bool shouldRemoveKeys = intendedToDisablePlugin || intendedToChangeStorage || intendedToChangeDatabasePolicy;
 
             storedKeysInfoPanel.Visible = isAvailable;
             revokeAllCheckBox.Enabled = savedKeysExists && !shouldRemoveKeys;
@@ -250,24 +307,65 @@ namespace KeePassWinHello
                     toolTipMsg = "The keys cannot be stored while the plugin is disabled";
                 else if (intendedToChangeStorage)
                     toolTipMsg = "The keys cannot be transferred between the in-memory storage and the persistent one";
+                else if (intendedToChangeDatabasePolicy)
+                    toolTipMsg = "Stored keys are revoked when the database selection changes";
             }
             forceKeysRevokeToolTip.SetToolTip(storedKeysCountLabel, toolTipMsg);
         }
 
-        private void RevokeAllKeys()
+        private bool IsDatabasePolicyChanged()
         {
-            if (_keyManager != null)
+            if (limitToSelectedDatabasesCheckBox.Checked != Settings.Instance.LimitToSelectedDatabases)
+                return true;
+
+            for (int i = 0; i < databaseSelectionList.Items.Count; ++i)
             {
-                try
-                {
-                    _keyManager.RevokeAll();
-                }
-                catch (Exception ex)
-                {
-                    _uiContextManager.CurrentContext.ShowError(ex);
-                }
+                var databaseItem = databaseSelectionList.Items[i] as DatabaseItem;
+                if (databaseItem != null && databaseSelectionList.GetItemChecked(i) !=
+                    Settings.Instance.IsDatabaseSelected(databaseItem.Path))
+                    return true;
             }
-            UpdateStoredKeysPanel();
+
+            return false;
+        }
+
+        private IEnumerable<string> GetSelectedDatabasePaths()
+        {
+            foreach (object item in databaseSelectionList.CheckedItems)
+            {
+                var databaseItem = item as DatabaseItem;
+                if (databaseItem != null)
+                    yield return databaseItem.Path;
+            }
+        }
+
+        private IEnumerable<string> GetDisplayedDatabasePaths()
+        {
+            foreach (object item in databaseSelectionList.Items)
+            {
+                var databaseItem = item as DatabaseItem;
+                if (databaseItem != null)
+                    yield return databaseItem.Path;
+            }
+        }
+
+        private bool RevokeAllKeys()
+        {
+            if (_keyManager == null)
+                return true;
+
+            try
+            {
+                _keyManager.RevokeAll();
+                UpdateStoredKeysPanel();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _uiContextManager.CurrentContext.ShowError(ex,
+                    "Stored database keys could not be revoked. Database selection changes were not saved.");
+                return false;
+            }
         }
 
         private void linkToGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

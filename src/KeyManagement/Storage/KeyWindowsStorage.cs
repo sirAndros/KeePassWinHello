@@ -69,7 +69,7 @@ namespace KeePassWinHello
             ForEach(ncred => credsToRemove.Add(Marshal.PtrToStringUni(ncred.TargetName)));
 
             foreach (var target in credsToRemove)
-                CredDelete(target, CRED_TYPE_GENERIC, 0);
+                CredDelete(target, CRED_TYPE_GENERIC, 0).ThrowOnError("CredDelete", ERROR_NOT_FOUND);
         }
 
         private string GetTarget(string path)
