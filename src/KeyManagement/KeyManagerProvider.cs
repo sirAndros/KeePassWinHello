@@ -86,9 +86,22 @@ namespace KeePassWinHello
                     throw;
 
                 Settings.Instance.WinStorageEnabled = false;
+                RevokePersistentKeys();
                 authCacheType = Settings.Instance.GetAuthCacheType();
                 _uiContextManager.CurrentContext.ShowError(ex, "For security reasons Credential Manager storage has been turned off. Use Options dialog to turn it on.");
                 return AuthProviderFactory.GetInstance(authCacheType, _uiContextManager);
+            }
+        }
+
+        private void RevokePersistentKeys()
+        {
+            try
+            {
+                new KeyWindowsStorage().Clear();
+            }
+            catch (Exception ex)
+            {
+                _uiContextManager.CurrentContext.ShowError(ex, "Persistent Credential Manager storage could not be cleared.");
             }
         }
     }
