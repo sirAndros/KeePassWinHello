@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 using KeePass.App.Configuration;
 using KeePassWinHello.Utilities;
 
@@ -14,6 +17,8 @@ namespace KeePassWinHello
         private const string CFG_ENABLED = "WindowsHello.QuickUnlock.Enabled";
         private const string CFG_WINSTORAGE_ENABLED = "WindowsHello.QuickUnlock.WindowsStorage.Enabled";
         private const string CFG_REVOKE_ON_CANCEL = "WindowsHello.QuickUnlock.RevokeOnCancel";
+        private const string CFG_LIMIT_TO_SELECTED_DATABASES = "WindowsHello.QuickUnlock.LimitToSelectedDatabases";
+        private const string CFG_SELECTED_DATABASES = "WindowsHello.QuickUnlock.SelectedDatabases";
         private const string CFG_SAVED_SETTINGS_PLUGIN_VERSION = "WindowsHello.QuickUnlock.SavedSettingsPluginVersion";
         private const string DEPRECATED_CFG_AUTO_PROMPT = "WindowsHello_AutoPrompt";
 
@@ -138,6 +143,78 @@ namespace KeePassWinHello
             {
                 _customConfig.SetBool(CFG_REVOKE_ON_CANCEL, value);
             }
+        }
+
+        public bool LimitToSelectedDatabases
+        {
+            get
+            {
+                return _customConfig.GetBool(CFG_LIMIT_TO_SELECTED_DATABASES, false);
+            }
+            set
+            {
+                _customConfig.SetBool(CFG_LIMIT_TO_SELECTED_DATABASES, value);
+            }
+        }
+
+        public bool IsDatabaseEnabled(string dbPath)
+        {
+            if (!LimitToSelectedDatabases)
+                return true;
+
+            return IsDatabaseSelected(dbPath);
+        }
+
+        public bool IsDatabaseSelected(string dbPath)
+        {
+            if (String.IsNullOrEmpty(dbPath))
+                return false;
+
+            return GetSelectedDatabaseIds().Contains(GetDatabaseId(dbPath));
+        }
+
+        public void SetSelectedDatabases(IEnumerable<string> selectedPaths, IEnumerable<string> displayedPaths)
+        {
+            if (selectedPaths == null)
+                throw new ArgumentNullException("selectedPaths");
+            if (displayedPaths == null)
+                throw new ArgumentNullException("displayedPaths");
+
+            var selectedIds = GetSelectedDatabaseIds();
+            foreach (string path in displayedPaths)
+            {
+                if (!String.IsNullOrEmpty(path))
+                    selectedIds.Remove(GetDatabaseId(path));
+            }
+
+            foreach (string path in selectedPaths)
+            {
+                if (!String.IsNullOrEmpty(path))
+                    selectedIds.Add(GetDatabaseId(path));
+            }
+
+            var values = new List<string>(selectedIds);
+            values.Sort(StringComparer.Ordinal);
+            _customConfig.SetString(CFG_SELECTED_DATABASES, String.Join(";", values.ToArray()));
+        }
+
+        private HashSet<string> GetSelectedDatabaseIds()
+        {
+            var result = new HashSet<string>(StringComparer.Ordinal);
+            string value = _customConfig.GetString(CFG_SELECTED_DATABASES, String.Empty);
+            string[] databaseIds = value.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string databaseId in databaseIds)
+                result.Add(databaseId);
+            return result;
+        }
+
+        private static string GetDatabaseId(string dbPath)
+        {
+            byte[] pathBytes = Encoding.UTF8.GetBytes(dbPath);
+            byte[] hash;
+            using (SHA256 sha256 = SHA256.Create())
+                hash = sha256.ComputeHash(pathBytes);
+            return Convert.ToBase64String(hash);
         }
 
         public const long VALID_PERIOD_DEFAULT = 1000 * 60 * 60 * 24; // one day in ms

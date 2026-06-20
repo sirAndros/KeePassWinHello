@@ -119,7 +119,7 @@ namespace KeePassWinHello
                     var keyManager = _keyManagerProvider.ObtainKeyManager();
                     using (_uiContextManager.PushContext("Modifying KeePass settings", optionsForm))
                     {
-                        OptionsPanel.OnOptionsLoad(optionsForm, keyManager, _uiContextManager);
+                        OptionsPanel.OnOptionsLoad(optionsForm, _host, keyManager, _uiContextManager);
                         return;
                     }
                 }

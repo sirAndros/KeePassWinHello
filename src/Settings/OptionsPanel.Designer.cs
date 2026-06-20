@@ -41,6 +41,9 @@
             this.linkToGitHub = new System.Windows.Forms.LinkLabel();
             this.bottomPanel = new System.Windows.Forms.Panel();
             this.forceKeysRevokeToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.databaseSelectionPanel = new System.Windows.Forms.Panel();
+            this.databaseSelectionList = new System.Windows.Forms.CheckedListBox();
+            this.limitToSelectedDatabasesCheckBox = new System.Windows.Forms.CheckBox();
             this.winHelloDisabledPanel.SuspendLayout();
             this.invalidationPanel.SuspendLayout();
             this.storedKeysInfoPanel.SuspendLayout();
@@ -48,6 +51,7 @@
             this.keyCreatePanel.SuspendLayout();
             this.isNotElevatedPanel.SuspendLayout();
             this.bottomPanel.SuspendLayout();
+            this.databaseSelectionPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // winKeyStorageCheckBox
@@ -333,12 +337,47 @@
             this.bottomPanel.Name = "bottomPanel";
             this.bottomPanel.Size = new System.Drawing.Size(733, 22);
             this.bottomPanel.TabIndex = 54;
+            //
+            // databaseSelectionPanel
+            //
+            this.databaseSelectionPanel.Controls.Add(this.databaseSelectionList);
+            this.databaseSelectionPanel.Controls.Add(this.limitToSelectedDatabasesCheckBox);
+            this.databaseSelectionPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.databaseSelectionPanel.Location = new System.Drawing.Point(0, 179);
+            this.databaseSelectionPanel.Name = "databaseSelectionPanel";
+            this.databaseSelectionPanel.Padding = new System.Windows.Forms.Padding(7, 6, 5, 5);
+            this.databaseSelectionPanel.Size = new System.Drawing.Size(733, 132);
+            this.databaseSelectionPanel.TabIndex = 55;
+            //
+            // databaseSelectionList
+            //
+            this.databaseSelectionList.CheckOnClick = true;
+            this.databaseSelectionList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.databaseSelectionList.FormattingEnabled = true;
+            this.databaseSelectionList.IntegralHeight = false;
+            this.databaseSelectionList.Location = new System.Drawing.Point(7, 33);
+            this.databaseSelectionList.Name = "databaseSelectionList";
+            this.databaseSelectionList.Size = new System.Drawing.Size(721, 94);
+            this.databaseSelectionList.TabIndex = 7;
+            //
+            // limitToSelectedDatabasesCheckBox
+            //
+            this.limitToSelectedDatabasesCheckBox.AutoSize = true;
+            this.limitToSelectedDatabasesCheckBox.Dock = System.Windows.Forms.DockStyle.Top;
+            this.limitToSelectedDatabasesCheckBox.Location = new System.Drawing.Point(7, 6);
+            this.limitToSelectedDatabasesCheckBox.Name = "limitToSelectedDatabasesCheckBox";
+            this.limitToSelectedDatabasesCheckBox.Padding = new System.Windows.Forms.Padding(0, 0, 0, 6);
+            this.limitToSelectedDatabasesCheckBox.Size = new System.Drawing.Size(721, 27);
+            this.limitToSelectedDatabasesCheckBox.TabIndex = 6;
+            this.limitToSelectedDatabasesCheckBox.Text = "Use Windows Hello only for selected open databases";
+            this.limitToSelectedDatabasesCheckBox.UseVisualStyleBackColor = true;
             // 
             // OptionsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.bottomPanel);
+            this.Controls.Add(this.databaseSelectionPanel);
             this.Controls.Add(this.invalidationPanel);
             this.Controls.Add(this.persistentStoragePanel);
             this.Controls.Add(this.revokeOnCancel);
@@ -360,6 +399,8 @@
             this.isNotElevatedPanel.PerformLayout();
             this.bottomPanel.ResumeLayout(false);
             this.bottomPanel.PerformLayout();
+            this.databaseSelectionPanel.ResumeLayout(false);
+            this.databaseSelectionPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -389,5 +430,8 @@
         private System.Windows.Forms.LinkLabel linkToGitHub;
         private System.Windows.Forms.Panel bottomPanel;
         private System.Windows.Forms.ToolTip forceKeysRevokeToolTip;
+        private System.Windows.Forms.Panel databaseSelectionPanel;
+        private System.Windows.Forms.CheckedListBox databaseSelectionList;
+        private System.Windows.Forms.CheckBox limitToSelectedDatabasesCheckBox;
     }
 }

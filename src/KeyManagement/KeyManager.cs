@@ -44,6 +44,10 @@ namespace KeePassWinHello
             if (!Settings.Instance.Enabled)
                 return;
 
+            string dbPath = GetDbPath(keyPromptForm);
+            if (!Settings.Instance.IsDatabaseEnabled(dbPath))
+                return;
+
             if (SystemInformation.TerminalServerSession) // RDP
             {
                 if (!_notifiedAboutRdp)
@@ -61,7 +65,6 @@ namespace KeePassWinHello
                 _notifiedAboutRdp = false;
             }
 
-            string dbPath = GetDbPath(keyPromptForm);
             if (keyPromptForm.SecureDesktopMode)
             {
                 if (IsKeyForDataBaseExist(dbPath))
@@ -135,7 +138,11 @@ namespace KeePassWinHello
             if (databaseMasterKey == null)
                 return;
 
-            Lock(IsDBLocking(e), e.Database.IOConnectionInfo.Path, databaseMasterKey);
+            string dbPath = e.Database.IOConnectionInfo.Path;
+            if (!Settings.Instance.IsDatabaseEnabled(dbPath))
+                return;
+
+            Lock(IsDBLocking(e), dbPath, databaseMasterKey);
         }
 
         private void StopMonitorWarning()
