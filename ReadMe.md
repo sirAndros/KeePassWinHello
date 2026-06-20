@@ -53,6 +53,8 @@ Or you can use [Chocolatey](https://chocolatey.org/packages/keepass-plugin-winhe
 choco install keepass-plugin-winhello
 ```
 
+KeePassWinHello is not currently published through winget. Adding winget distribution requires a supported installer or portable package, a versioned release artifact URL, and a SHA256 checksum to be submitted as a manifest to the [Windows Package Manager Community Repository](https://github.com/microsoft/winget-pkgs).
+
 Key storage
 -----------
 
