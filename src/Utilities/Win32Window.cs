@@ -99,6 +99,13 @@ namespace KeePassWinHello
             return null;
         }
 
+        public static bool IsVisibleAndNotMinimized(HWND hwnd)
+        {
+            return hwnd.IsValid
+                && WinAPI.IsWindowVisible(hwnd.Value).Result
+                && !WinAPI.IsIconic(hwnd.Value).Result;
+        }
+
         #endregion Creation
 
 
@@ -233,6 +240,12 @@ namespace KeePassWinHello
 
             [DllImport(User32, SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern HWND FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string lpClassName, string lpWindowName);
+
+            [DllImport(User32, SetLastError = true)]
+            public static extern BOOL IsWindowVisible(IntPtr hWnd);
+
+            [DllImport(User32, SetLastError = true)]
+            public static extern BOOL IsIconic(IntPtr hWnd);
         }
     }
 }
