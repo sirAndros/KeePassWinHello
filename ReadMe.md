@@ -53,6 +53,13 @@ Or you can use [Chocolatey](https://chocolatey.org/packages/keepass-plugin-winhe
 choco install keepass-plugin-winhello
 ```
 
+WinGet distribution is prepared through the release tooling in `WinGet/`.
+After the manifest is accepted into the [Windows Package Manager Community Repository](https://github.com/microsoft/winget-pkgs), the package can be installed with:
+
+``` powershell
+winget install --id SirAndros.KeePassWinHello -e
+```
+
 Key storage
 -----------
 
