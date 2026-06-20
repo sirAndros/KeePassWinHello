@@ -482,7 +482,7 @@ namespace KeePassWinHello
             var uiContext = _uiContextManager.CurrentContext;
             if (uiContext != null)
             {
-                IntPtr parentWindowHandle = uiContext.ParentWindowHandle.Value;
+                IntPtr parentWindowHandle = uiContext.PromptParentWindowHandle.Value;
                 if (parentWindowHandle != IntPtr.Zero)
                 {
                     byte[] handle = BitConverter.GetBytes(IntPtr.Size == 8 ? parentWindowHandle.ToInt64() : parentWindowHandle.ToInt32());
