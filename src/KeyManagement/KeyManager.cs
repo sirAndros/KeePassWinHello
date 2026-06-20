@@ -198,6 +198,10 @@ namespace KeePassWinHello
             {
                 // it's OK
             }
+            catch (KeyStorageException ex)
+            {
+                _uiContextManager.CurrentContext.ShowError(ex);
+            }
         }
 
         public void RevokeAll()

@@ -11,6 +11,7 @@ namespace KeePassWinHello
     {
         #region Credential Manager API
         private const int ERROR_NOT_FOUND = 0x490;
+        private const int ERROR_NO_SUCH_LOGON_SESSION = 0x520;
 
         private const int CRED_TYPE_GENERIC = 0x1;
 
@@ -96,7 +97,7 @@ namespace KeePassWinHello
                     Marshal.Copy(data, 0, ncred.CredentialBlob, data.Length);
                     ncred.CredentialBlobSize = (uint)data.Length;
 
-                    CredWrite(ref ncred, 0).ThrowOnError("CredWrite");
+                    WriteCredential(ref ncred);
                 }
                 finally
                 {
@@ -108,6 +109,38 @@ namespace KeePassWinHello
             finally
             {
                 MemUtil.ZeroByteArray(data);
+            }
+        }
+
+        private static void WriteCredential(ref CREDENTIAL credential)
+        {
+            if (CredWrite(ref credential, 0).Result)
+                return;
+
+            int errorCode = Marshal.GetLastWin32Error();
+            if (errorCode == ERROR_NO_SUCH_LOGON_SESSION)
+                throw new KeyStorageException(GetNoLogonSessionMessage());
+
+            throw new EnviromentErrorException("CredWrite", errorCode);
+        }
+
+        private static string GetNoLogonSessionMessage()
+        {
+            string message = "Windows Credential Manager cannot save the database key because Windows reported that the current logon session is not available. The database key was not saved persistently.";
+            if (IsCurrentProcessElevatedSafe())
+                message += " This can happen when KeePass is running as Administrator; restart KeePass without elevation to use Credential Manager storage.";
+            return message;
+        }
+
+        private static bool IsCurrentProcessElevatedSafe()
+        {
+            try
+            {
+                return UAC.IsCurrentProcessElevated;
+            }
+            catch
+            {
+                return false;
             }
         }
 
