@@ -53,6 +53,10 @@ Or you can use [Chocolatey](https://chocolatey.org/packages/keepass-plugin-winhe
 choco install keepass-plugin-winhello
 ```
 
+If the plugin disappears from `Tools` > `Plugins` after upgrading KeePass,
+open `Tools` > `Plugins`, click `Clear` under `Plugin Cache`, exit KeePass
+completely (including the tray icon), and start it again.
+
 Key storage
 -----------
 
