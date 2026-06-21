@@ -70,8 +70,8 @@ namespace KeePassWinHello
             else
             {
                 StopMonitorWarning();
-                RestoreSecureDesktopSettings();
-                Unlock(keyPromptForm, dbPath);
+                bool restartedFromSecureDesktop = RestoreSecureDesktopSettings();
+                Unlock(keyPromptForm, dbPath, restartedFromSecureDesktop);
             }
         }
 
@@ -107,14 +107,16 @@ namespace KeePassWinHello
             CloseFormWithResult(keyPromptForm, DialogResult.OK);
         }
 
-        private void RestoreSecureDesktopSettings()
+        private bool RestoreSecureDesktopSettings()
         {
             int oldTriesValue = Interlocked.Exchange(ref _masterKeyTries, NoChanges);
             if (oldTriesValue != NoChanges)
             {
                 KeePass.Program.Config.Security.MasterKeyTries = oldTriesValue;
                 KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = true;
+                return true;
             }
+            return false;
         }
 
         public void OnDBClosing(object sender, FileClosingEventArgs e)
@@ -144,7 +146,7 @@ namespace KeePassWinHello
                 _warningSuppresser = null;
         }
 
-        private void Unlock(KeyPromptForm keyPromptForm, string dbPath)
+        private void Unlock(KeyPromptForm keyPromptForm, string dbPath, bool restartedFromSecureDesktop)
         {
             try
             {
@@ -153,6 +155,20 @@ namespace KeePassWinHello
                 {
                     SetCompositeKey(keyPromptForm, compositeKey);
                     CloseFormWithResult(keyPromptForm, DialogResult.OK);
+                }
+            }
+            catch (InvalidProtectedKeyException ex)
+            {
+                if (restartedFromSecureDesktop)
+                {
+                    _uiContextManager.CurrentContext.ShowError(ex,
+                        "Quick unlock was canceled to preserve KeePass secure desktop. Start unlocking again to enter the database master key.");
+                    CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
+                }
+                else
+                {
+                    _uiContextManager.CurrentContext.ShowError(ex,
+                        "Enter the database master key to continue.");
                 }
             }
             catch (AuthProviderKeyNotFoundException ex)
@@ -255,6 +271,11 @@ namespace KeePassWinHello
                     compositeKey = encryptedData.GetCompositeKey(_keyCipher);
                     return true;
                 }
+            }
+            catch (InvalidProtectedKeyException)
+            {
+                _keyStorage.Remove(dbPath);
+                throw;
             }
             catch (AuthProviderInvalidKeyException)
             {

@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions\AuthProviderKeyNotFoundException.cs" />
+    <Compile Include="Exceptions\InvalidProtectedKeyException.cs" />
     <Compile Include="KeyManagement\KeyManagerProvider.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
