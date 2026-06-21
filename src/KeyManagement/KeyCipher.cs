@@ -49,6 +49,8 @@ namespace KeePassWinHello
             try
             {
                 data = _cryptProvider.PromptToDecrypt(encryptedData);
+                if (data == null || data.Length != (int)(_randomSeedBits >> 3))
+                    throw new InvalidProtectedKeyException();
 
                 var result = new ProtectedBinary(true, data);
                 return result;
