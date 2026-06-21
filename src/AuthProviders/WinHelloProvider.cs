@@ -34,6 +34,7 @@ namespace KeePassWinHello
         private const int TPM_20_E_SIZE = unchecked((int)0x80280095);
         private const int TPM_20_E_159 = unchecked((int)0x80280159);
         private const int ERROR_CANCELLED = unchecked((int)0x800704C7);
+        private const int WINBIO_E_INVALID_TICKET = unchecked((int)0x80098044); // The biometric ticket is incorrect or expired.
         private const int WINBIO_E_DATA_PROTECTION_FAILURE = unchecked((int)0x80098046); // The biometric service could not decrypt the data.
 
         [StructLayout(LayoutKind.Sequential)]
@@ -293,6 +294,12 @@ namespace KeePassWinHello
                 {
                     switch (ex.ErrorCode)
                     {
+                        case WINBIO_E_INVALID_TICKET:          // #113
+                            if (i < Settings.MAX_RETRY_COUNT)
+                                break;
+                            throw new AuthProviderInvalidTicketException(
+                                "Windows Hello could not verify the biometric authentication result. Try unlocking again and choose PIN if biometric authentication continues to fail.",
+                                ex);
                         case TPM_20_E_HANDLE:                  // #68
                         case TPM_20_E_SIZE:                    // #77
                         case TPM_20_E_159:                     // #42
