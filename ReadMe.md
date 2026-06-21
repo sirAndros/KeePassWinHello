@@ -101,6 +101,10 @@ Create junction/copy folder with KeePass.exe to root of the repository as folder
 Debug "KeePassWinHello.Debug" project with "Linked KeePass" launch profile.
 If you add some file - don't forget to add it to `KeePassWinHello.csproj`, otherwise it won't be included in plgx on publish.
 
+### Undocumented provider properties
+
+The persistent Windows Hello key implementation first tries the Microsoft Passport provider-specific property name `NgcCacheType`, then falls back to `NgcCacheTypeProperty` if that operation fails. Neither name is publicly documented by Microsoft. Repository history records when the names were introduced, but not how they were discovered; do not treat this implementation as evidence that Microsoft supports either name as a stable API.
+
 Credits
 -------
 

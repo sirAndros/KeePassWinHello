@@ -16,8 +16,10 @@ namespace KeePassWinHello
         private const string NCRYPT_USE_CONTEXT_PROPERTY = "Use Context";
         private const string NCRYPT_LENGTH_PROPERTY = "Length";
         private const string NCRYPT_KEY_USAGE_PROPERTY = "Key Usage";
+        // These Passport KSP-specific property names are not publicly documented by Microsoft.
+        // Keep the second spelling as a fallback, but do not assume either is a stable API.
         private const string NCRYPT_NGC_CACHE_TYPE_PROPERTY = "NgcCacheType";
-        private const string NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED = "NgcCacheTypeProperty";
+        private const string NCRYPT_NGC_CACHE_TYPE_PROPERTY_FALLBACK = "NgcCacheTypeProperty";
         private const string NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY = "PinCacheIsGestureRequired";
         private const string BCRYPT_RSA_ALGORITHM = "RSA";
         private const int NCRYPT_NGC_CACHE_TYPE_PROPERTY_AUTH_MANDATORY_FLAG = 0x00000001;
@@ -429,7 +431,7 @@ namespace KeePassWinHello
             }
             catch
             {
-                NCryptGetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED, ref cacheType, sizeof(int), out pcbResult, CngPropertyOptions.None).ThrowOnError("NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED");
+                NCryptGetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY_FALLBACK, ref cacheType, sizeof(int), out pcbResult, CngPropertyOptions.None).ThrowOnError("NCRYPT_NGC_CACHE_TYPE_PROPERTY_FALLBACK");
             }
             if (cacheType != NCRYPT_NGC_CACHE_TYPE_PROPERTY_AUTH_MANDATORY_FLAG)
                 return false;
@@ -466,7 +468,7 @@ namespace KeePassWinHello
                 }
                 catch
                 {
-                    NCryptSetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED, cacheType, cacheType.Length, CngPropertyOptions.None).ThrowOnError("NCRYPT_NGC_CACHE_TYPE_PROPERTY_DEPRECATED");
+                    NCryptSetProperty(ngcKeyHandle, NCRYPT_NGC_CACHE_TYPE_PROPERTY_FALLBACK, cacheType, cacheType.Length, CngPropertyOptions.None).ThrowOnError("NCRYPT_NGC_CACHE_TYPE_PROPERTY_FALLBACK");
                 }
 
                 ApplyUIContext(ngcKeyHandle);
