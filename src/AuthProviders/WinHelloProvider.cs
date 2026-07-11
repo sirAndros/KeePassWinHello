@@ -34,6 +34,7 @@ namespace KeePassWinHello
         private const int TPM_20_E_SIZE = unchecked((int)0x80280095);
         private const int TPM_20_E_159 = unchecked((int)0x80280159);
         private const int ERROR_CANCELLED = unchecked((int)0x800704C7);
+        private const int WINBIO_E_INVALID_TICKET = unchecked((int)0x80098044); // The biometric ticket is incorrect or expired.
         private const int WINBIO_E_DATA_PROTECTION_FAILURE = unchecked((int)0x80098046); // The biometric service could not decrypt the data.
 
         [StructLayout(LayoutKind.Sequential)]
@@ -287,12 +288,25 @@ namespace KeePassWinHello
             {
                 try
                 {
-                    return PromptToDecrypt(data, retry: i > 0);
+                    return PromptToDecrypt(data, retryMessage: i > 0 ? Settings.FailedRetryMessage : null);
                 }
                 catch (AuthProviderSystemErrorException ex)
                 {
                     switch (ex.ErrorCode)
                     {
+                        case WINBIO_E_INVALID_TICKET:          // #113
+                            // The gesture completed but its ticket was rejected. Seen on the
+                            // first prompt of a fresh KeePass start, when the credential dialog
+                            // loses the foreground race during app startup; a re-prompt with
+                            // restored foreground succeeds (PIN never hits this because typing
+                            // it takes long enough for the window state to settle).
+                            if (i >= Settings.MAX_RETRY_COUNT)
+                                throw new AuthProviderInvalidTicketException(
+                                    "Windows Hello rejected the authentication result. " +
+                                    "If face keeps failing, choose 'More choices' > 'PIN' in the prompt.",
+                                    ex);
+                            BringParentWindowToForegroundSafe();
+                            continue; // the prompt is user-paced, no delay needed
                         case TPM_20_E_HANDLE:                  // #68
                         case TPM_20_E_SIZE:                    // #77
                         case TPM_20_E_159:                     // #42
@@ -306,6 +320,24 @@ namespace KeePassWinHello
 
                     Thread.Sleep(Settings.ATTEMPT_DELAY);
                 }
+            }
+        }
+
+        private void BringParentWindowToForegroundSafe()
+        {
+            try
+            {
+                var uiContext = _uiContextManager.CurrentContext;
+                if (uiContext != null)
+                {
+                    var win = Win32Window.From(uiContext.ParentWindowHandle.Value);
+                    if (win != null)
+                        win.EnsureForeground();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail(ex.Message);
             }
         }
 
@@ -335,7 +367,7 @@ namespace KeePassWinHello
             return cbResult;
         }
 
-        private byte[] PromptToDecrypt(byte[] data, bool retry)
+        private byte[] PromptToDecrypt(byte[] data, string retryMessage)
         {
             byte[] cbResult;
             SafeNCryptProviderHandle ngcProviderHandle;
@@ -349,7 +381,7 @@ namespace KeePassWinHello
                     if (CurrentCacheType == AuthCacheType.Persistent && !VerifyPersistentKeyIntegrity(ngcKeyHandle))
                         throw new AuthProviderInvalidKeyException(InvalidatedKeyMessage);
 
-                    ApplyUIContext(ngcKeyHandle, retry);
+                    ApplyUIContext(ngcKeyHandle, retryMessage);
 
                     byte[] pinRequired = BitConverter.GetBytes(1);
                     NCryptSetProperty(ngcKeyHandle, NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, pinRequired, pinRequired.Length, CngPropertyOptions.None).ThrowOnError("NCRYPT_PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY");
@@ -357,7 +389,10 @@ namespace KeePassWinHello
                     // The pbInput and pbOutput parameters can point to the same buffer. In this case, this function will perform the decryption in place.
                     cbResult = new byte[data.Length * 2];
                     int pcbResult;
-                    NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptDecrypt");
+                    using (CredentialDialogForegroundEnforcer.Start())
+                    {
+                        NCryptDecrypt(ngcKeyHandle, data, data.Length, IntPtr.Zero, cbResult, cbResult.Length, out pcbResult, NCRYPT_PAD_PKCS1_FLAG).ThrowOnError("NCryptDecrypt");
+                    }
                     // TODO: secure resize
                     Array.Resize(ref cbResult, pcbResult);
                 }
@@ -477,7 +512,71 @@ namespace KeePassWinHello
             return ngcKeyHandle;
         }
 
-        private void ApplyUIContext(SafeNCryptKeyHandle ngcKeyHandle, bool retryMessage = false)
+        // The Windows Hello credential dialog is hosted in another process; if it
+        // does not own the foreground when a biometric gesture completes, the
+        // service rejects the resulting ticket (WINBIO_E_INVALID_TICKET, #113).
+        // Typical on the first prompt of a fresh KeePass start, while the app is
+        // still winning the activation race, so keep pushing the dialog to the
+        // foreground for the first couple of seconds of each prompt.
+        private sealed class CredentialDialogForegroundEnforcer : IDisposable
+        {
+#if DEBUG
+            private const string CredentialDialogClass = null;
+#else
+            private const string CredentialDialogClass = "Credential Dialog Xaml Host";
+#endif
+            private const string CredentialDialogTitle = "Windows Security";
+            private const int DialogAppearanceTimeoutMs = 5000;
+            private const int EnforcementAttempts = 20;
+            private const int EnforcementIntervalMs = 100;
+
+            private volatile bool _stopped;
+
+            private CredentialDialogForegroundEnforcer() { }
+
+            public static IDisposable Start()
+            {
+                var enforcer = new CredentialDialogForegroundEnforcer();
+                try
+                {
+                    Win32Window.AllowAllSetForeground();
+                    var thread = new Thread(enforcer.Run) { IsBackground = true };
+                    thread.Start();
+                }
+                catch (Exception ex)
+                {
+                    Debug.Fail(ex.Message);
+                }
+                return enforcer;
+            }
+
+            private void Run()
+            {
+                try
+                {
+                    var dialog = Win32Window.Find(CredentialDialogClass, CredentialDialogTitle, DialogAppearanceTimeoutMs);
+                    for (int i = 0; i < EnforcementAttempts && !_stopped && dialog != null; ++i)
+                    {
+                        if (dialog.IsWindowOnForeground())
+                            return;
+                        try { dialog.EnsureForeground(); } catch { }
+                        Thread.Sleep(EnforcementIntervalMs);
+                        dialog = Win32Window.Find(CredentialDialogClass, CredentialDialogTitle);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.Fail(ex.Message);
+                }
+            }
+
+            public void Dispose()
+            {
+                _stopped = true;
+            }
+        }
+
+        private void ApplyUIContext(SafeNCryptKeyHandle ngcKeyHandle, string retryMessage = null)
         {
             var uiContext = _uiContextManager.CurrentContext;
             if (uiContext != null)
@@ -491,8 +590,8 @@ namespace KeePassWinHello
                 }
 
                 string message = uiContext.Message;
-                if (retryMessage)
-                    message = Settings.FailedRetryMessage + message;
+                if (!string.IsNullOrEmpty(retryMessage))
+                    message = retryMessage + message;
 
                 if (!string.IsNullOrEmpty(message))
                     NCryptSetProperty(ngcKeyHandle, NCRYPT_USE_CONTEXT_PROPERTY, message, (message.Length + 1) * 2, CngPropertyOptions.None).ThrowOnError("NCRYPT_USE_CONTEXT_PROPERTY");

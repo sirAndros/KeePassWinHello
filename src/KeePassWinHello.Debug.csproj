@@ -7,6 +7,7 @@
     <AssemblyName>KeePassWinHello</AssemblyName>
 
     <Configurations>Debug;Release;DebugDummy</Configurations>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <DefineConstants Condition="'$(Configuration)'=='DebugDummy'">$(DefineConstants);DUMMY_PROVIDER</DefineConstants>
   </PropertyGroup>
 
@@ -47,6 +48,9 @@
     <Content Include="Resources\KPWH_16x16.png" />
     <Content Include="Resources\KPWH_32x32.png" />
     <Content Include="Resources\KPWH_512x512.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
   </ItemGroup>
 
   <Target Name="PackPlugin" AfterTargets="PostBuildEvent" Condition="!($(DefineConstants.Contains('MONO')))">

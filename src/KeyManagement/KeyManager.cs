@@ -70,15 +70,15 @@ namespace KeePassWinHello
             else
             {
                 StopMonitorWarning();
-                RestoreSecureDesktopSettings();
-                Unlock(keyPromptForm, dbPath);
+                bool restartedFromSecureDesktop = RestoreSecureDesktopSettings();
+                Unlock(keyPromptForm, dbPath, restartedFromSecureDesktop);
             }
         }
 
         private void RestartPromptOnMainDesktopAndSuppressWarning(KeyPromptForm keyPromptForm)
         {
             IDisposable warningSuppresser = null;
-            if (Volatile.Read(ref _warningSuppresser) == null)
+            if (Interlocked.CompareExchange(ref _warningSuppresser, null, null) == null) // Volatile.Read is unavailable in net4.0
                 warningSuppresser = KeePassWarningSuppresser.SuppressAllWarningWindows(_uiContextManager);
 
             try
@@ -107,14 +107,17 @@ namespace KeePassWinHello
             CloseFormWithResult(keyPromptForm, DialogResult.OK);
         }
 
-        private void RestoreSecureDesktopSettings()
+        private bool RestoreSecureDesktopSettings()
         {
             int oldTriesValue = Interlocked.Exchange(ref _masterKeyTries, NoChanges);
             if (oldTriesValue != NoChanges)
             {
                 KeePass.Program.Config.Security.MasterKeyTries = oldTriesValue;
                 KeePass.Program.Config.Security.MasterKeyOnSecureDesktop = true;
+                return true;
             }
+
+            return false;
         }
 
         public void OnDBClosing(object sender, FileClosingEventArgs e)
@@ -144,7 +147,7 @@ namespace KeePassWinHello
                 _warningSuppresser = null;
         }
 
-        private void Unlock(KeyPromptForm keyPromptForm, string dbPath)
+        private void Unlock(KeyPromptForm keyPromptForm, string dbPath, bool restartedFromSecureDesktop)
         {
             try
             {
@@ -165,6 +168,12 @@ namespace KeePassWinHello
             catch (AuthProviderUserCancelledException)
             {
                 CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
+            }
+            catch (AuthProviderInvalidTicketException ex)
+            {
+                _uiContextManager.CurrentContext.ShowError(ex);
+                if (restartedFromSecureDesktop)
+                    CloseFormWithResult(keyPromptForm, DialogResult.Cancel);
             }
         }
 
@@ -266,6 +275,10 @@ namespace KeePassWinHello
             {
                 if (Settings.Instance.RevokeOnCancel)
                     _keyStorage.Remove(dbPath);
+                throw;
+            }
+            catch (AuthProviderInvalidTicketException)
+            {
                 throw;
             }
             catch (Exception)
